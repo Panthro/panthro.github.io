@@ -34,7 +34,6 @@ remote_theme: "mmistakes/so-simple-theme@3.2.0"
 plugins:
   - jekyll-feed
 
-
 locale: en-us
 logo: "https://gravatar.com/avatar/78a94401970f439cfe6e9c626aeb295b?s=256"
 read_time: true
@@ -58,3 +57,5 @@ read_time: true
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+show_drafts: true
