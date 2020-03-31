@@ -4,6 +4,10 @@
 
 `jekyll serve`
 
+## Theme
+
+This site uses [so simple](https://github.com/mmistakes/so-simple-theme) theme
+
 ## Publushing changes
 
 Any commit made into master will be automatically published to [the site](https://rafaelroman.com)
