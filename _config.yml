@@ -23,8 +23,8 @@ email: panthro.rafael@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Software engineer working @N26 to build the bank people love to use.
 baseurl: "" # the subpath of your site, e.g. /blog
-#url: "https://rafaelroman/com" # the base hostname & protocol for your site, e.g. http://example.com
-url: https://panthro.github.io/
+url: "https://rafaelroman.com" # the base hostname & protocol for your site, e.g. http://example.com
+#url: https://panthro.github.io/
 twitter_username:
 github_username: panthro
 
