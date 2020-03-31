@@ -35,7 +35,7 @@ plugins:
 
 
 locale: en-us
-logo: "http://gravatar.com/avatar/78a94401970f439cfe6e9c626aeb295b?s=256"
+logo: "https://gravatar.com/avatar/78a94401970f439cfe6e9c626aeb295b?s=256"
 read_time: true
 
 # Exclude from processing.
