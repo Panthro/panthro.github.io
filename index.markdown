@@ -13,7 +13,7 @@ My main experience fields and where I have spent most of my career is **Backend 
 
 Besides employment, have started a third sector company called Notastica, as CTO, in Brazil that helped other Non Profit collect **> R$500k** in less than a year, and built mobile apps in my free time.
 
-Engineer behind the [Crochet Land](https://app.crochet.land) app available for Android and iOS with __over 2.5k users 📈__ daily and a rating of **4.9 ⭐**.
+Engineer behind the [Crochet Land](https://crochet.land) app available for [Android](https://play.google.com/store/apps/details?id=land.crochet.app&utm_source=rafaelroman.com&utm_campaign=link) and [iOS](https://itunes.apple.com/es/app/crochet-land/id1410827721) with __over 2.5k users 📈__ daily and a rating of **4.9 ⭐**.
 
 I love the feeling of building something new from scratch and seeing it become alive.
 
