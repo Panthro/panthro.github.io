@@ -21,7 +21,7 @@
 title: Rafael Roman
 email: panthro.rafael@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Software engineer working @N26 to build the bank people love to use.
+  Software Engineer working @N26 to build the bank people love to use.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://rafaelroman.com" # the base hostname & protocol for your site, e.g. http://example.com
 #url: https://panthro.github.io/
@@ -53,11 +53,14 @@ footer_links:
   - title: Linkedin
     url: https://linkedin.com/in/panthro
     icon: fab fa-linkedin
-  - title: Feed
-    url: feed.xml
-    icon: fas fa-rss-square
+  - title: Stackoverflow
+    url: https://stackoverflow.com/users/656094/panthro
+    icon: fab fa-stack-overflow
+#  - title: Feed
+#    url: feed.xml
+#    icon: fas fa-rss-square
 
-copyright: "This site is made with ♥️  by me in Barcelona."
+copyright: "Made with ♥️"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
