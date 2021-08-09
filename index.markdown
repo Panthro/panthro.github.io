@@ -5,7 +5,7 @@
 layout: home
 ---
 
-Hi 👋🏼, I am __Rafael Roman__ a Software Engineer, born in 1987 at São Paulo, 🇧🇷 now living in the sunny Barcelona ☀️
+Hi 👋🏼, I am __Rafael Roman__ a Software Engineer, born in 1987 in São Paulo 🇧🇷, now living in the sunny Barcelona ☀️
 
 **Software Engineer 👨🏻‍💻** by passion with over **15 years** of experience.
 

@@ -27,11 +27,25 @@ url: "https://rafaelroman.com" # the base hostname & protocol for your site, e.g
 #url: https://panthro.github.io/
 twitter_username:
 github_username: panthro
+permalink: pretty
 
 author:
   name: Rafael Roman
   twitter: panthrorafael
   picture: "https://gravatar.com/avatar/78a94401970f439cfe6e9c626aeb295b?s=256"
+  links:
+    - title: Twitter
+      url: https://twitter.com/panthrorafael
+      icon: fab fa-twitter-square
+    - title: GitHub
+      url: https://github.com/panthro
+      icon: fab fa-github-square
+    - title: Linkedin
+      url: https://linkedin.com/in/panthro
+      icon: fab fa-linkedin
+    - title: Stackoverflow
+      url: https://stackoverflow.com/users/656094/panthro
+      icon: fab fa-stack-overflow
 
 # Build settings
 #theme: minima
@@ -60,7 +74,7 @@ footer_links:
 #    url: feed.xml
 #    icon: fas fa-rss-square
 
-copyright: "Made with ♥️"
+copyright: "Found a typo? Got feedback? [let me know](https://github.com/Panthro/panthro.github.io/issues/new)"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -84,3 +98,6 @@ exclude:
 #   - vendor/ruby/
 
 show_drafts: true
+
+disqus:
+  shortname: rafaelroman
