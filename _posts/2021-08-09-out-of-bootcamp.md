@@ -1,5 +1,6 @@
 ---
-layout: page title: Straight out of the bootcamp
+layout: page 
+title: Straight out of the bootcamp
 ---
 
 You finished your coding bootcamp and now is wondering "What's next".
