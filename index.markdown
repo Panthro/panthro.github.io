@@ -5,19 +5,40 @@
 layout: home
 ---
 
-Hi 👋🏼, I am __Rafael Roman__ a Software Engineer, born in 1987 in São Paulo 🇧🇷, now living in the sunny Barcelona ☀️
+Principal Software Engineer specialised in JVM; pivotal in building 5+ international banks. Currently shaping Europe's fintech at N26. Multilingual & Public speaker: 🇬🇧🇧🇷🇪🇸 & Catalan
 
-**Software Engineer 👨🏻‍💻** by passion with over **15 years** of experience.
+### 🔧 𝐓𝐞𝐜𝐡𝐧𝐢𝐜𝐚𝐥 𝐋𝐞𝐚𝐝𝐞𝐫𝐬𝐡𝐢𝐩 & 𝐒𝐨𝐟𝐭𝐰𝐚𝐫𝐞 𝐄𝐧𝐠𝐢𝐧𝐞𝐞𝐫𝐢𝐧𝐠
+- Backend & Mobile Development: Fluent in JVM languages; hands-on with Flutter.
+- Broad Tech Expertise: Embrace diverse challenges & technologies.
+- Side Projects: Developed & maintain an app with 2.5k+ daily active users.
 
-My main experience fields and where I have spent most of my career is **Backend Development**, **Mobile Development** and **Team Leadership**.
+### 💼 𝐏𝐫𝐨𝐟𝐞𝐬𝐬𝐢𝐨𝐧𝐚𝐥 𝐉𝐨𝐮𝐫𝐧𝐞𝐲
+- Pivotal in building 5+ international banks.
+- Global Experience: Origin - Brazil 🇧🇷 | Current - Barcelona 🇪🇸.
 
-Besides employment, have started a third sector company called Notastica, as CTO, in Brazil that helped other Non Profit collect **> R$1mi** in less than a
-year, and built mobile apps in my free time.
 
-Engineer behind the [Crochet Land](https://crochet.land) app available
-for [Android](https://play.google.com/store/apps/details?id=land.crochet.app&utm_source=rafaelroman.com&utm_campaign=link)
-and [iOS](https://itunes.apple.com/es/app/crochet-land/id1410827721) with __over 2.5k users 📈__ daily and a rating of **4.9 ⭐**.
+### 📈 𝐂𝐚𝐫𝐞𝐞𝐫 𝐓𝐫𝐚𝐣𝐞𝐜𝐭𝐨𝐫𝐲: 
+Spanning giants like IBM to dynamic startups; currently at Europe's top fintech, N26.
 
-I love the feeling of building something new from scratch and seeing it become alive.
+### 🗣️𝐏𝐮𝐛𝐥𝐢𝐜 𝐒𝐩𝐞𝐚𝐤𝐢𝐧𝐠
+Kafka Summit (2023)
+TEDx talk about AI in (2019)
+Multiple meetups since 2017
+Multiple internal company talks
+
+### 🌎 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞𝐬:
+🇬🇧 English
+
+🇧🇷 Portuguese
+
+🇪🇸 Spanish
+
+ Catalan
+
+### 👥 𝐓𝐞𝐚𝐦 𝐋𝐞𝐚𝐝𝐞𝐫𝐬𝐡𝐢𝐩
+Experienced in guiding engineering teams and managing stakeholders.
+
+### ❤️ 𝐏𝐚𝐬𝐬𝐢𝐨𝐧
+Driven by innovation and technology. It's more than a job; it's a calling.
 
  
