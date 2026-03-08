@@ -1,44 +1,29 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
 layout: home
 ---
 
-Principal Software Engineer specialised in JVM; pivotal in building 5+ international banks. Currently shaping Europe's fintech at N26. Multilingual & Public speaker: 🇬🇧🇧🇷🇪🇸 & Catalan
+CTO & Co-founder · 20+ years building software that matters · 🇧🇷 → 🇪🇸 → 🇨🇭
 
-### 🔧 𝐓𝐞𝐜𝐡𝐧𝐢𝐜𝐚𝐥 𝐋𝐞𝐚𝐝𝐞𝐫𝐬𝐡𝐢𝐩 & 𝐒𝐨𝐟𝐭𝐰𝐚𝐫𝐞 𝐄𝐧𝐠𝐢𝐧𝐞𝐞𝐫𝐢𝐧𝐠
-- Backend & Mobile Development: Fluent in JVM languages; hands-on with Flutter.
-- Broad Tech Expertise: Embrace diverse challenges & technologies.
-- Side Projects: Developed & maintain an app with 2.5k+ daily active users.
+### 🚀 What I'm building now
 
-### 💼 𝐏𝐫𝐨𝐟𝐞𝐬𝐬𝐢𝐨𝐧𝐚𝐥 𝐉𝐨𝐮𝐫𝐧𝐞𝐲
-- Pivotal in building 5+ international banks.
-- Global Experience: Origin - Brazil 🇧🇷 | Current - Barcelona 🇪🇸.
+Co-founder & CTO of **[Upgrid](https://upgrid.ch)** — a Swiss energy marketplace that connects local solar producers directly with consumers. Guaranteed lower prices, 100% local renewable energy, zero hardware. We're reshaping how communities buy and sell electricity in Switzerland.
 
+### 💼 The journey so far
 
-### 📈 𝐂𝐚𝐫𝐞𝐞𝐫 𝐓𝐫𝐚𝐣𝐞𝐜𝐭𝐨𝐫𝐲: 
-Spanning giants like IBM to dynamic startups; currently at Europe's top fintech, N26.
+20+ years across the full spectrum — from IBM and GFT to N26 (one of Europe's largest fintechs) to Personio, and now leading my own company. I've been hands-on building 5+ international banks, scaled systems to millions of users, and led engineering teams through hypergrowth.
 
-### 🗣️𝐏𝐮𝐛𝐥𝐢𝐜 𝐒𝐩𝐞𝐚𝐤𝐢𝐧𝐠
-Kafka Summit (2023)
-TEDx talk about AI in (2019)
-Multiple meetups since 2017
-Multiple internal company talks
+The through-line: solving hard problems at scale, in regulated industries, across borders.
 
-### 🌎 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞𝐬:
-🇬🇧 English
+### 🔧 Craft
 
-🇧🇷 Portuguese
+Backend at heart — JVM, Kotlin, distributed systems, event-driven architecture (Kafka Summit speaker, not by accident). I've done mobile (Flutter), led platform teams, and shipped things people actually use. Also built and maintained an app with 2,500+ daily active users as a side project.
 
-🇪🇸 Spanish
+### 🗣️ Public speaking
 
- Catalan
+I've spoken at Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, DevBCN, JavaCro, and gave a TEDx talk on AI back in 2019 — before it was cool. Happy to talk distributed systems, fintech lessons, energy tech, or honest career advice.
 
-### 👥 𝐓𝐞𝐚𝐦 𝐋𝐞𝐚𝐝𝐞𝐫𝐬𝐡𝐢𝐩
-Experienced in guiding engineering teams and managing stakeholders.
+[Speaker profile on Sessionize →](https://sessionize.com/rafaelroman)
 
-### ❤️ 𝐏𝐚𝐬𝐬𝐢𝐨𝐧
-Driven by innovation and technology. It's more than a job; it's a calling.
+### 🌍 Background
 
- 
+Born in São Paulo 🇧🇷, spent a decade in Barcelona 🇪🇸, now based in Basel 🇨🇭. Fluent in Portuguese, Spanish, English, and Catalan.
