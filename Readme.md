@@ -1,29 +1,64 @@
+![Astro Nano](_astro_nano.png)
 
+Astro Nano is a static, minimalist, lightweight, lightning fast portfolio and blog theme.
 
-## Running local
+Built with Astro, Tailwind and Typescript, an no frameworks.
 
-`jekyll serve`
+It was designed as an even more minimal theme than my popular theme [Astro Sphere](https://github.com/markhorn-dev/astro-sphere)
 
-## Theme
+## 🚀 Deploy your own
 
-This site uses [so simple](https://github.com/mmistakes/so-simple-theme) theme
+[![Deploy with Vercel](_deploy_vercel.svg)](https://vercel.com/new/clone?repository-url=https://github.com/markhorn-dev/astro-nano)  [![Deploy with Netlify](_deploy_netlify.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/markhorn-dev/astro-nano)
 
-## Publushing changes
+## 📋 Features
 
-Any commit made into master will be automatically published to [the site](https://rafaelroman.com)
+- ✅ 100/100 Lighthouse performance
+- ✅ Responsive
+- ✅ Accessible
+- ✅ SEO-friendly
+- ✅ Typesafe
+- ✅ Minimal style
+- ✅ Light/Dark Theme
+- ✅ Animated UI
+- ✅ Tailwind styling
+- ✅ Auto generated sitemap
+- ✅ Auto generated RSS Feed
+- ✅ Markdown support
+- ✅ MDX Support (components in your markdown)
 
-## Composing new page
+## 💯 Lighthouse score
+![Astro Nano Lighthouse Score](_lighthouse.png)
 
-There is an admin dashboard that can be used based on `jekyll-manager`, just run it locally and point to [the admin](http://localhost:4000/admin)
+## 🕊️ Lightweight
+No frameworks or added bulk
 
-The following commands can be used (from jekyll-compose)
-```
-  draft      # Creates a new draft post with the given NAME
-  post       # Creates a new post with the given NAME
-  publish    # Moves a draft into the _posts directory and sets the date
-  unpublish  # Moves a post back into the _drafts directory
-  page       # Creates a new page with the given NAME
-  rename     # Moves a draft to a given NAME and sets the title
-  compose    # Creates a new file with the given NAME
-```
+## ⚡︎ Fast
+Rendered in ~40ms on localhost
 
+## 📄 Configuration
+
+The blog posts on the demo serve as the documentation and configuration.
+
+## 💻 Commands
+
+All commands are run from the root of the project, from a terminal:
+
+Replace npm with your package manager of choice. `npm`, `pnpm`, `yarn`, `bun`, etc
+
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run dev:network`     | Starts local dev server on local network         |
+| `npm run sync`            | Generates TypeScript types for all Astro modules.|
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run preview:network` | Preview build on local network                   |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
+| `npm run lint`            | Run ESLint                                       |
+| `npm run lint:fix`        | Auto-fix ESLint issues                           |
+
+## 🏛️ License
+
+MIT
