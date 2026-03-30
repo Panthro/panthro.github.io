@@ -10,7 +10,13 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
-        serif: ["Lora", ...defaultTheme.fontFamily.serif],
+        mono: ["JetBrains Mono", ...defaultTheme.fontFamily.mono],
+      },
+      colors: {
+        accent: {
+          DEFAULT: "#a3e635",
+          light: "#84cc16",
+        },
       },
     },
   },

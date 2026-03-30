@@ -4,7 +4,7 @@
 
 html {
   overflow-y: scroll;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html.dark {
@@ -19,14 +19,23 @@ body {
 body {
   @apply font-sans antialiased;
   @apply flex flex-col;
-  @apply bg-stone-100 dark:bg-stone-900;
-  @apply text-black/50 dark:text-white/75;
+  @apply bg-zinc-950 dark:bg-zinc-950;
+  @apply text-zinc-400 dark:text-zinc-400;
+}
+
+html:not(.dark) body {
+  @apply bg-zinc-100 text-zinc-600;
 }
 
 header {
   @apply fixed top-0 left-0 right-0 z-50 py-5;
-  @apply bg-stone-100/75 dark:bg-stone-900/25;
-  @apply backdrop-blur-sm saturate-200;
+  @apply bg-zinc-950/80 dark:bg-zinc-950/80;
+  @apply backdrop-blur-md saturate-150;
+  @apply border-b border-zinc-800/50;
+}
+
+html:not(.dark) header {
+  @apply bg-zinc-100/80 border-zinc-200;
 }
 
 main {
@@ -39,19 +48,29 @@ footer {
 
 article {
   @apply max-w-full prose dark:prose-invert prose-img:mx-auto prose-img:my-auto;
-  @apply prose-headings:font-semibold prose-p:font-serif;
-  @apply prose-headings:text-black prose-headings:dark:text-white;
+  @apply prose-headings:font-bold prose-p:font-mono prose-p:text-sm;
+  @apply prose-headings:text-white prose-headings:dark:text-white;
+}
+
+html:not(.dark) article {
+  @apply prose-headings:text-zinc-900;
 }
 
 @layer utilities {
   article a {
     @apply font-sans text-current underline underline-offset-2;
-    @apply decoration-black/15 dark:decoration-white/30;
+    @apply decoration-lime-400/40 dark:decoration-lime-400/40;
     @apply transition-colors duration-300 ease-in-out;
   }
   article a:hover {
-    @apply text-black dark:text-white;
-    @apply decoration-black/25 dark:decoration-white/50;
+    @apply text-lime-400 dark:text-lime-400;
+    @apply decoration-lime-400/80 dark:decoration-lime-400/80;
+  }
+  html:not(.dark) article a {
+    @apply decoration-lime-600/40;
+  }
+  html:not(.dark) article a:hover {
+    @apply text-lime-600 decoration-lime-600/80;
   }
 }
 

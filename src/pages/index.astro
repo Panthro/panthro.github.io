@@ -2,20 +2,9 @@
 import { getCollection } from "astro:content";
 import Container from "@components/Container.astro";
 import PageLayout from "@layouts/PageLayout.astro";
-import ArrowCard from "@components/ArrowCard.astro";
 import Link from "@components/Link.astro";
 import { dateRange } from "@lib/utils";
 import { SITE, HOME, SOCIALS } from "@consts";
-
-const blog = (await getCollection("blog"))
-  .filter(post => !post.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
-
-const projects = (await getCollection("projects"))
-  .filter(project => !project.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, SITE.NUM_PROJECTS_ON_HOMEPAGE);
 
 const allwork = (await getCollection("work"))
   .sort((a, b) => new Date(b.data.dateStart).valueOf() - new Date(a.data.dateStart).valueOf())
@@ -31,65 +20,60 @@ const work = await Promise.all(
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
   <Container>
-    <h4 class="animate font-semibold text-black dark:text-white">
-      Hi, I'm Rafael <span class="text-xl">👋</span>
-    </h4>
-    <div class="space-y-16">
-      <section>
-        <article class="space-y-4">
-          <p class="animate">
-            CTO &amp; Co-founder · 20+ years building software that matters · 🇧🇷 → 🇪🇸 → 🇨🇭
-          </p>
-          <p class="animate">
-            Co-founder &amp; CTO of{" "}
+    <div class="space-y-20">
+      <section class="space-y-6">
+        <div class="animate">
+          <div class="w-12 h-1 bg-lime-400 mb-6"></div>
+          <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white">
+            Rafael Roman
+          </h1>
+        </div>
+        <p class="animate text-lg text-zinc-600 dark:text-zinc-400 max-w-xl">
+          CTO & Co-founder building the future of energy in Switzerland.
+          <span class="text-zinc-400 dark:text-zinc-500">20+ years shipping software that matters.</span>
+        </p>
+        <div class="animate space-y-4 font-mono text-sm">
+          <p>
+            Co-founder & CTO of{" "}
             <Link href="https://upgrid.ch" external>Upgrid</Link>
-            {" "}— a Swiss energy marketplace that connects local solar producers directly with
-            consumers. Guaranteed lower prices, 100% local renewable energy, zero hardware.
-            We're reshaping how communities buy and sell electricity in Switzerland.
+            {" "}&mdash; a Swiss energy marketplace connecting local solar producers
+            with consumers. Lower prices, 100% local renewable energy, zero hardware.
           </p>
-          <p class="animate">
-            20+ years across the full spectrum — from IBM and GFT to{" "}
-            <Link href="https://n26.com" external>N26</Link>
-            {" "}(one of Europe's largest fintechs) to Personio, and now leading my own company.
-            Built 5+ international banks, scaled systems to millions of users, led engineering
-            teams through hypergrowth.
+          <p>
+            From <Link href="https://n26.com" external>N26</Link> (Europe's largest neobank)
+            and Personio to building 5+ international banks at GFT.
+            Backend at heart &mdash; JVM, Kotlin, distributed systems, event-driven architecture.
           </p>
-          <p class="animate">
-            Backend at heart — JVM, Kotlin, distributed systems, event-driven architecture.
-            Also Flutter, platform teams.{" "}
-            <Link href="https://sessionize.com/rafaelroman" external>Kafka Summit speaker</Link>.
+          <p>
+            <span class="text-lime-600 dark:text-lime-400">Speaker:</span>{" "}
+            Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, TEDx.
           </p>
-          <p class="animate">
-            <strong>Speaking:</strong> Kafka Summit London, KotlinConf, WeAreDevelopers World Congress,
-            DevBCN, JavaCro, TEDx (AI, 2019).
+          <p class="text-zinc-400 dark:text-zinc-500">
+            Based in Basel. From S&atilde;o Paulo. A decade in Barcelona.
           </p>
-          <p class="animate">
-            Based in Basel 🇨🇭. From São Paulo 🇧🇷. Spent a decade in Barcelona 🇪🇸.<br />
-            Languages: Portuguese, Spanish, English, Catalan.
-          </p>
-        </article>
+        </div>
       </section>
 
       {work.length > 0 && (
         <section class="animate space-y-6">
           <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h5 class="font-semibold text-black dark:text-white">
-              Work Experience
-            </h5>
+            <h2 class="text-xl font-bold text-zinc-900 dark:text-white">
+              Work
+            </h2>
             <Link href="/work">
               See all
             </Link>
           </div>
           <ul class="flex flex-col space-y-4">
             {work.map(entry => (
-              <li>
-                <div class="text-sm opacity-75">
+              <li class="border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 hover:border-lime-600/50 dark:hover:border-lime-400/50 transition-colors duration-300">
+                <div class="text-xs font-mono text-zinc-400 dark:text-zinc-500">
                   {dateRange(entry.data.dateStart, entry.data.dateEnd)}
                 </div>
-                <div class="font-semibold text-black dark:text-white">
+                <div class="font-semibold text-zinc-900 dark:text-white">
                   {entry.data.company}
                 </div>
-                <div class="text-sm opacity-75">
+                <div class="text-sm text-lime-600/70 dark:text-lime-400/70">
                   {entry.data.role}
                 </div>
                 <article>
@@ -101,70 +85,22 @@ const work = await Promise.all(
         </section>
       )}
 
-      {blog.length > 0 && (
-        <section class="animate space-y-6">
-          <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h5 class="font-semibold text-black dark:text-white">
-              Latest posts
-            </h5>
-            <Link href="/blog">
-              See all posts
-            </Link>
-          </div>
-          <ul class="flex flex-col gap-4">
-            {blog.map(post => (
-              <li>
-                <ArrowCard entry={post} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {projects.length > 0 && (
-        <section class="animate space-y-6">
-          <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h5 class="font-semibold text-black dark:text-white">
-              Projects
-            </h5>
-            <Link href="/projects">
-              See all projects
-            </Link>
-          </div>
-          <ul class="flex flex-col gap-4">
-            {projects.map(project => (
-              <li>
-                <ArrowCard entry={project} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section class="animate space-y-4">
-        <h5 class="font-semibold text-black dark:text-white">
-          Let's Connect
-        </h5>
-        <article>
-          <p>
-            Interested in distributed systems, fintech, energy tech, or engineering leadership?
-            I'm always happy to chat. Find me on:
-          </p>
-        </article>
+        <h2 class="text-xl font-bold text-zinc-900 dark:text-white">
+          Connect
+        </h2>
+        <p class="font-mono text-sm">
+          Interested in distributed systems, fintech, energy tech, or engineering leadership? Find me on:
+        </p>
         <ul class="flex flex-wrap gap-2">
-          {SOCIALS.map(SOCIAL => (
+          {SOCIALS.map((SOCIAL, i) => (
             <li class="flex gap-x-2 text-nowrap">
               <Link href={SOCIAL.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}>
                 {SOCIAL.NAME}
               </Link>
-              {"/"}
+              {i < SOCIALS.length - 1 && <span class="text-zinc-700">/</span>}
             </li>
           ))}
-          <li class="line-clamp-1">
-            <Link href={`mailto:${SITE.EMAIL}`} aria-label={`Email ${SITE.NAME}`}>
-              {SITE.EMAIL}
-            </Link>
-          </li>
         </ul>
       </section>
     </div>

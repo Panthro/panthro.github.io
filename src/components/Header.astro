@@ -1,33 +1,29 @@
 ---
 import Container from "@components/Container.astro";
-import Link from "@components/Link.astro";
 import { SITE } from "@consts";
+
+const pathname = Astro.url.pathname;
 ---
 
 <header>
   <Container>
-    <div class="flex flex-wrap gap-y-2 justify-between">
-      <Link href="/" underline={false}>
-        <div class="font-semibold">
-          {SITE.NAME}
-        </div>
-      </Link>
-      <nav class="flex gap-1">
-        <Link href="/blog">
-          blog
-        </Link>
-        <span>
-          {`/`}
-        </span>
-        <Link href="/work">
+    <div class="flex flex-wrap gap-y-2 justify-between items-center">
+      <a href="/" class="font-bold text-zinc-900 dark:text-white tracking-tight hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300">
+        {SITE.NAME}
+      </a>
+      <nav class="flex gap-4 text-sm font-mono">
+        <a
+          href="/work"
+          class:list={[
+            "transition-colors duration-300",
+            pathname.startsWith("/work")
+              ? "text-lime-600 dark:text-lime-400"
+              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+          ]}
+          aria-current={pathname.startsWith("/work") ? "page" : undefined}
+        >
           work
-        </Link>
-        <span>
-          {`/`}
-        </span>
-        <Link href="/projects">
-          projects
-        </Link>
+        </a>
       </nav>
     </div>
   </Container>

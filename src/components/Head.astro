@@ -2,15 +2,14 @@
 import "../styles/global.css";
 import "@fontsource/inter/latin-400.css";
 import "@fontsource/inter/latin-600.css";
-import "@fontsource/lora/400.css";
-import "@fontsource/lora/600.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 import inter400 from "@fontsource/inter/files/inter-latin-400-normal.woff2";
 import inter600 from "@fontsource/inter/files/inter-latin-600-normal.woff2";
-import lora400 from "@fontsource/lora/files/lora-latin-400-normal.woff2";
-import lora600 from "@fontsource/lora/files/lora-latin-600-normal.woff2";
+import jbmono400 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2";
+import jbmono600 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2";
 
 import { ClientRouter } from "astro:transitions";
-import { SITE } from "@consts";
 
 interface Props {
   title: string;
@@ -20,7 +19,8 @@ interface Props {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = "/nano.png" } = Astro.props;
+const { title, description, image } = Astro.props;
+const ogImage = image ? new URL(image, Astro.site) : undefined;
 ---
 
 <!-- Global Metadata -->
@@ -28,15 +28,13 @@ const { title, description, image = "/nano.png" } = Astro.props;
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="generator" content={Astro.generator} />
 
 <!-- Font preloads -->
 <link rel="preload" href={inter400} as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href={inter600} as="font" type="font/woff2" crossorigin/>
-<link rel="preload" href={lora400} as="font" type="font/woff2" crossorigin/>
-<link rel="preload" href={lora600} as="font" type="font/woff2" crossorigin/>
+<link rel="preload" href={jbmono400} as="font" type="font/woff2" crossorigin/>
+<link rel="preload" href={jbmono600} as="font" type="font/woff2" crossorigin/>
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -48,22 +46,19 @@ const { title, description, image = "/nano.png" } = Astro.props;
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image, Astro.url)} />
+{ogImage && <meta property="og:image" content={ogImage} />}
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
-<meta property="twitter:title" content={title} />
-<meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image, Astro.url)} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{ogImage && <meta name="twitter:image" content={ogImage} />}
 
-<ClientRouter  />
-
-<!-- RSS Link -->
-<link rel="alternate" type="application/rss+xml" title={SITE.NAME} href={new URL("rss.xml", Astro.site)} />
+<ClientRouter />
 
 <script>
   import type { TransitionBeforeSwapEvent } from "astro:transitions/client";
@@ -77,51 +72,56 @@ const { title, description, image = "/nano.png" } = Astro.props;
 </script>
 
 <script is:inline>
+  var _scrollHandler = null;
+
   function init() {
     preloadTheme();
     onScroll();
     animate();
 
-    const backToTop = document.getElementById("back-to-top");
-    backToTop?.addEventListener("click", (event) => scrollToTop(event));
+    var backToTop = document.getElementById("back-to-top");
+    backToTop && backToTop.addEventListener("click", function(event) { scrollToTop(event); });
 
-    const backToPrev = document.getElementById("back-to-prev");
-    backToPrev?.addEventListener("click", () => window.history.back());
+    var backToPrev = document.getElementById("back-to-prev");
+    backToPrev && backToPrev.addEventListener("click", function() { window.history.back(); });
 
-    const lightThemeButton = document.getElementById("light-theme-button");
-    lightThemeButton?.addEventListener("click", () => {
+    var lightThemeButton = document.getElementById("light-theme-button");
+    lightThemeButton && lightThemeButton.addEventListener("click", function() {
       localStorage.setItem("theme", "light");
       toggleTheme(false);
     });
 
-    const darkThemeButton = document.getElementById("dark-theme-button");
-    darkThemeButton?.addEventListener("click", () => {
+    var darkThemeButton = document.getElementById("dark-theme-button");
+    darkThemeButton && darkThemeButton.addEventListener("click", function() {
       localStorage.setItem("theme", "dark");
       toggleTheme(true);
     });
 
-    const systemThemeButton = document.getElementById("system-theme-button");
-    systemThemeButton?.addEventListener("click", () => {
+    var systemThemeButton = document.getElementById("system-theme-button");
+    systemThemeButton && systemThemeButton.addEventListener("click", function() {
       localStorage.setItem("theme", "system");
       toggleTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
     });
 
     window.matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", event => {
+      .addEventListener("change", function(event) {
         if (localStorage.theme === "system" || !localStorage.theme) {
           toggleTheme(event.matches);
         }
-      }
-    );
+      });
 
-    document.addEventListener("scroll", onScroll);
+    if (_scrollHandler) {
+      document.removeEventListener("scroll", _scrollHandler);
+    }
+    _scrollHandler = onScroll;
+    document.addEventListener("scroll", _scrollHandler);
   }
 
   function animate() {
-    const animateElements = document.querySelectorAll(".animate");
+    var animateElements = document.querySelectorAll(".animate");
 
-    animateElements.forEach((element, index) => {
-      setTimeout(() => {
+    animateElements.forEach(function(element, index) {
+      setTimeout(function() {
         element.classList.add("show");
       }, index * 150);
     });
@@ -143,19 +143,18 @@ const { title, description, image = "/nano.png" } = Astro.props;
     });
   }
 
-function toggleTheme(dark) {
-    const css = document.createElement("style");
+  function toggleTheme(dark) {
+    var css = document.createElement("style");
 
     css.appendChild(
       document.createTextNode(
-        `* {
-             -webkit-transition: none !important;
-             -moz-transition: none !important;
-             -o-transition: none !important;
-             -ms-transition: none !important;
-             transition: none !important;
-          }
-        `,
+        "* {" +
+        "  -webkit-transition: none !important;" +
+        "  -moz-transition: none !important;" +
+        "  -o-transition: none !important;" +
+        "  -ms-transition: none !important;" +
+        "  transition: none !important;" +
+        "}"
       )
     );
 
@@ -167,12 +166,12 @@ function toggleTheme(dark) {
       document.documentElement.classList.remove("dark");
     }
 
-  window.getComputedStyle(css).opacity;
+    window.getComputedStyle(css).opacity;
     document.head.removeChild(css);
   }
 
   function preloadTheme() {
-    const userTheme = localStorage.theme;
+    var userTheme = localStorage.theme;
 
     if (userTheme === "light" || userTheme === "dark") {
       toggleTheme(userTheme === "dark");
@@ -181,7 +180,7 @@ function toggleTheme(dark) {
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => init());
-  document.addEventListener("astro:after-swap", () => init());
+  document.addEventListener("DOMContentLoaded", function() { init(); });
+  document.addEventListener("astro:after-swap", function() { init(); });
   preloadTheme();
 </script>
