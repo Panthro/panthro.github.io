@@ -3,6 +3,7 @@ title: "Fraud Prevention"
 description: "Real-time fraud and financial crime prevention at neobank scale — architecture, streaming, and lessons from rebuilding N26's risk engine."
 relatedArticles:
   - rebuilding-fraud-prevention-at-n26
+  - engineering-at-n26-tech-stack
 relatedTalks:
   - kotlinconf-2024
   - kafka-summit-london-2023

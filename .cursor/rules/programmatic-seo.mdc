@@ -1,0 +1,45 @@
+---
+description: Programmatic SEO — talk, work, and topic detail pages
+globs: src/content/speaking/**,src/content/work/**,src/content/topics/**,src/pages/speaking/**,src/pages/work/**,src/pages/topics/**,src/layouts/TalkLayout.astro,src/layouts/WorkLayout.astro,src/layouts/TopicLayout.astro
+alwaysApply: false
+---
+
+# Programmatic SEO pages
+
+Low-volume, high-uniqueness pSEO. Every detail page must pass: unique body copy, real search intent, 2+ internal links.
+
+## Routes (auto from content collections)
+
+| Collection | URL | Layout |
+|------------|-----|--------|
+| `speaking/*.md` | `/speaking/{id}/` | `TalkLayout.astro` |
+| `work/*.md` | `/work/{id}/` | `WorkLayout.astro` |
+| `topics/*.md` | `/topics/{id}/` | `TopicLayout.astro` |
+
+Slug = filename without extension (`kotlinconf-2024`, `n26`, `fraud-prevention`).
+
+## Frontmatter cross-links
+
+```yaml
+relatedArticles: [article-id]
+relatedTalks: [talk-id]
+relatedWork: [work-id]        # speaking + topics only
+```
+
+Update **both directions** when linking (e.g. new talk → add to N26 work + fraud-prevention topic).
+
+## Content quality gates
+
+- **Talks:** body abstract required; verify `link` URL live
+- **Work:** body narrative required; not résumé bullets alone
+- **Topics:** 100+ word original intro in body; curated slugs only — no auto-tag pages
+
+## Title/meta (set in `[...slug].astro` + layouts)
+
+- Talk: `{title · event · Rafael Roman}` or `{event · Rafael Roman}`
+- Work: `{role} at {company} · Rafael Roman}`
+- Topic: `{title} · Topics · Rafael Roman}`
+
+## Skip
+
+Location doorway pages, glossary spam, tag archives < 3 articles.

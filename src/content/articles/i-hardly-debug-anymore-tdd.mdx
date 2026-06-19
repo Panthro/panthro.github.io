@@ -1,0 +1,200 @@
+---
+title: "I Hardly Debug Anymore"
+description: "I used to relaunch the app five times to check one change. TDD felt like homework until the feedback loop clicked — now tests are how I think, not what I do after."
+date: "2023-02-16"
+draft: false
+tags: ["tdd", "testing", "engineering-leadership", "code-quality"]
+related:
+  - code-freeze-purpose
+  - say-yes-first-platform-teams
+  - straight-out-of-the-bootcamp
+---
+
+import { Callout } from "../../components/articles/Callout";
+import { PullQuote } from "../../components/articles/PullQuote";
+import { Compare } from "../../components/articles/Compare";
+import { Pipeline } from "../../components/articles/Pipeline";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+import { SignalList } from "../../components/articles/SignalList";
+import { Checklist } from "../../components/articles/Checklist";
+import { LessonStack } from "../../components/articles/LessonStack";
+
+For years I treated tests as something you added when someone on the team nagged you — or when a PR reviewer left the comment. I wanted to write the feature and ship it. Testing meant stopping the fun part to do paperwork.
+
+My actual workflow was worse: **relaunch the app**, click through the flow, squint at the output, tweak a line, repeat. Five times for a one-line change. Sometimes ten. I called it "manual testing." It was just slow debugging with extra steps and no record of what I'd already checked.
+
+Then I tried test-driven development on a greenfield project. The first hour felt ridiculous. By the end of the week I was annoyed at every codebase that didn't have a test harness ready. This is what changed.
+
+## The lie I told myself
+
+The objections sound familiar because everyone has them:
+
+- Tests slow you down
+- You'll test manually — you're careful
+- TDD is for pedants and conference speakers
+- You don't know how to write *good* tests yet, so why start badly
+
+I believed all of it. What I was really optimizing for was **immediate gratification** — seeing the UI move — not **confidence that the system behaves**. Those are different products. I was shipping the first and borrowing trouble on the second.
+
+<Compare
+  before={{
+    label: "Relaunch-driven development",
+    items: [
+      "Change code → restart app → click through → forget edge case",
+      "Bugs found late — often by someone else",
+      "Fear of refactoring; \"if it works don't touch it\"",
+      "Debugging sessions that eat afternoons",
+    ],
+  }}
+  after={{
+    label: "Test-first feedback loop",
+    items: [
+      "Write failing test → minimal code to pass → refactor safely",
+      "Bugs caught in seconds, at the keyboard",
+      "Refactors become cheap — tests are the safety net",
+      "Debugging is rare; most issues surface as red tests",
+    ],
+  }}
+/>
+
+<PullQuote>How many times did you relaunch the app to "test" a one-line change? That number is a metric. Mine was embarrassing.</PullQuote>
+
+## What TDD actually is
+
+Strip away the ideology. TDD is a **tight feedback loop**:
+
+<Pipeline
+  title="Red → Green → Refactor"
+  stages={[
+    {
+      name: "Red",
+      duration: "seconds",
+      detail: "Write a test that describes the behavior you want. Run it. Watch it fail for the right reason — not because the test is broken.",
+    },
+    {
+      name: "Green",
+      duration: "minutes",
+      detail: "Write the smallest amount of production code to pass. Resist the urge to build the cathedral. Just make the test green.",
+    },
+    {
+      name: "Refactor",
+      duration: "minutes",
+      detail: "Clean up with the tests running. Rename, extract, simplify — knowing you'll know immediately if you broke something.",
+    },
+  ]}
+/>
+
+<FlowDiagram
+  title="The loop that replaced my relaunch ritual"
+  steps={[
+    { id: "test", label: "Failing test", sublabel: "specify behavior" },
+    { id: "pass", label: "Green", sublabel: "minimal code" },
+    { id: "clean", label: "Refactor", sublabel: "safe cleanup" },
+    { id: "next", label: "Next test", sublabel: "repeat" },
+  ]}
+/>
+
+The first few cycles feel awkward. You're writing tests for code that doesn't exist. Your tests are too big or too coupled to implementation details. That's normal. The skill is the same as any other — bad at first, then muscle memory.
+
+What hooked me wasn't virtue. It was **speed of certainty**. A passing test is a binary signal. No clicking, no log-diving, no "did I forget to rebuild?" Just green or red.
+
+## What you actually gain
+
+This isn't about coverage percentages on a dashboard. It's about how it feels to work.
+
+<SignalList
+  items={[
+    {
+      title: "Design pressure in the right direction",
+      body: "Writing the test first forces you to decide what the code should do before you decide how. Un-testable designs show up immediately — usually that's a hint the API is wrong.",
+    },
+    {
+      title: "Bugs die young",
+      body: "A bug caught while the context is in your head costs minutes. The same bug found in staging costs hours. In production at a bank it costs a incident channel and a postmortem.",
+    },
+    {
+      title: "Refactoring stops being scary",
+      body: "The biggest hidden tax in legacy code is fear of change. Tests don't eliminate risk — they cap it. You can rename that gnarly module because 40 tests will tell you what you broke.",
+    },
+    {
+      title: "You ship faster, not slower",
+      body: "Counterintuitive until you've lived it. Less time restarting apps. Less time debugging mysteries. More time in a flow where every change has a defined done state.",
+    },
+  ]}
+/>
+
+I said it in the original piece and I'll say it again without the meme framing: **I hardly debug my code anymore.** Not because I don't make mistakes — because mistakes surface as failing tests while I'm still in the same file, not as a Slack message from QA on Friday afternoon.
+
+<Callout type="tip" title="TDD is not a religion">
+  I don't write tests first for every spike or throwaway script. TDD shines when behavior is non-obvious, regressions are expensive, or the code will outlive the afternoon. Match the discipline to the stakes.
+</Callout>
+
+## How to start without hating it
+
+You don't need to convert the whole repo. You need one win.
+
+<Checklist
+  title="A first week that sticks"
+  items={[
+    {
+      question: "Pick one pure function or small module",
+      detail: "Not the authentication service. Something with clear inputs and outputs — a parser, a fee calculator, a validator.",
+    },
+    {
+      question: "Write one test for the happy path",
+      detail: "One assertion. Run it. Watch it fail. That's success — you specified behavior before implementation.",
+    },
+    {
+      question: "Write the minimum code to pass",
+      detail: "Resist feature creep. The test is the scope boundary.",
+    },
+    {
+      question: "Add one edge case test",
+      detail: "Null input, empty string, boundary value. This is where TDD pays back fastest.",
+    },
+    {
+      question: "Refactor once, with tests green",
+      detail: "Extract a helper, rename a variable, kill duplication. Feel the safety net.",
+    },
+  ]}
+/>
+
+If your environment makes testing painful — no harness, slow CI, flaky integration suite — fix the harness first. TDD on a broken test setup is misery. A fast unit test run is infrastructure, not a nice-to-have.
+
+## What this isn't
+
+TDD won't save a bad architecture. It won't replace code review. It won't make you enjoy writing tests on day one — I didn't.
+
+It will change what "done" means. Done isn't "it worked when I clicked through once." Done is "the behavior is specified, the tests pass, and I can change this tomorrow without fear."
+
+<LessonStack
+  title="What I'd tell past-me"
+  lessons={[
+    {
+      title: "The relaunch tax is real",
+      body: "Every manual verification path you don't automate is debt. You pay interest every sprint.",
+    },
+    {
+      title: "Tests are a design tool first",
+      body: "If it's hard to test, the code is telling you something. Listen before you ship.",
+    },
+    {
+      title: "Green is addictive",
+      body: "Once you feel the loop — fail, pass, clean — manual testing feels as slow as it actually is.",
+    },
+    {
+      title: "Start embarrassingly small",
+      body: "One function, one test, one week. Conversion doesn't happen from a manifesto. It happens from a win.",
+    },
+  ]}
+/>
+
+## The point
+
+I didn't learn to love writing tests because someone lectured me about quality. I learned because TDD made me faster and calmer — and because I got tired of being the person who broke things in environments where breaking things has a cost.
+
+If you're still relaunching the app five times per change, you're not behind. You're one good afternoon away from wondering why you waited.
+
+<Callout type="note" title="Originally published on Medium">
+  This piece first appeared as [How I Learned to Love Writing Tests (and You Can Too!)](https://medium.com/@panthro/how-i-learned-to-love-writing-tests-and-you-can-too-d7b91d0748f1) (February 2023). Rewritten for this site — less cheerleading, same conversion story.
+</Callout>

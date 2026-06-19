@@ -1,0 +1,260 @@
+---
+title: "Engineering at N26"
+description: "Nine thousand containers, two hundred microservices, one licensed EU bank. An insider tour of how N26's stack actually worked — and the parts we hadn't finished yet."
+date: "2022-09-29"
+draft: false
+tags: ["fintech", "architecture", "kotlin", "kubernetes", "kafka", "distributed-systems"]
+related:
+  - rebuilding-fraud-prevention-at-n26
+  - code-freeze-purpose
+---
+
+import { Callout } from "../../components/articles/Callout";
+import { PullQuote } from "../../components/articles/PullQuote";
+import { StackLayers } from "../../components/articles/StackLayers";
+import { MetricRow } from "../../components/articles/MetricRow";
+import { Timeline } from "../../components/articles/Timeline";
+import { Pipeline } from "../../components/articles/Pipeline";
+import { Compare } from "../../components/articles/Compare";
+import { SignalList } from "../../components/articles/SignalList";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+import { LessonStack } from "../../components/articles/LessonStack";
+
+Someone messaged me on LinkedIn while I was at N26. They wanted to apply but assumed the backend was mostly Java — verbose, legacy, not where they wanted to go. When I told them the reality was Kotlin microservices on Kubernetes, they changed their mind entirely.
+
+That gap between outside perception and inside reality is why I wrote this. N26 had published a stack overview in 2018; by 2022 the picture had changed a lot. I had spent nearly three years inside it. This is the tour I wish I'd had on day one.
+
+<Callout type="note" title="Snapshot in time">
+  Written in September 2022, during my time at N26. Numbers, tooling, and migration percentages evolve — banks don't stand still. For what came later on financial crime and stream processing, see [Rebuilding Fraud Prevention from Scratch in Six Months](/articles/rebuilding-fraud-prevention-at-n26/).
+</Callout>
+
+## The shape of the system
+
+N26 is a licensed EU neobank. That sentence matters more than any framework choice: regulatory constraints, audit trails, and incident response aren't afterthoughts — they're load-bearing walls in the architecture.
+
+At a high level, here's what we were running:
+
+<StackLayers
+  title="Stack at a glance (2022)"
+  layers={[
+    {
+      name: "Product surface",
+      summary: "Mobile apps and web, backed by API gateways and BFF-style services. Customer-facing latency is the metric everyone feels.",
+      tags: ["REST", "mobile", "API gateway"],
+    },
+    {
+      name: "Microservices",
+      summary: "Roughly 230 services, heavily JVM/Kotlin, communicating over HTTP and increasingly over events. The default unit of ownership.",
+      tags: ["Kotlin", "Java", "Python", "TypeScript"],
+    },
+    {
+      name: "Event layer",
+      summary: "Async backbone for decoupling — SQS and Kinesis where they fit, Apache Kafka where we needed scale, resilience, and replay.",
+      tags: ["Kafka", "Kinesis", "SQS"],
+    },
+    {
+      name: "Data",
+      summary: "100+ PostgreSQL instances, standardized provisioning, compliance baked into how databases get created.",
+      tags: ["PostgreSQL", "IaC", "ML pipelines"],
+    },
+    {
+      name: "Platform",
+      summary: "Kubernetes everywhere, GitHub Actions + Argo CD for delivery, Datadog + ELK (moving to OpenSearch) for observability.",
+      tags: ["Kubernetes", "Argo CD", "Datadog"],
+    },
+  ]}
+/>
+
+<MetricRow
+  metrics={[
+    { value: "9k+", label: "Containers under management", highlight: true },
+    { value: "~230", label: "Microservices in the distributed stack" },
+    { value: "3 TB", label: "Daily inter-service traffic (10 TB at peak)" },
+    { value: "100+", label: "PostgreSQL databases, provisioned via PR" },
+  ]}
+/>
+
+<PullQuote>Everything lives in the cloud. At this scale, "we'll fix the deploy later" is a business risk, not a backlog item.</PullQuote>
+
+## Containers everywhere
+
+When I say everything lives in the cloud, I mean it literally — including the orchestration layers we outgrew.
+
+We ran over **9,000 containers**. For a long time that meant Nomad plus a home-grown orchestration layer on SpotInst. It worked until it didn't. Pipelines built on the old setup had grown to **~1.5 hours** end to end — E2E tests, security gates, quality checks, monitoring hooks. Continuous deployment to production since 2017 only helps if the pipe stays fast enough to use.
+
+Kubernetes became the obvious next step. Not because it's fashionable — because we needed predictable scheduling, a real ecosystem, and deployment times that didn't punish teams for shipping.
+
+<Timeline
+  title="Orchestration evolution"
+  items={[
+    {
+      time: "2017",
+      label: "Continuous deployment to prod",
+      detail: "Shipping frequently was already cultural; infra had to keep up.",
+    },
+    {
+      time: "→",
+      label: "Nomad + custom orchestration",
+      detail: "Step up from home-grown, but pipelines kept slowing down.",
+    },
+    {
+      time: "2022",
+      label: "Kubernetes in all environments",
+      detail: "80%+ of microservices migrated; typical deploy ~30 min, some pipelines under 15.",
+      highlight: true,
+    },
+  ]}
+/>
+
+The migration wasn't painless. Kubernetes has sharp edges, especially when you're regulated and can't afford mystery failures at 2 a.m. But the direction was clear: faster, more stable deploys, and infrastructure that scaled with the business instead of fighting it.
+
+## Kotlin, on purpose
+
+A few years before this snapshot, N26 made an explicit bet on **Kotlin** for the JVM backend. It paid off.
+
+When I joined, we were still in the mixed Java/Kotlin phase — new services bootstrapped in Kotlin, older Java codebases in maintenance mode. By 2022, Kotlin was the default for new JVM work. Not because Kotlin solves every problem — we still had Python, TypeScript, and Java where history or fit demanded it — but because the ergonomics matter at 230 services. Less ceremony, safer refactors, teams that actually wanted to open the repo.
+
+The LinkedIn message wasn't wrong to care about language — it was wrong about *which* language dominated. Perception lagged reality by years. That's common at fast-moving companies and worth fixing publicly.
+
+## CI/CD: separating build from release
+
+We were mid-flight migrating from **Jenkins** to **GitHub Actions** for CI and **Argo CD** for CD. The split matters: build artifacts in one place, deploy intent in another, clearer audit trail for regulators who ask *what* shipped *when* and *who approved it*.
+
+<Pipeline
+  title="Modern delivery pipeline (target state)"
+  stages={[
+    {
+      name: "CI",
+      duration: "minutes",
+      detail: "GitHub Actions — test, scan, build container image. Native Kubernetes awareness made migrated pipelines faster and less flaky than the Jenkins era.",
+    },
+    {
+      name: "CD",
+      duration: "≤30 min",
+      detail: "Argo CD — declarative deploys to K8s clusters across environments. Promotion paths aligned with our change-management rules.",
+    },
+    {
+      name: "Verify",
+      duration: "continuous",
+      detail: "Monitoring-as-code alerts and SLO dashboards. If prod misbehaves, the owning team's metrics fire first — not a central on-call guessing game.",
+    },
+  ]}
+/>
+
+Early days of the migration, but the migrated pipelines were already winning on speed and stability. In a bank, "faster CI" isn't a developer convenience — it's how you patch fraud vectors before the weekend.
+
+## Observability as infrastructure
+
+Continuous deployment without observability is just faster breakage.
+
+We invested heavily in **Datadog** for infra and app metrics, custom business metrics on top, and **ELK** for log access (with a move toward OpenSearch underway). The important shift wasn't the vendor list — it was **Monitoring as Code**: alerts and dashboards living in the same repos as the services they watch.
+
+Want to change an alert threshold? Open a PR on the service that owns the metric. Review it like code. Ship it like code. That sounds obvious until you've lived in a world where only three people can touch Grafana and everyone else pages them at midnight.
+
+<SignalList
+  items={[
+    {
+      title: "Logs on demand",
+      body: "Engineers could reach production logs through the ELK stack without a ticket-based ritual — critical when you're debugging a payment path at peak.",
+    },
+    {
+      title: "Metrics with business context",
+      body: "Infra graphs tell you the CPU spiked. Business metrics tell you card auths failed — different urgency, different runbook.",
+    },
+    {
+      title: "Alerts owned by services",
+      body: "Threshold changes via PR kept accountability local. The team that understands the failure mode owns the pager.",
+    },
+  ]}
+/>
+
+## Data: regulated, automated, valuable
+
+Data at a bank is both asset and liability. N26's data org had to extract customer value — fraud signals, support automation, product analytics — without treating compliance as someone else's problem.
+
+Our DBA function supported **100+ PostgreSQL** databases. We had migrated away from MySQL for most use cases — PostgreSQL's versatility and operational maturity won. New database instances were provisioned through automation: **one PR, minutes to live**, auditable from creation.
+
+That standardization let a small DBA team punch far above its headcount. Cloud-native Postgres, Infrastructure as Code, and ruthless elimination of snowflake setups. Machine learning usage had scaled too — chatbot and related ML workloads were part of daily operations, not a lab experiment.
+
+## From HTTP coupling to events
+
+~200 microservices talking to each other sounds elegant on a slide. In practice, synchronous HTTP everywhere builds a **distributed monolith** — change one service, coordinate five deploys, flip feature flags, hope nothing times out.
+
+Our network moved **over 3 TB per day**, peaking around **10 TB**, with TCP latency usually under **5 ms**. HTTP is fast until it isn't — until every user request fans out into a tree of blocking calls and one slow dependency owns your p99.
+
+We had async patterns early — **AWS SQS** and **Kinesis** for workloads that fit. Kafka entered when we needed higher throughput, stronger ordering guarantees, replay for audit and recovery, and a path off the worst coupling points.
+
+<FlowDiagram
+  title="The coupling problem"
+  steps={[
+    { id: "req", label: "User request", sublabel: "mobile app" },
+    { id: "a", label: "Service A", sublabel: "sync HTTP" },
+    { id: "b", label: "Service B", sublabel: "sync HTTP" },
+    { id: "c", label: "Service C", sublabel: "blocks on B" },
+  ]}
+/>
+
+One concrete migration — moving a critical flow from synchronous HTTP to an async Kafka path — cut **p95 latency by ~50%**, **doubled throughput**, and **reduced load on a downstream system by ~66%**. At peak, several critical processes were doing **1,000+ messages per second** through Kafka.
+
+<Compare
+  before={{
+    label: "Sync HTTP mesh",
+    items: [
+      "Request chains block on every downstream call",
+      "Deploy coordination across coupled services",
+      "Failure modes propagate instantly to the user",
+      "Hard to replay or audit async side effects",
+    ],
+  }}
+  after={{
+    label: "Event-driven paths",
+    items: [
+      "Critical flows decoupled with bounded latency",
+      "Consumers scale independently of producers",
+      "Replay and audit trails for regulated workflows",
+      "Domain modeling conversations — events as contracts",
+    ],
+  }}
+/>
+
+We introduced Kafka gradually. Banks don't YOLO new infrastructure. Stabilize internally, learn failure modes, then expand. Plenty of systems were still on the roadmap to break apart — event-driven architecture is a direction, not a checkbox.
+
+## The honest part
+
+If you've read this far, you're probably waiting for the catch. There is one.
+
+We were **still** breaking down the original monolith — officially deprecated years earlier, unofficially longer. Macroservices from the early days still existed. Some integrations ran on third-party software with decades-old internals (cloud-hosted, but old). Kubernetes migration was past 80%, not 100%. Kafka adoption was real but incomplete.
+
+That's normal at scale. The mistake would be pretending otherwise in a recruiting blog post. The interesting work wasn't "we have perfect microservices." It was **how a licensed bank modernizes under regulatory load** — card expiries hitting at once, subscription billing at scale, financial crime prevention (a topic big enough for its own article), and the daily grind of making deploys safe enough to run continuously.
+
+<LessonStack
+  title="What this stack taught me"
+  lessons={[
+    {
+      title: "Perception lags reality",
+      body: "Outside engineers still thought 'Java bank.' Inside, Kotlin and K8s were the default. Publish the truth or lose candidates and partners to stale assumptions.",
+    },
+    {
+      title: "Platform speed is product speed",
+      body: "1.5-hour pipelines aren't an infra metric — they're a cap on how fast you can respond to fraud, outages, and regulation.",
+    },
+    {
+      title: "Events beat chains",
+      body: "HTTP between 200 services doesn't scale socially or operationally. Kafka wasn't magic — it was a contract that teams could evolve independently.",
+    },
+    {
+      title: "Observability is ownership",
+      body: "Monitoring-as-code moved alerts next to the people who understand the service. That changes incident culture more than any tool brand.",
+    },
+  ]}
+/>
+
+## Where to go next
+
+This article is the wide-angle shot — containers, languages, delivery, data, events. The deep cut on financial crime and stream processing came later: [Rebuilding Fraud Prevention from Scratch in Six Months](/articles/rebuilding-fraud-prevention-at-n26/). For why banks freeze code anyway, [Stop Complaining About Code Freezes](/articles/code-freeze-purpose/) covers the other side of continuous deployment.
+
+I also spoke about pieces of this stack at [Kafka Summit London 2023](/speaking/kafka-summit-london-2023/) and [KotlinConf 2024](/speaking/kotlinconf-2024/).
+
+<Callout type="note" title="Originally published on InsideN26">
+  This piece first appeared as [Engineering at N26: a Tour of our Tech Stack and Architecture](https://medium.com/insiden26/engineering-at-n26-a-tour-of-our-tech-stack-and-architecture-9e58ce96f889) (September 2022). Rewritten and expanded for this site — recruiting CTA removed, cross-links added, numbers preserved from the original snapshot.
+</Callout>

@@ -3,6 +3,9 @@ title: "Engineering Leadership"
 description: "Code freezes, risk trade-offs, and leading platform teams — practical engineering leadership writing by Rafael Roman."
 relatedArticles:
   - code-freeze-purpose
+  - say-yes-first-platform-teams
+  - i-hardly-debug-anymore-tdd
+  - straight-out-of-the-bootcamp
 relatedTalks:
   - n26-career-journeys-2023
 relatedWork:

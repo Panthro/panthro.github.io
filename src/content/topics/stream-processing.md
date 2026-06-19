@@ -3,6 +3,7 @@ title: "Stream Processing"
 description: "Apache Flink, Kafka, and stateful stream processing for regulated fintech — talks and writing by Rafael Roman."
 relatedArticles:
   - rebuilding-fraud-prevention-at-n26
+  - engineering-at-n26-tech-stack
 relatedTalks:
   - kotlinconf-2024
   - kafka-summit-london-2023

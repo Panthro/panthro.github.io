@@ -11,7 +11,8 @@ alwaysApply: false
 1. Create `src/content/articles/<slug>.mdx` with frontmatter (`title`, `description`, `date`, `draft`, `tags`)
 2. Import existing components from `src/components/articles/` — reuse before creating new ones
 3. Set `draft: false` when ready for production (excluded from build/sitemap/RSS when `true`)
-4. Browser-test the article URL after changes
+4. Add `relatedArticles` / topic hub slug arrays on related talks/work/topics
+5. Browser-test `/articles/<slug>/`
 
 ## Component patterns
 
@@ -19,6 +20,8 @@ alwaysApply: false
 - Scroll reveal: wrap in `article-reveal`; stagger children with nested `article-stagger` > `article-stagger-item`
 - **Do not** put `article-reveal` and `article-stagger` on the same element without the nested-child pattern (causes invisible content)
 
-## Layout
+## Layout & SEO
 
-`ArticleLayout.astro` provides ToC (h2 extract), author bio, related links, and SEO schema. Article page title format: `{title} | Rafael Roman`.
+`ArticleLayout.astro`: ToC, author bio, related articles, `BlogPosting` + `BreadcrumbList` schema. Title: `{title} | Rafael Roman`.
+
+After publishing, update relevant `/topics/*` hub `relatedArticles` if the article fits a cluster.

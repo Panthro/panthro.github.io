@@ -3,6 +3,7 @@ title: "Fintech Infrastructure"
 description: "Payments, neobank platforms, and regulated delivery — career and technical writing from N26, Personio, and GFT."
 relatedArticles:
   - rebuilding-fraud-prevention-at-n26
+  - engineering-at-n26-tech-stack
   - code-freeze-purpose
 relatedTalks:
   - kafka-summit-london-2023

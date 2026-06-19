@@ -1,28 +1,40 @@
 ---
-description: SEO, meta tags, and structured data conventions
-globs: src/components/Head.astro,src/lib/seo.ts,src/consts.ts,src/pages/rss.xml.ts,src/pages/robots.txt.ts
+description: SEO, meta tags, structured data, and programmatic page conventions
+globs: src/components/Head.astro,src/lib/seo.ts,src/lib/related.ts,src/consts.ts,src/pages/rss.xml.ts,src/pages/robots.txt.ts,src/layouts/*Layout.astro,src/components/RelatedLinks.astro
 alwaysApply: false
 ---
 
 # SEO & meta
 
-Personal brand first. Full titles live in `consts.ts` — `PageLayout` uses them as-is (no `| Rafael Roman` suffix except articles).
+Personal brand first. Hub titles in `consts.ts` are **full SEO strings** — `PageLayout` does not append `| Rafael Roman`. Articles/talks/work/topics layouts set their own title patterns.
 
 ## Head.astro
 
-- Default OG image: `SITE.OG_IMAGE` (`/og-default.png`)
-- Pass `ogType="article"` + `article={{ publishedTime, tags, author }}` for posts
-- JSON-LD via `jsonLd` prop → `JsonLd.astro`
+- Default OG: `SITE.OG_IMAGE` (`/og-default.png`) + `og:image:width/height`
+- RSS: `<link rel="alternate" href="/rss.xml">`
+- Articles: `ogType="article"` + `article={{ publishedTime, tags, author }}`
+- JSON-LD: `jsonLd` prop → `JsonLd.astro` (supports array)
 
-## Schema helpers (`src/lib/seo.ts`)
+## Schema map (`src/lib/seo.ts`)
 
-- Homepage: `personSchema` + `webSiteSchema` in `index.astro`
-- Articles: `articleSchema` + `breadcrumbSchema` in `ArticleLayout.astro`
+| Page | Schema helpers |
+|------|----------------|
+| `/` | `personSchema`, `webSiteSchema` |
+| `/articles/*` | `articleSchema`, `breadcrumbSchema` |
+| `/speaking/*` | `eventSchema`, `breadcrumbSchema` |
+| `/work/*` | `breadcrumbSchema` |
+| `/topics/*` | `collectionPageSchema`, `breadcrumbSchema` |
 
-## Draft exclusion
+## Related linking (`src/lib/related.ts`)
 
-Prod build filters `draft: true` in `[...slug].astro`, RSS, and homepage listings. Sitemap follows built pages only.
+Resolve frontmatter slug arrays → `RelatedLinks.astro`. Always wire bidirectional links when adding content.
 
 ## Verify
 
-Inspect built HTML for `application/ld+json`, `og:image`, single `og:type`. Do not rely on `web_fetch` for JSON-LD detection.
+Built HTML must have: single `og:type`, `og:image`, `application/ld+json`. Use browser or built `dist/`, not `web_fetch` (strips scripts).
+
+## Don't
+
+- Tag archive pages until 3+ articles per tag
+- Thin programmatic pages (body required on talks/work/topics)
+- Duplicate homepage title suffix

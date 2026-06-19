@@ -1,6 +1,6 @@
 ---
 name: rafaelroman-site
-description: Work on rafaelroman.com — Rafael Roman personal brand Astro site. Use when adding articles, talks, design changes, SEO updates, or shipping to GitHub Pages. Read AGENTS.md first.
+description: Work on rafaelroman.com — Rafael Roman personal brand Astro site. Use when adding articles, talks, work, topics, design changes, SEO/pSEO updates, or shipping to GitHub Pages. Read AGENTS.md first.
 ---
 
 # rafaelroman.com
@@ -15,27 +15,39 @@ description: Work on rafaelroman.com — Rafael Roman personal brand Astro site.
 ### Add an article
 
 1. `src/content/articles/<slug>.mdx` with frontmatter (`draft: false` when publishing)
-2. Reuse components from `src/components/articles/` (Callout, PullQuote, Timeline, Compare, etc.)
-3. Browser-test `/articles/<slug>/`
-4. `pnpm build && pnpm lint`
+2. Reuse components from `src/components/articles/`
+3. Wire `relatedArticles` on related talks/work; update matching topic hub slugs
+4. Browser-test `/articles/<slug>/`
+5. `pnpm build && pnpm lint`
 
 ### Add a talk
 
-1. `src/content/speaking/<slug>.md` — verify `link` URL returns 200
-2. Optional: `description`, `relatedArticles`, `relatedTalks`, `relatedWork` frontmatter
-3. Browser-test `/speaking/<slug>/`
+1. `src/content/speaking/<slug>.md` — body abstract required
+2. Verify `link` URL returns 200 (Sessionize links often 404 — use conference URL)
+3. Set `description`, `relatedArticles`, `relatedTalks`, `relatedWork`
+4. Browser-test `/speaking/<slug>/`
+
+### Add work entry
+
+1. `src/content/work/<slug>.md` — narrative body required
+2. Set `relatedArticles`, `relatedTalks` for cross-linking
+3. Browser-test `/work/<slug>/`
 
 ### Add a topic hub
 
-1. `src/content/topics/<slug>.md` with `title`, `description`, and related slug arrays
-2. Original intro in markdown body (not template-only)
-3. Browser-test `/topics/<slug>/`
+1. `src/content/topics/<slug>.md` — `title`, `description`, related slug arrays
+2. Write 100+ word original intro in body (not template-only)
+3. Only create hubs for clusters with real content overlap
+4. Browser-test `/topics/<slug>/`
 
-### SEO / meta change
+### SEO / programmatic pages
 
-- Titles/descriptions: `src/consts.ts`
-- Schema/OG: `src/lib/seo.ts`, `src/components/Head.astro`
-- See `.cursor/rules/seo-meta.mdc`
+- **Strategy:** brand first; talks/work/topics support long-tail without thin pSEO
+- **Titles:** hub strings in `consts.ts`; detail titles built in layouts (see AGENTS.md)
+- **Schema:** `src/lib/seo.ts` — Event (talks), CollectionPage (topics), BlogPosting (articles)
+- **Linking:** `src/lib/related.ts` + frontmatter `related*` arrays → `RelatedLinks.astro`
+- **Rules:** `.cursor/rules/seo-meta.mdc`, `.cursor/rules/programmatic-seo.mdc`
+- **Don't:** tag archives < 3 articles, location doorways, empty body pages
 
 ### Visual / design pass
 
@@ -46,12 +58,13 @@ description: Work on rafaelroman.com — Rafael Roman personal brand Astro site.
 ### Ship
 
 - Branch: **`master`** (not `main`)
-- `pnpm build && pnpm lint` + browser spot-check
-- Push → GitHub Pages deploys to `rafaelroman.com`
+- `pnpm build && pnpm lint` + browser spot-check (homepage, 1 article, 1 talk, 1 topic)
+- Push → GitHub Actions deploy → verify live URLs + sitemap
 
-## Pitfalls (from prior sessions)
+## Pitfalls
 
 - `article-reveal` + `article-stagger` on same element → invisible children; nest stagger inside reveal
 - Sessionize talk URLs may 404; prefer conference official pages
-- Duplicate top padding was removed from ArticleLayout — don't re-add `py-*` on layout + main
-- `.impeccable/critique/` is gitignored — don't commit critique snapshots
+- Duplicate top padding removed from ArticleLayout — don't re-add `py-*` on layout + main
+- CI uses `npm ci`; local uses pnpm — keep lockfiles aligned
+- `.impeccable/critique/` is gitignored

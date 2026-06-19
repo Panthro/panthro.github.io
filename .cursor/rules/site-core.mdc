@@ -23,6 +23,10 @@ Astro 6 static site, pnpm, Tailwind. Deploy: push to **`master`** → GitHub Pag
 - Use semantic utilities: `.text-heading`, `.text-prose`, `.text-meta`, `.text-accent`, `.border-subtle` — not raw zinc/lime in components
 - One `.signal-mark` per page hero; no box shadows; 44px touch targets + `.focus-ring`
 
+## SEO (quick ref)
+
+Detail pages exist for talks, work, and topics — see [AGENTS.md](../../AGENTS.md) § SEO & programmatic pages. Rules: `.cursor/rules/seo-meta.mdc`, `.cursor/rules/programmatic-seo.mdc`.
+
 ## Commits
 
 Only commit when the user asks. Do not commit `.impeccable/critique/`.
