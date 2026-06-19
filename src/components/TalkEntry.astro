@@ -7,16 +7,21 @@ type Props = {
   location: string;
   link?: string;
   description?: string;
+  kind?: "conference" | "meetup" | "community";
 }
 
-const { slug, event, title, date, location, link, description } = Astro.props;
+const { slug, event, title, date, location, link, description, kind = "conference" } = Astro.props;
 
 const dateStr = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 const href = `/speaking/${slug}/`;
+const kindLabel =
+  kind === "meetup" ? "Meetup" : kind === "community" ? "Community" : null;
 ---
 
 <li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
-  <div class="text-xs font-mono text-meta">{dateStr} · {location}</div>
+  <div class="text-xs font-mono text-meta">
+    {dateStr} · {location}{kindLabel && <> · <span class="text-lime-700 dark:text-lime-400">{kindLabel}</span></>}
+  </div>
   <h2 class="font-display font-bold text-lg">
     <a
       href={href}

@@ -9,6 +9,7 @@ const speaking = defineCollection({
     date: z.coerce.date(),
     location: z.string(),
     link: z.string().optional(),
+    kind: z.enum(["conference", "meetup", "community"]).optional().default("conference"),
     description: z.string().optional(),
     relatedArticles: z.array(z.string()).optional().default([]),
     relatedTalks: z.array(z.string()).optional().default([]),

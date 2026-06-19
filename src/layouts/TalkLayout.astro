@@ -17,6 +17,7 @@ type Props = {
   date: Date;
   location: string;
   externalLink?: string;
+  kind?: "conference" | "meetup" | "community";
   relatedArticles?: RelatedLink[];
   relatedTalks?: RelatedLink[];
   relatedWork?: RelatedLink[];
@@ -30,6 +31,7 @@ const {
   date,
   location,
   externalLink,
+  kind = "conference",
   relatedArticles = [],
   relatedTalks = [],
   relatedWork = [],
@@ -43,6 +45,9 @@ const formattedDate = date.toLocaleDateString("en-US", {
 
 const displayTitle = talkTitle ?? event;
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+const kindLabel =
+  kind === "meetup" ? "Meetup" : kind === "community" ? "Community" : null;
 
 const jsonLd = [
   eventSchema({
@@ -82,6 +87,12 @@ const jsonLd = [
               <time datetime={date.toISOString()}>{formattedDate}</time>
               <span aria-hidden="true">·</span>
               <span>{location}</span>
+              {kindLabel && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span class="text-lime-700 dark:text-lime-400">{kindLabel}</span>
+                </>
+              )}
             </div>
             <h1 class="text-3xl sm:text-4xl md:text-[3.25rem] font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
               {displayTitle}

@@ -3,7 +3,11 @@ title: "AI Is Not the World of Movies, It's Already Reality"
 event: "TEDxLleida"
 date: "06/01/2019"
 location: "Lleida, Spain"
+kind: community
 link: "https://www.ted.com/talks/rafael_roman_la_ia_no_es_el_mundo_de_las_peliculas_es_ya_la_realidad"
+description: "TEDx talk demystifying practical AI — beyond sci-fi, already in everyday products and interactions."
 ---
 
 A case for practical AI — demystifying artificial intelligence beyond science fiction and showing how it was already reshaping everyday human-computer interaction.
+
+Before moving to Barcelona and Berlin, I was an active member of Lleida's tech community — mentoring master's projects at the Universitat de Lleida and giving frequent talks through local [Meetup groups](https://www.tedxlleida.com/rafael-roman/) and community events. TEDx was the highest-profile of those; most of the Lleida sessions weren't recorded or indexed online.

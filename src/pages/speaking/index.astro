@@ -32,8 +32,8 @@ const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
 
       <div class="space-y-2 font-mono text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
         <p>
-          Conference sessions, keynotes, and panels — from Kafka architecture at N26 to the
-          future of AI at TEDx. Full profile on{" "}
+          Conference sessions, meetups, and community talks — from Kafka and Flink at
+          N26 to career panels in Barcelona and Berlin. Full profile on{" "}
           <Link href="https://sessionize.com/rafaelroman" external>Sessionize</Link>.
         </p>
       </div>
@@ -53,6 +53,7 @@ const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
                   date={talk.data.date}
                   location={talk.data.location}
                   link={talk.data.link}
+                  kind={talk.data.kind}
                   description={talk.data.description ?? excerpt(talk.body ?? "", 140)}
                 />
               ))}

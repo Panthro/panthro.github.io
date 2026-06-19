@@ -8,6 +8,8 @@ relatedArticles:
   - straight-out-of-the-bootcamp
 relatedTalks:
   - n26-career-journeys-2023
+  - n26-berlin-tech-stack-meetup-2022
+  - tedx-lleida-2019
 relatedWork:
   - n26
   - personio
