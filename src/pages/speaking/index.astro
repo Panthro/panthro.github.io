@@ -1,0 +1,62 @@
+---
+import { getCollection } from "astro:content";
+import PageLayout from "@layouts/PageLayout.astro";
+import Container from "@components/Container.astro";
+import TalkEntry from "@components/TalkEntry.astro";
+import Link from "@components/Link.astro";
+import { SPEAKING } from "@consts";
+
+const talks = (await getCollection("speaking"))
+  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+
+const byYear = talks.reduce((acc, talk) => {
+  const year = new Date(talk.data.date).getFullYear();
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(talk);
+  return acc;
+}, {} as Record<number, typeof talks>);
+
+const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+---
+
+<PageLayout title={SPEAKING.TITLE} description={SPEAKING.DESCRIPTION}>
+  <Container>
+    <div class="space-y-10">
+      <div class="animate-hero">
+        <div class="signal-mark mb-6"></div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-zinc-900 dark:text-white">
+          Talks
+        </h1>
+      </div>
+
+      <div class="space-y-2 font-mono text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
+        <p>
+          Conference sessions, keynotes, and panels — from Kafka architecture at N26 to the
+          future of AI at TEDx. Full profile on{" "}
+          <Link href="https://sessionize.com/rafaelroman" external>Sessionize</Link>.
+        </p>
+      </div>
+
+      <div class="space-y-12">
+        {years.map(year => (
+          <section class="space-y-4">
+            <span class="text-xs font-mono font-semibold text-zinc-500 dark:text-zinc-500 tracking-widest uppercase">
+                {year}
+            </span>
+            <ul class="flex flex-col space-y-5">
+              {byYear[year].map(talk => (
+                <TalkEntry
+                  event={talk.data.event}
+                  title={talk.data.title}
+                  date={talk.data.date}
+                  location={talk.data.location}
+                  link={talk.data.link}
+                />
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </div>
+  </Container>
+</PageLayout>

@@ -1,0 +1,35 @@
+---
+type Props = {
+  title: string;
+  description: string;
+  slug: string;
+  date: Date;
+  tags?: string[];
+};
+
+const { title, description, slug, date, tags = [] } = Astro.props;
+
+const dateStr = date.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+---
+
+<li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+  <div class="text-xs font-mono text-meta mb-0.5">{dateStr}</div>
+  <a
+    href={`/articles/${slug}`}
+    class="focus-ring font-display font-bold text-lg leading-snug text-heading hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+  >
+    {title}
+  </a>
+  <p class="text-sm text-meta mt-1">{description}</p>
+  {tags.length > 0 && (
+    <div class="flex flex-wrap gap-x-3 mt-1.5">
+      {tags.map(tag => (
+        <span class="text-xs font-mono text-prose">#{tag}</span>
+      ))}
+    </div>
+  )}
+</li>

@@ -1,0 +1,24 @@
+---
+type Props = {
+  dateRange: string;
+  company: string;
+  role: string;
+}
+
+const { dateRange, company, role } = Astro.props;
+---
+
+<li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+  <div class="text-xs font-mono text-meta">
+    {dateRange}
+  </div>
+  <div class="font-display font-bold text-lg text-heading">
+    {company}
+  </div>
+  <div class="text-sm text-accent">
+    {role}
+  </div>
+  <article>
+    <slot />
+  </article>
+</li>

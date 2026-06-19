@@ -1,0 +1,35 @@
+---
+type Props = {
+  event: string;
+  title?: string;
+  date: Date;
+  location: string;
+  link?: string;
+  description?: string;
+}
+
+const { event, title, date, location, link, description } = Astro.props;
+
+const dateStr = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+---
+
+<li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+  <div class="text-xs font-mono text-meta">{dateStr} · {location}</div>
+  <h2 class="font-display font-bold text-lg text-heading">{event}</h2>
+  {title && (
+    <p class="text-sm text-accent italic">&ldquo;{title}&rdquo;</p>
+  )}
+  {description && (
+    <p class="mt-1 text-sm text-meta">{description}</p>
+  )}
+  {link && (
+    <a
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="focus-ring touch-target-block inline-block mt-1 text-xs font-mono text-meta hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+    >
+      {title ? "→ Watch" : "→ View session"}
+    </a>
+  )}
+</li>

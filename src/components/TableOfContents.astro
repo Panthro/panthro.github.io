@@ -1,0 +1,31 @@
+---
+export interface TocHeading {
+  text: string;
+  slug: string;
+}
+
+type Props = {
+  headings: TocHeading[];
+};
+
+const { headings } = Astro.props;
+
+if (headings.length === 0) return;
+---
+
+<nav aria-label="Table of contents" class="article-reveal not-prose my-8 sm:my-10">
+  <h2 class="text-xs font-mono text-meta uppercase tracking-wider mb-3">Contents</h2>
+  <ul class="space-y-0.5 sm:space-y-1.5">
+    {headings.map((heading) => (
+      <li>
+        <a
+          href={`#${heading.slug}`}
+          data-toc-link
+          class="toc-link touch-target-block focus-ring text-sm font-mono text-prose hover:text-lime-600 dark:hover:text-lime-400 active:text-lime-600 dark:active:text-lime-400 transition-colors duration-300 no-underline"
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

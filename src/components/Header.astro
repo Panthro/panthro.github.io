@@ -8,14 +8,14 @@ const pathname = Astro.url.pathname;
 <header>
   <Container>
     <div class="flex flex-wrap gap-y-2 justify-between items-center">
-      <a href="/" class="font-bold text-zinc-900 dark:text-white tracking-tight hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300">
+      <a href="/" class="touch-target focus-ring font-bold text-zinc-900 dark:text-white tracking-tight hover:text-lime-600 dark:hover:text-lime-400 active:text-lime-600 dark:active:text-lime-400 transition-colors duration-300">
         {SITE.NAME}
       </a>
-      <nav class="flex gap-4 text-sm font-mono">
+      <nav class="flex gap-1 sm:gap-4 text-sm font-mono">
         <a
           href="/work"
           class:list={[
-            "transition-colors duration-300",
+            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
             pathname.startsWith("/work")
               ? "text-lime-600 dark:text-lime-400"
               : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
@@ -23,6 +23,30 @@ const pathname = Astro.url.pathname;
           aria-current={pathname.startsWith("/work") ? "page" : undefined}
         >
           work
+        </a>
+        <a
+          href="/articles"
+          class:list={[
+            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
+            pathname.startsWith("/articles")
+              ? "text-lime-600 dark:text-lime-400"
+              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+          ]}
+          aria-current={pathname.startsWith("/articles") ? "page" : undefined}
+        >
+          writing
+        </a>
+        <a
+          href="/speaking"
+          class:list={[
+            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
+            pathname.startsWith("/speaking")
+              ? "text-lime-600 dark:text-lime-400"
+              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+          ]}
+          aria-current={pathname.startsWith("/speaking") ? "page" : undefined}
+        >
+          talks
         </a>
       </nav>
     </div>

@@ -1,8 +1,8 @@
 ---
 company: "GFT Technologies"
-role: "Software Engineer / Tech Lead"
-dateStart: "01/01/2012"
-dateEnd: "12/31/2017"
+role: "Software Architect & Tech Lead"
+dateStart: "01/01/2015"
+dateEnd: "11/01/2019"
 ---
 
-Built 5+ international banks and financial platforms across Europe and Latin America. Hands-on with JVM stacks, backend architecture, and regulated industry delivery. Developed deep expertise in fintech systems and cross-border engineering.
+Delivered production banking platforms for financial institutions across Europe — core banking systems, compliance infrastructure, digital banking portals. Worked directly with client engineering leadership on architecture, led cross-functional teams, and contributed to GFT's in-house innovation track. Preceded by three years at IBM's innovation lab building internal security tooling.

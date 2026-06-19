@@ -1,8 +1,8 @@
 ---
 company: "Upgrid"
 role: "Co-founder & CTO"
-dateStart: "01/01/2024"
+dateStart: "05/01/2025"
 dateEnd: "Present"
 ---
 
-Building a Swiss energy marketplace that connects local solar producers directly with consumers — guaranteed lower prices, 100% local renewable energy, zero hardware. Reshaping how communities buy and sell electricity in Switzerland.
+Building the technical foundation for local energy communities in Switzerland — a vZEV and LEG-compliant marketplace where solar producers sell directly to their neighbors. No hardware. No intermediaries. Lower bills, 100% local renewable energy. The mission: make community energy distribution as simple as a bank transfer.

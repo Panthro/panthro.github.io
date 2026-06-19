@@ -4,33 +4,58 @@ import "@fontsource/inter/latin-400.css";
 import "@fontsource/inter/latin-600.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource-variable/bricolage-grotesque";
 import inter400 from "@fontsource/inter/files/inter-latin-400-normal.woff2";
 import inter600 from "@fontsource/inter/files/inter-latin-600-normal.woff2";
 import jbmono400 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2";
 import jbmono600 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2";
+import bgVariable from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2";
 
 import { ClientRouter } from "astro:transitions";
+import JsonLd from "@components/JsonLd.astro";
+import { SITE } from "@consts";
+
+type OgType = "website" | "article";
+
+type ArticleMeta = {
+  publishedTime: string;
+  tags?: string[];
+  author?: string;
+};
 
 interface Props {
   title: string;
   description: string;
   image?: string;
+  ogType?: OgType;
+  article?: ArticleMeta;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image } = Astro.props;
-const ogImage = image ? new URL(image, Astro.site) : undefined;
+const {
+  title,
+  description,
+  image,
+  ogType = "website",
+  article,
+  jsonLd,
+} = Astro.props;
+
+const ogImagePath = image ?? SITE.OG_IMAGE;
+const ogImage = new URL(ogImagePath, Astro.site);
 ---
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
 <meta name="generator" content={Astro.generator} />
 
 <!-- Font preloads -->
+<link rel="preload" href={bgVariable} as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href={inter400} as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href={inter600} as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href={jbmono400} as="font" type="font/woff2" crossorigin/>
@@ -38,25 +63,41 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+<link rel="alternate" type="application/rss+xml" title={`${SITE.NAME} — Writing`} href={new URL("/rss.xml", Astro.site)} />
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />
+<meta name="author" content={SITE.NAME} />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.NAME} />
+<meta property="og:type" content={ogType} />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-{ogImage && <meta property="og:image" content={ogImage} />}
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{ogType === "article" && article && (
+  <>
+    <meta property="article:published_time" content={article.publishedTime} />
+    {article.author && <meta property="article:author" content={article.author} />}
+    {article.tags?.map((tag) => (
+      <meta property="article:tag" content={tag} />
+    ))}
+  </>
+)}
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:url" content={canonicalURL} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-{ogImage && <meta name="twitter:image" content={ogImage} />}
+<meta name="twitter:image" content={ogImage} />
+
+{jsonLd && <JsonLd data={jsonLd} />}
 
 <ClientRouter />
 
@@ -73,17 +114,18 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 
 <script is:inline>
   var _scrollHandler = null;
+  var _tocObserver = null;
+  var _revealObserver = null;
 
   function init() {
     preloadTheme();
     onScroll();
-    animate();
+    animateHero();
+    initTocSpy();
+    initArticleReveals();
 
     var backToTop = document.getElementById("back-to-top");
     backToTop && backToTop.addEventListener("click", function(event) { scrollToTop(event); });
-
-    var backToPrev = document.getElementById("back-to-prev");
-    backToPrev && backToPrev.addEventListener("click", function() { window.history.back(); });
 
     var lightThemeButton = document.getElementById("light-theme-button");
     lightThemeButton && lightThemeButton.addEventListener("click", function() {
@@ -105,7 +147,7 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 
     window.matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", function(event) {
-        if (localStorage.theme === "system" || !localStorage.theme) {
+        if (localStorage.theme === "system") {
           toggleTheme(event.matches);
         }
       });
@@ -117,13 +159,108 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
     document.addEventListener("scroll", _scrollHandler);
   }
 
-  function animate() {
-    var animateElements = document.querySelectorAll(".animate");
+  function animateHero() {
+    var heroElements = document.querySelectorAll(".animate-hero");
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    animateElements.forEach(function(element, index) {
-      setTimeout(function() {
+    heroElements.forEach(function(element, index) {
+      element.classList.remove("show");
+      if (reducedMotion) {
         element.classList.add("show");
-      }, index * 150);
+      } else {
+        setTimeout(function() {
+          element.classList.add("show");
+        }, index * 100);
+      }
+    });
+  }
+
+  function initArticleReveals() {
+    if (_revealObserver) {
+      _revealObserver.disconnect();
+      _revealObserver = null;
+    }
+
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var elements = document.querySelectorAll(".article-reveal");
+
+    if (reducedMotion) {
+      document.documentElement.classList.remove("reveal-ready");
+      elements.forEach(function(element) {
+        element.classList.add("show");
+      });
+      return;
+    }
+
+    document.documentElement.classList.add("reveal-ready");
+
+    elements.forEach(function(element) {
+      element.classList.remove("show");
+    });
+
+    _revealObserver = new IntersectionObserver(
+      function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            _revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.08 }
+    );
+
+    elements.forEach(function(element) {
+      _revealObserver.observe(element);
+    });
+  }
+
+  function initTocSpy() {
+    if (_tocObserver) {
+      _tocObserver.disconnect();
+      _tocObserver = null;
+    }
+
+    var toc = document.querySelector("nav[aria-label=\"Table of contents\"]");
+    if (!toc) return;
+
+    var links = toc.querySelectorAll(".toc-link");
+    if (links.length === 0) return;
+
+    var headings = [];
+    links.forEach(function(link) {
+      var href = link.getAttribute("href");
+      if (!href || href.charAt(0) !== "#") return;
+      var heading = document.getElementById(href.slice(1));
+      if (heading) headings.push(heading);
+    });
+
+    if (headings.length === 0) return;
+
+    _tocObserver = new IntersectionObserver(
+      function(entries) {
+        var visible = entries
+          .filter(function(entry) { return entry.isIntersecting; })
+          .sort(function(a, b) { return a.boundingClientRect.top - b.boundingClientRect.top; });
+
+        if (visible.length === 0) return;
+
+        var activeId = visible[0].target.id;
+        links.forEach(function(link) {
+          var isActive = link.getAttribute("href") === "#" + activeId;
+          link.classList.toggle("toc-active", isActive);
+          if (isActive) {
+            link.setAttribute("aria-current", "location");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -55% 0px", threshold: 0 }
+    );
+
+    headings.forEach(function(heading) {
+      _tocObserver.observe(heading);
     });
   }
 
@@ -137,9 +274,10 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 
   function scrollToTop(event) {
     event.preventDefault();
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({
       top: 0,
-      behavior: "smooth"
+      behavior: reducedMotion ? "auto" : "smooth"
     });
   }
 
@@ -173,10 +311,14 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
   function preloadTheme() {
     var userTheme = localStorage.theme;
 
-    if (userTheme === "light" || userTheme === "dark") {
-      toggleTheme(userTheme === "dark");
-    } else {
+    if (userTheme === "light") {
+      toggleTheme(false);
+    } else if (userTheme === "dark") {
+      toggleTheme(true);
+    } else if (userTheme === "system") {
       toggleTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    } else {
+      toggleTheme(true);
     }
   }
 

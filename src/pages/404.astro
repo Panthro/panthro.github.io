@@ -1,0 +1,28 @@
+---
+import PageLayout from "@layouts/PageLayout.astro";
+import Container from "@components/Container.astro";
+import Link from "@components/Link.astro";
+---
+
+<PageLayout
+  title="Page not found · Rafael Roman"
+  description="The page you're looking for doesn't exist. Browse work, writing, and talks by Rafael Roman."
+>
+  <Container>
+    <div class="animate-hero space-y-8 py-16">
+      <div class="signal-mark"></div>
+      <h1 class="text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-heading">
+        Page not found
+      </h1>
+      <p class="text-prose max-w-xl">
+        That URL doesn't exist. Try one of these instead:
+      </p>
+      <ul class="font-mono text-sm space-y-2">
+        <li><Link href="/">Home</Link></li>
+        <li><Link href="/work">Work</Link></li>
+        <li><Link href="/articles">Writing</Link></li>
+        <li><Link href="/speaking">Talks</Link></li>
+      </ul>
+    </div>
+  </Container>
+</PageLayout>

@@ -1,0 +1,211 @@
+---
+title: "Rebuilding Fraud Prevention from Scratch in Six Months"
+description: "How we replaced a static rule-based system spread across microservices with a real-time, Flink-driven risk engine at N26 — and what we learned."
+date: "2024-09-01"
+draft: true
+tags: ["flink", "distributed-systems", "fintech", "architecture", "kotlin"]
+related: []
+---
+
+import { Callout } from "../../components/articles/Callout";
+import { Timeline } from "../../components/articles/Timeline";
+import { PullQuote } from "../../components/articles/PullQuote";
+import { Compare } from "../../components/articles/Compare";
+import { MetricRow } from "../../components/articles/MetricRow";
+import { SignalList } from "../../components/articles/SignalList";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+import { ScoreThreshold } from "../../components/articles/ScoreThreshold";
+import { Pipeline } from "../../components/articles/Pipeline";
+import { LessonStack } from "../../components/articles/LessonStack";
+
+When I joined the Financial Crime Prevention team at N26 in late 2019, the fraud detection system was doing its job — barely. Static rules were scattered across dozens of microservices. Every new fraud vector meant a pull request, a review cycle, a deploy, and a prayer that the new rule didn't break the old ones. In the best cases, a new rule took four weeks to reach production. In the worst — when a rule needed to maintain state across transactions, or operate over sliding windows — it could take three to six months. Some rules we simply couldn't write at all, because the architecture had no concept of state or time windows beyond what a single microservice could hold in memory.
+
+These weren't engineering failings. They were architectural constraints. And they were costing us in fraud losses, false positives, and customer experience.
+
+<PullQuote>We had six months to replace it.</PullQuote>
+
+<Callout type="note" title="Context">
+  N26 is a licensed EU bank with millions of active customers. Fraud prevention isn't a nice-to-have — it's a regulatory obligation. Every architectural decision had legal and compliance implications, not just engineering ones.
+</Callout>
+
+## The problem with static rules in microservices
+
+Rule-based fraud detection made sense when N26 was smaller. You had a manageable transaction volume, a small team, and a fairly predictable set of fraud patterns. You encoded the patterns as static rules in a service, deployed it, done.
+
+The problem is that fraud evolves faster than a microservice deploy cycle. By the time a fraud pattern was documented, triaged, written as a rule, tested across all the dependent services, and deployed — the attack vector had often shifted. You end up playing catch-up forever. And because each rule lived in its own service context, understanding the interaction between rules deployed across different teams and codebases was nearly impossible.
+
+The deeper problem was **state**. Most fraud signals aren't in a single transaction. They're in the *relationship between transactions*: a customer who made three small purchases in Berlin, then a large ATM withdrawal in Lagos two hours later, then a card-not-present transaction in Singapore. No single event is suspicious in isolation. The pattern is.
+
+Static rules in microservices are stateless by design. Each evaluates a single event in isolation. Building a rule that needed context — "has this customer's transaction velocity in the last hour deviated from their 30-day baseline?" — required stitching together data across services, each with its own consistency model and latency profile. The result was rules that were either too simple to catch sophisticated fraud, or too slow to block it in time.
+
+<Compare
+  before={{
+    label: "Static microservices",
+    items: [
+      "One event evaluated in isolation — no cross-transaction context",
+      "State stitched across services with inconsistent latency",
+      "4 weeks minimum to ship a new rule; months for windowed logic",
+      "Deploy coordination across dozens of teams",
+    ],
+  }}
+  after={{
+    label: "Flink risk engine",
+    items: [
+      "Stateful operators with RocksDB-backed behavioral profiles",
+      "Windowed aggregations as a first-class primitive",
+      "New rules live in ~2 weeks via shadow → canary → prod",
+      "Single streaming job, one checkpoint model",
+    ],
+  }}
+/>
+
+## Why Apache Flink
+
+We replaced the microservice rule sprawl with an event-driven risk scoring system built on Apache Flink. Flink gave us three things the old architecture couldn't:
+
+<SignalList
+  items={[
+    {
+      title: "True stateful stream processing",
+      body: "Flink's managed state — held in RocksDB backends, checkpointed to durable storage — meant a rule could access a customer's full behavioral history without an external database round-trip. State lived inside the Flink job, consistent and local.",
+    },
+    {
+      title: "Windowed aggregations as a first-class primitive",
+      body: "Tumbling, sliding, and session windows are built into Flink's DataStream API. A rule that needed \"count of transactions in the last hour grouped by device fingerprint\" went from a multi-service engineering project to a few lines of windowed aggregation logic.",
+    },
+    {
+      title: "Exactly-once semantics",
+      body: "In fraud prevention, processing a transaction twice means blocking a legitimate payment — or worse, missing a fraudulent one. Flink's checkpoint-based exactly-once guarantees meant we could reason about correctness without building custom idempotency layers into every consumer.",
+    },
+  ]}
+/>
+
+<FlowDiagram
+  title="End-to-end architecture"
+  steps={[
+    { id: "kafka", label: "Kafka", sublabel: "payments topic" },
+    { id: "flink", label: "Flink", sublabel: "operator chain" },
+    { id: "score", label: "Score", sublabel: "0.0 – 1.0" },
+    { id: "decision", label: "Decision", sublabel: "approve / step-up / block" },
+  ]}
+/>
+
+<Timeline
+  title="How a payment flows through the Flink risk engine"
+  items={[
+    {
+      time: "T+0ms",
+      label: "Payment intent created",
+      detail: "Customer initiates transfer. Event published to the payments Kafka topic.",
+    },
+    {
+      time: "T+12ms",
+      label: "Flink job reads event",
+      detail: "Flink consumer deserializes the event and routes to the risk scoring operator chain.",
+      highlight: false,
+    },
+    {
+      time: "T+35ms",
+      label: "Stateful enrichment",
+      detail: "Customer behavioral profile loaded from Flink managed state (RocksDB). Velocity windows (1h, 24h, 7d) queried in-process.",
+    },
+    {
+      time: "T+44ms",
+      label: "ML model score",
+      detail: "Async call to the scoring service. Result cached per session in operator state.",
+      highlight: true,
+    },
+    {
+      time: "T+50ms",
+      label: "Composite score emitted",
+      detail: "Weighted score (0–1) combining velocity signals, behavioral deviation, and ML output. Published to risk-scored topic.",
+    },
+    {
+      time: "T+52ms",
+      label: "Decision point",
+      detail: "Score thresholds determine approve, step-up auth, or block.",
+      highlight: true,
+    },
+  ]}
+/>
+
+<ScoreThreshold
+  title="Decision thresholds at T+52ms"
+  bands={[
+    { to: 0.4, label: "Approve", action: "Payment proceeds automatically", variant: "low" },
+    { to: 0.7, label: "Step-up", action: "Strong customer authentication required", variant: "mid" },
+    { to: 1.0, label: "Block", action: "Hold payment and alert fraud ops", variant: "high" },
+  ]}
+/>
+
+## The deployment model that changed everything
+
+The old system's bottleneck wasn't the rule logic — it was the deployment pipeline. Each rule lived in its own microservice, which meant its own CI/CD, its own review process, its own coordination with dependent teams. Best case: four weeks. Typical case: months.
+
+<MetricRow
+  metrics={[
+    { value: "4–6 mo", label: "complex rule in old architecture" },
+    { value: "2 wk", label: "new rule in Flink pipeline", highlight: true },
+    { value: "52ms", label: "payment to decision", highlight: true },
+  ]}
+/>
+
+With Flink, rules are operator chains deployed as a single streaming job. A new rule goes through these stages:
+
+<Pipeline
+  title="Rule rollout pipeline"
+  stages={[
+    {
+      name: "Shadow",
+      duration: "Week 1",
+      detail: "Processes live traffic and emits scores to a monitoring topic only. No customer impact. Compliance validates against known fraud cases.",
+    },
+    {
+      name: "Canary",
+      duration: "Week 2",
+      detail: "Goes live for 5% of traffic. Alerts fire if false positive rate spikes. Ramp to 100% if clean.",
+    },
+    {
+      name: "Production",
+      duration: "Week 2+",
+      detail: "Full traffic. State and windowing handled by Flink runtime — cross-border velocity, device fingerprint correlation, session deviation scoring.",
+    },
+  ]}
+/>
+
+A process that took four weeks minimum, and often stretched to months for complex rules, now takes two. And because state and windowing are handled by Flink's runtime, we could write rules that were genuinely impossible in the old architecture — cross-border velocity checks, device fingerprint correlation over 30-day windows, session-based behavioral deviation scoring.
+
+<Callout type="warning" title="The thing nobody talks about">
+  The hardest part wasn't the Flink topology. It was **operational complexity**. Flink jobs are stateful, which means checkpoint sizing, state TTL, and savepoint migration all become production concerns. A poorly sized RocksDB backend will degrade throughput silently. Consumer lag on the input topic compounds with checkpoint duration to create backpressure cascades. Budget at least 30% of your timeline for observability, and get comfortable with Flink's metrics ecosystem before you write a single streaming operator.
+</Callout>
+
+## What I'd do differently
+
+<LessonStack
+  lessons={[
+    {
+      title: "Start with observability",
+      body: "We built the risk engine first and then added monitoring. That was backwards. Spend the first two weeks defining metrics, dashboards, and alerts — checkpoint duration, state size per operator, event latency at every boundary — before writing business logic.",
+    },
+    {
+      title: "Treat data contracts as production dependencies",
+      body: "If the Payments team changes the transaction topic schema without coordination, your Flink job fails to deserialize and your checkpoint is poisoned. Schema Registry with FORWARD_TRANSITIVE compatibility is non-negotiable.",
+    },
+    {
+      title: "Dead letter queues from day one",
+      body: "Poison pill events will happen. Route unparseable events to a dead-letter topic via Flink side outputs and alert on throughput — never let them halt the main job.",
+    },
+    {
+      title: "Practice savepoint restore before 3am",
+      body: "Every stateful operator needs a TypeSerializer that survives schema evolution and a documented TTL policy. Practice savepoint → upgrade → restore before it's production-critical.",
+    },
+  ]}
+/>
+
+---
+
+<PullQuote attribution="The core lesson">
+  Real-time fraud prevention at scale is a stateful stream processing problem, not a static rules problem. Once you accept that, the architecture becomes obvious.
+</PullQuote>
+
+I gave a talk about this at KotlinConf 2024 in Copenhagen — the engineering choices, the Flink topology, and what we learned operating stateful streaming jobs in a regulated environment. [Watch the session](https://2024.kotlinconf.com/talks/551172/).

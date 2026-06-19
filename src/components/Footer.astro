@@ -6,22 +6,22 @@ import BackToTop from "@components/BackToTop.astro";
 const year = new Date().getFullYear();
 ---
 
-<footer class="animate">
+<footer>
   <Container>
     <div class="relative">
-      <div class="absolute right-0 -top-20">
+      <div class="absolute right-0 -top-16 sm:-top-20">
         <BackToTop />
       </div>
     </div>
     <div class="flex justify-between items-center">
-      <div class="font-mono text-xs text-zinc-500">
+      <div class="font-mono text-xs text-meta">
         &copy; {year} {SITE.NAME}
       </div>
       <div class="flex flex-wrap gap-1 items-center">
         <button
           id="light-theme-button"
           aria-label="Light theme"
-          class="group size-11 flex items-center justify-center rounded-full"
+          class="group focus-ring size-11 flex items-center justify-center rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -33,7 +33,7 @@ const year = new Date().getFullYear();
             stroke-width="1.5"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
+            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
             aria-hidden="true"
           >
             <circle cx="12" cy="12" r="5"></circle>
@@ -50,7 +50,7 @@ const year = new Date().getFullYear();
         <button
           id="dark-theme-button"
           aria-label="Dark theme"
-          class="group size-11 flex items-center justify-center rounded-full"
+          class="group focus-ring size-11 flex items-center justify-center rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -62,7 +62,7 @@ const year = new Date().getFullYear();
             stroke-width="1.5"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
+            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
             aria-hidden="true"
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -71,7 +71,7 @@ const year = new Date().getFullYear();
         <button
           id="system-theme-button"
           aria-label="System theme"
-          class="group size-11 flex items-center justify-center rounded-full"
+          class="group focus-ring size-11 flex items-center justify-center rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +83,7 @@ const year = new Date().getFullYear();
             stroke-width="1.5"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
+            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
             aria-hidden="true"
           >
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>

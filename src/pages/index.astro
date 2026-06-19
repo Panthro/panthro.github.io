@@ -1,9 +1,12 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import Container from "@components/Container.astro";
 import PageLayout from "@layouts/PageLayout.astro";
 import Link from "@components/Link.astro";
+import WorkEntry from "@components/WorkEntry.astro";
+import ArticleEntry from "@components/ArticleEntry.astro";
 import { dateRange } from "@lib/utils";
+import { personSchema, webSiteSchema } from "@lib/seo";
 import { SITE, HOME, SOCIALS } from "@consts";
 
 const allwork = (await getCollection("work"))
@@ -12,41 +15,52 @@ const allwork = (await getCollection("work"))
 
 const work = await Promise.all(
   allwork.map(async (item) => {
-    const { Content } = await item.render();
+    const { Content } = await render(item);
     return { ...item, Content };
   })
 );
+
+const recentArticles = (
+  await getCollection("articles", ({ data }) =>
+    import.meta.env.DEV ? true : !data.draft
+  )
+)
+  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf())
+  .slice(0, SITE.NUM_ARTICLES_ON_HOMEPAGE);
+
+const jsonLd = [personSchema(HOME.DESCRIPTION), webSiteSchema(HOME.DESCRIPTION)];
 ---
 
-<PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
+<PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION} jsonLd={jsonLd}>
   <Container>
-    <div class="space-y-20">
-      <section class="space-y-6">
-        <div class="animate">
-          <div class="w-12 h-1 bg-lime-400 mb-6"></div>
-          <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Rafael Roman
-          </h1>
-        </div>
-        <p class="animate text-lg text-zinc-600 dark:text-zinc-400 max-w-xl">
-          CTO & Co-founder building the future of energy in Switzerland.
-          <span class="text-zinc-400 dark:text-zinc-500">20+ years shipping software that matters.</span>
+    <div class="space-y-28">
+      <section class="animate-hero space-y-8">
+        <div class="signal-mark mb-8"></div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold leading-[1.05] tracking-tight text-balance text-zinc-900 dark:text-white">
+          Rafael Roman
+        </h1>
+        <p class="text-xl sm:text-2xl leading-snug text-pretty text-zinc-600 dark:text-zinc-400 max-w-xl">
+          CTO & Co-founder at{" "}
+          <Link href="https://upgrid.ch" external>Upgrid</Link>
+          {" "}&mdash; building the energy marketplace for Switzerland's local solar communities.
+          <span class="text-zinc-400 dark:text-zinc-500">20+ years engineering critical infrastructure before becoming a founder.</span>
         </p>
-        <div class="animate space-y-4 font-mono text-sm">
+        <div class="space-y-4 font-mono text-sm">
           <p>
-            Co-founder & CTO of{" "}
-            <Link href="https://upgrid.ch" external>Upgrid</Link>
-            {" "}&mdash; a Swiss energy marketplace connecting local solar producers
-            with consumers. Lower prices, 100% local renewable energy, zero hardware.
+            Upgrid connects solar producers directly with their neighbors: lower prices,
+            100% local renewable energy, zero hardware. The energy grid is about to look
+            very different.
           </p>
           <p>
-            From <Link href="https://n26.com" external>N26</Link> (Europe's largest neobank)
-            and Personio to building 5+ international banks at GFT.
-            Backend at heart &mdash; JVM, Kotlin, distributed systems, event-driven architecture.
+            Four years at <Link href="https://n26.com" external>N26</Link> as Principal Engineer &mdash;
+            payments architecture for millions of European customers, fraud prevention
+            rebuilt end-to-end in six months. Then Principal Engineer at Personio.
+            Before that: a decade delivering banking platforms across Europe at GFT,
+            and three years at IBM&apos;s innovation lab.
           </p>
           <p>
-            <span class="text-lime-600 dark:text-lime-400">Speaker:</span>{" "}
-            Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, TEDx.
+            <span class="text-accent">Speaker:</span>{" "}
+            Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, JavaCro, DevBCN, TEDx.
           </p>
           <p class="text-zinc-400 dark:text-zinc-500">
             Based in Basel. From S&atilde;o Paulo. A decade in Barcelona.
@@ -55,9 +69,9 @@ const work = await Promise.all(
       </section>
 
       {work.length > 0 && (
-        <section class="animate space-y-6">
+        <section class="space-y-6">
           <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h2 class="text-xl font-bold text-zinc-900 dark:text-white">
+            <h2 class="section-title">
               Work
             </h2>
             <Link href="/work">
@@ -66,27 +80,44 @@ const work = await Promise.all(
           </div>
           <ul class="flex flex-col space-y-4">
             {work.map(entry => (
-              <li class="border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 hover:border-lime-600/50 dark:hover:border-lime-400/50 transition-colors duration-300">
-                <div class="text-xs font-mono text-zinc-400 dark:text-zinc-500">
-                  {dateRange(entry.data.dateStart, entry.data.dateEnd)}
-                </div>
-                <div class="font-semibold text-zinc-900 dark:text-white">
-                  {entry.data.company}
-                </div>
-                <div class="text-sm text-lime-600/70 dark:text-lime-400/70">
-                  {entry.data.role}
-                </div>
-                <article>
-                  <entry.Content />
-                </article>
-              </li>
+              <WorkEntry
+                dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
+                company={entry.data.company}
+                role={entry.data.role}
+              >
+                <entry.Content />
+              </WorkEntry>
             ))}
           </ul>
         </section>
       )}
 
-      <section class="animate space-y-4">
-        <h2 class="text-xl font-bold text-zinc-900 dark:text-white">
+      {recentArticles.length > 0 && (
+        <section class="space-y-6">
+          <div class="flex flex-wrap gap-y-2 items-center justify-between">
+            <h2 class="section-title">
+              Writing
+            </h2>
+            <Link href="/articles">
+              See all
+            </Link>
+          </div>
+          <ul class="flex flex-col space-y-4">
+            {recentArticles.map(article => (
+              <ArticleEntry
+                title={article.data.title}
+                description={article.data.description}
+                slug={article.id}
+                date={article.data.date}
+                tags={article.data.tags}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section class="space-y-4">
+        <h2 class="section-title">
           Connect
         </h2>
         <p class="font-mono text-sm">
@@ -94,7 +125,7 @@ const work = await Promise.all(
         </p>
         <ul class="flex flex-wrap gap-2">
           {SOCIALS.map((SOCIAL, i) => (
-            <li class="flex gap-x-2 text-nowrap">
+            <li class="flex gap-x-2 text-nowrap items-center py-1">
               <Link href={SOCIAL.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}>
                 {SOCIAL.NAME}
               </Link>

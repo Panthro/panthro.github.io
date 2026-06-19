@@ -1,8 +1,8 @@
 ---
 company: "Personio"
-role: "Staff Engineer / Engineering Lead"
-dateStart: "01/01/2022"
-dateEnd: "12/31/2023"
+role: "Principal Engineer"
+dateStart: "03/01/2024"
+dateEnd: "05/01/2025"
 ---
 
-Led platform engineering teams at one of Europe's leading HR tech scale-ups. Focused on distributed systems, developer experience, and scaling engineering processes through hypergrowth.
+Platform engineering at one of Europe's leading HR tech companies during a critical growth phase. Defined technical direction for core platform services, shaped engineering standards, and operated as a cross-team technical authority at scale.

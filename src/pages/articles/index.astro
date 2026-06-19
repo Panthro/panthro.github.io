@@ -1,0 +1,44 @@
+---
+import { getCollection } from "astro:content";
+import PageLayout from "@layouts/PageLayout.astro";
+import Container from "@components/Container.astro";
+import ArticleEntry from "@components/ArticleEntry.astro";
+import { ARTICLES } from "@consts";
+
+const articles = (
+  await getCollection("articles", ({ data }) =>
+    import.meta.env.DEV ? true : !data.draft
+  )
+).sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+---
+
+<PageLayout title={ARTICLES.TITLE} description={ARTICLES.DESCRIPTION}>
+  <Container>
+    <div class="space-y-10">
+      <div class="animate-hero">
+        <div class="signal-mark mb-6"></div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-zinc-900 dark:text-white">
+          Writing
+        </h1>
+      </div>
+
+      {articles.length > 0 ? (
+        <ul class="flex flex-col space-y-6">
+          {articles.map(article => (
+            <ArticleEntry
+              title={article.data.title}
+              description={article.data.description}
+              slug={article.id}
+              date={article.data.date}
+              tags={article.data.tags}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p class="font-mono text-sm text-zinc-500">
+          Nothing published yet. Check back soon.
+        </p>
+      )}
+    </div>
+  </Container>
+</PageLayout>

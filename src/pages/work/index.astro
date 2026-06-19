@@ -1,7 +1,8 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import Container from "@components/Container.astro";
+import WorkEntry from "@components/WorkEntry.astro";
 import { dateRange } from "@lib/utils";
 import { WORK } from "@consts";
 
@@ -10,7 +11,7 @@ const collection = (await getCollection("work"))
 
 const work = await Promise.all(
   collection.map(async (item) => {
-    const { Content } = await item.render();
+    const { Content } = await render(item);
     return { ...item, Content };
   })
 );
@@ -19,31 +20,22 @@ const work = await Promise.all(
 <PageLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
   <Container>
     <div class="space-y-10">
-      <div class="animate">
-        <div class="w-12 h-1 bg-lime-400 mb-4"></div>
-        <h1 class="text-3xl font-bold text-zinc-900 dark:text-white">
+      <div class="animate-hero">
+        <div class="signal-mark mb-6"></div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-zinc-900 dark:text-white">
           Work
         </h1>
       </div>
       <ul class="flex flex-col space-y-6">
-        {
-          work.map(entry => (
-            <li class="animate border-l-2 border-zinc-200 dark:border-zinc-800 pl-4">
-              <div class="text-xs font-mono text-zinc-400 dark:text-zinc-500">
-                {dateRange(entry.data.dateStart, entry.data.dateEnd)}
-              </div>
-              <div class="font-semibold text-zinc-900 dark:text-white">
-                {entry.data.company}
-              </div>
-              <div class="text-sm text-lime-600/70 dark:text-lime-400/70">
-                {entry.data.role}
-              </div>
-              <article>
-                <entry.Content />
-              </article>
-            </li>
-          ))
-        }
+        {work.map(entry => (
+          <WorkEntry
+            dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
+            company={entry.data.company}
+            role={entry.data.role}
+          >
+            <entry.Content />
+          </WorkEntry>
+        ))}
       </ul>
     </div>
   </Container>

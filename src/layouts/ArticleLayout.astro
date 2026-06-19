@@ -1,0 +1,189 @@
+---
+import Head from "@components/Head.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import BackToPrev from "@components/BackToPrev.astro";
+import TableOfContents from "@components/TableOfContents.astro";
+import { SITE } from "@consts";
+import { articleSchema, breadcrumbSchema } from "@lib/seo";
+import type { TocHeading } from "@components/TableOfContents.astro";
+
+type Props = {
+  title: string;
+  description: string;
+  date: Date;
+  tags?: string[];
+  related?: { title: string; slug: string; description: string }[];
+  headings?: TocHeading[];
+  draft?: boolean;
+  readingTimeMinutes?: number;
+};
+
+const {
+  title,
+  description,
+  date,
+  tags = [],
+  related = [],
+  headings = [],
+  draft = false,
+  readingTimeMinutes,
+} = Astro.props;
+
+const formattedDate = date.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const pageTitle = `${title} | ${SITE.NAME}`;
+const articleUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+const jsonLd = [
+  articleSchema({
+    title,
+    description,
+    url: articleUrl,
+    datePublished: date,
+    tags,
+  }),
+  breadcrumbSchema([
+    { name: SITE.NAME, url: new URL("/", Astro.site).href },
+    { name: "Writing", url: new URL("/articles/", Astro.site).href },
+    { name: title, url: articleUrl },
+  ]),
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head
+      title={pageTitle}
+      description={description}
+      ogType="article"
+      article={{
+        publishedTime: date.toISOString(),
+        tags,
+        author: SITE.NAME,
+      }}
+      jsonLd={jsonLd}
+    />
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-[max(1rem,env(safe-area-inset-top))] focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-lime-400 focus:text-zinc-900 focus:text-sm focus:font-mono focus:no-underline focus-ring">Skip to content</a>
+    <Header />
+    <main id="main">
+      <div class="mx-auto max-w-2xl px-4 sm:px-5">
+        <div class="space-y-12">
+
+          <div>
+            <BackToPrev href="/articles">Back to writing</BackToPrev>
+          </div>
+
+          <div class="animate-hero space-y-8">
+            <div class="signal-mark"></div>
+            <div class="flex flex-wrap gap-y-2 items-center justify-between">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <time
+                  datetime={date.toISOString()}
+                  class="text-xs font-mono text-meta"
+                >
+                  {formattedDate}
+                </time>
+                {readingTimeMinutes !== undefined && (
+                  <span class="text-xs font-mono text-meta" aria-hidden="true">·</span>
+                )}
+                {readingTimeMinutes !== undefined && (
+                  <span class="text-xs font-mono text-meta">
+                    {readingTimeMinutes} min read
+                  </span>
+                )}
+                {draft && import.meta.env.DEV && (
+                  <span class="text-xs font-mono text-amber-400 dark:text-amber-400 border border-amber-400/40 px-1.5 py-0.5">
+                    Draft
+                  </span>
+                )}
+              </div>
+              {tags.length > 0 && (
+                <div class="flex flex-wrap gap-x-3">
+                  {tags.map(tag => (
+                    <span class="text-xs font-mono text-prose">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <h1 class="text-3xl sm:text-4xl md:text-[3.25rem] font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
+              {title}
+            </h1>
+            <p class="text-xl sm:text-2xl leading-snug text-prose text-pretty max-w-xl">
+              {description}
+            </p>
+          </div>
+
+          <TableOfContents headings={headings} />
+
+          <article class:list={[
+            "prose dark:prose-invert max-w-none",
+            "prose-headings:font-display prose-headings:font-extrabold prose-headings:tracking-tight",
+            "prose-h2:text-2xl sm:prose-h2:text-3xl prose-h2:mt-16 prose-h2:mb-5",
+            "prose-h3:text-xl sm:prose-h3:text-2xl prose-h3:mt-10",
+            "prose-p:text-zinc-600 dark:prose-p:text-zinc-400",
+            "prose-strong:text-zinc-800 dark:prose-strong:text-zinc-200",
+            "prose-a:text-lime-600 dark:prose-a:text-lime-400 prose-a:no-underline hover:prose-a:underline prose-a:font-normal",
+            "prose-code:text-lime-700 dark:prose-code:text-lime-400 prose-code:bg-zinc-100 dark:prose-code:bg-zinc-900 prose-code:px-1.5 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none",
+            "prose-pre:bg-zinc-100 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-800",
+            "prose-blockquote:border-l-0 prose-blockquote:border-t prose-blockquote:border-zinc-300 dark:prose-blockquote:border-zinc-700 prose-blockquote:pl-0 prose-blockquote:pt-4 prose-blockquote:not-italic prose-blockquote:text-zinc-600 dark:prose-blockquote:text-zinc-400",
+            "prose-hr:border-zinc-200 dark:prose-hr:border-zinc-800",
+            "prose-img:my-8",
+          ]}>
+            <slot />
+          </article>
+
+          <div class="article-reveal pt-8 border-t border-subtle space-y-3">
+            <div class="flex items-center gap-x-3">
+              <div class="size-12 bg-surface-muted flex items-center justify-center shrink-0">
+                <span class="font-display font-extrabold text-base text-accent">RR</span>
+              </div>
+              <div>
+                <div class="text-sm font-semibold text-heading">
+                  {SITE.NAME}
+                </div>
+                <div class="text-xs text-meta">
+                  CTO & Co-founder at Upgrid · Previously N26, Personio, GFT
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {related.length > 0 && (
+            <div class="article-reveal space-y-4 pt-4 border-t border-subtle">
+              <h2 class="text-sm font-mono text-meta uppercase tracking-wider">
+                More writing
+              </h2>
+              <ul class="space-y-3">
+                {related.map(item => (
+                  <li>
+                    <a
+                      href={`/articles/${item.slug}`}
+                      class="group focus-ring block pl-4 touch-target-block border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 active:border-zinc-400 dark:active:border-zinc-600 transition-colors duration-300"
+                    >
+                      <div class="font-display font-bold text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+                        {item.title}
+                      </div>
+                      <div class="text-sm text-meta">{item.description}</div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

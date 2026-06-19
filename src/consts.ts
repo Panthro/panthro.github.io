@@ -3,16 +3,35 @@ import type { Site, Metadata, Socials } from "@types";
 export const SITE: Site = {
   NAME: "Rafael Roman",
   NUM_WORKS_ON_HOMEPAGE: 3,
+  NUM_ARTICLES_ON_HOMEPAGE: 3,
+  JOB_TITLE: "CTO & Co-founder",
+  COMPANY: "Upgrid",
+  COMPANY_URL: "https://upgrid.ch",
+  OG_IMAGE: "/og-default.png",
 };
 
 export const HOME: Metadata = {
-  TITLE: "Home",
-  DESCRIPTION: "CTO & Co-founder · 20+ years building software that matters · Based in Basel 🇨🇭",
+  TITLE: "Rafael Roman — CTO & Co-founder · Distributed Systems",
+  DESCRIPTION:
+    "Rafael Roman — CTO & Co-founder of Upgrid. 20+ years building fintech and distributed systems at N26, Personio, and GFT. Speaker at Kafka Summit, KotlinConf, and TEDx. Based in Basel.",
 };
 
 export const WORK: Metadata = {
-  TITLE: "Work",
-  DESCRIPTION: "20+ years across the full stack of software and business.",
+  TITLE: "Work — N26, Personio, Upgrid · Rafael Roman",
+  DESCRIPTION:
+    "Career history of Rafael Roman — Principal Engineer at N26 and Personio, Co-founder & CTO at Upgrid. Fintech, distributed systems, and platform engineering across Europe.",
+};
+
+export const SPEAKING: Metadata = {
+  TITLE: "Conference Talks — Kafka Summit, KotlinConf · Rafael Roman",
+  DESCRIPTION:
+    "Talks and keynotes by Rafael Roman — Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, JavaCro, DevBCN, and TEDx on distributed systems, streaming, and AI.",
+};
+
+export const ARTICLES: Metadata = {
+  TITLE: "Writing — Engineering Leadership & Systems · Rafael Roman",
+  DESCRIPTION:
+    "Articles by Rafael Roman on distributed systems, fintech engineering, fraud prevention, energy tech, and engineering leadership from N26, Personio, and Upgrid.",
 };
 
 export const SOCIALS: Socials = [
