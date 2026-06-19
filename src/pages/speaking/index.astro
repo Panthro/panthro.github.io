@@ -5,6 +5,7 @@ import Container from "@components/Container.astro";
 import TalkEntry from "@components/TalkEntry.astro";
 import Link from "@components/Link.astro";
 import { SPEAKING } from "@consts";
+import { excerpt } from "@lib/related";
 
 const talks = (await getCollection("speaking"))
   .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
@@ -46,11 +47,13 @@ const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
             <ul class="flex flex-col space-y-5">
               {byYear[year].map(talk => (
                 <TalkEntry
+                  slug={talk.id}
                   event={talk.data.event}
                   title={talk.data.title}
                   date={talk.data.date}
                   location={talk.data.location}
                   link={talk.data.link}
+                  description={talk.data.description ?? excerpt(talk.body ?? "", 140)}
                 />
               ))}
             </ul>

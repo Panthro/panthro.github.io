@@ -81,9 +81,11 @@ const jsonLd = [personSchema(HOME.DESCRIPTION), webSiteSchema(HOME.DESCRIPTION)]
           <ul class="flex flex-col space-y-4">
             {work.map(entry => (
               <WorkEntry
+                slug={entry.id}
                 dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
                 company={entry.data.company}
                 role={entry.data.role}
+                truncate
               >
                 <entry.Content />
               </WorkEntry>

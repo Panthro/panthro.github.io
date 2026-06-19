@@ -1,0 +1,28 @@
+---
+description: SEO, meta tags, and structured data conventions
+globs: src/components/Head.astro,src/lib/seo.ts,src/consts.ts,src/pages/rss.xml.ts,src/pages/robots.txt.ts
+alwaysApply: false
+---
+
+# SEO & meta
+
+Personal brand first. Full titles live in `consts.ts` — `PageLayout` uses them as-is (no `| Rafael Roman` suffix except articles).
+
+## Head.astro
+
+- Default OG image: `SITE.OG_IMAGE` (`/og-default.png`)
+- Pass `ogType="article"` + `article={{ publishedTime, tags, author }}` for posts
+- JSON-LD via `jsonLd` prop → `JsonLd.astro`
+
+## Schema helpers (`src/lib/seo.ts`)
+
+- Homepage: `personSchema` + `webSiteSchema` in `index.astro`
+- Articles: `articleSchema` + `breadcrumbSchema` in `ArticleLayout.astro`
+
+## Draft exclusion
+
+Prod build filters `draft: true` in `[...slug].astro`, RSS, and homepage listings. Sitemap follows built pages only.
+
+## Verify
+
+Inspect built HTML for `application/ld+json`, `og:image`, single `og:type`. Do not rely on `web_fetch` for JSON-LD detection.

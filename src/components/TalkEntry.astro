@@ -1,5 +1,6 @@
 ---
 type Props = {
+  slug: string;
   event: string;
   title?: string;
   date: Date;
@@ -8,14 +9,22 @@ type Props = {
   description?: string;
 }
 
-const { event, title, date, location, link, description } = Astro.props;
+const { slug, event, title, date, location, link, description } = Astro.props;
 
 const dateStr = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+const href = `/speaking/${slug}/`;
 ---
 
 <li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
   <div class="text-xs font-mono text-meta">{dateStr} · {location}</div>
-  <h2 class="font-display font-bold text-lg text-heading">{event}</h2>
+  <h2 class="font-display font-bold text-lg">
+    <a
+      href={href}
+      class="text-heading hover:text-lime-600 dark:hover:text-lime-400 focus-ring transition-colors duration-300"
+    >
+      {event}
+    </a>
+  </h2>
   {title && (
     <p class="text-sm text-accent italic">&ldquo;{title}&rdquo;</p>
   )}

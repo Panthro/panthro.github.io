@@ -1,0 +1,28 @@
+---
+description: Core conventions for rafaelroman.com — read AGENTS.md, validate in browser, match design system
+alwaysApply: true
+---
+
+# Site core
+
+Read [AGENTS.md](../../AGENTS.md) at session start for repo map, content rules, and backlog.
+
+## Stack
+
+Astro 6 static site, pnpm, Tailwind. Deploy: push to **`master`** → GitHub Pages → `rafaelroman.com`.
+
+## Before finishing UI work
+
+1. Run affected page in browser (`pnpm dev`, localhost:4321)
+2. Check light **and** dark theme if colors/layout changed
+3. Run `pnpm build && pnpm lint`
+
+## Design
+
+- Follow [DESIGN.md](../../DESIGN.md) and [PRODUCT.md](../../PRODUCT.md)
+- Use semantic utilities: `.text-heading`, `.text-prose`, `.text-meta`, `.text-accent`, `.border-subtle` — not raw zinc/lime in components
+- One `.signal-mark` per page hero; no box shadows; 44px touch targets + `.focus-ring`
+
+## Commits
+
+Only commit when the user asks. Do not commit `.impeccable/critique/`.

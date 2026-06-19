@@ -1,0 +1,51 @@
+---
+import { getCollection, render } from "astro:content";
+import TalkLayout from "@layouts/TalkLayout.astro";
+import { SITE } from "@consts";
+import {
+  excerpt,
+  resolveArticleLinks,
+  resolveTalkLinks,
+  resolveWorkLinks,
+} from "@lib/related";
+
+export async function getStaticPaths() {
+  const talks = await getCollection("speaking");
+  return talks.map((talk) => ({
+    params: { slug: talk.id },
+    props: { talk },
+  }));
+}
+
+const { talk } = Astro.props;
+const { Content } = await render(talk);
+
+const metaDescription =
+  talk.data.description ??
+  excerpt(talk.body ?? `${talk.data.event} — talk by ${SITE.NAME} in ${talk.data.location}.`);
+
+const pageTitle = talk.data.title
+  ? `${talk.data.title} · ${talk.data.event} · ${SITE.NAME}`
+  : `${talk.data.event} · ${SITE.NAME}`;
+
+const relatedArticles = await resolveArticleLinks(talk.data.relatedArticles);
+const relatedTalks = await resolveTalkLinks(
+  talk.data.relatedTalks.filter((slug) => slug !== talk.id)
+);
+const relatedWork = await resolveWorkLinks(talk.data.relatedWork);
+---
+
+<TalkLayout
+  pageTitle={pageTitle}
+  description={metaDescription}
+  event={talk.data.event}
+  talkTitle={talk.data.title}
+  date={talk.data.date}
+  location={talk.data.location}
+  externalLink={talk.data.link}
+  relatedArticles={relatedArticles}
+  relatedTalks={relatedTalks}
+  relatedWork={relatedWork}
+>
+  <Content />
+</TalkLayout>

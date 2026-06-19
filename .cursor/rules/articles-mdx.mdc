@@ -1,0 +1,24 @@
+---
+description: Article MDX and React component conventions
+globs: src/content/articles/**,src/components/articles/**,src/layouts/ArticleLayout.astro
+alwaysApply: false
+---
+
+# Articles & MDX components
+
+## New article checklist
+
+1. Create `src/content/articles/<slug>.mdx` with frontmatter (`title`, `description`, `date`, `draft`, `tags`)
+2. Import existing components from `src/components/articles/` — reuse before creating new ones
+3. Set `draft: false` when ready for production (excluded from build/sitemap/RSS when `true`)
+4. Browser-test the article URL after changes
+
+## Component patterns
+
+- React (`.tsx`) with semantic token classes
+- Scroll reveal: wrap in `article-reveal`; stagger children with nested `article-stagger` > `article-stagger-item`
+- **Do not** put `article-reveal` and `article-stagger` on the same element without the nested-child pattern (causes invisible content)
+
+## Layout
+
+`ArticleLayout.astro` provides ToC (h2 extract), author bio, related links, and SEO schema. Article page title format: `{title} | Rafael Roman`.

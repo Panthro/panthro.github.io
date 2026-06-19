@@ -29,6 +29,7 @@ const work = await Promise.all(
       <ul class="flex flex-col space-y-6">
         {work.map(entry => (
           <WorkEntry
+            slug={entry.id}
             dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
             company={entry.data.company}
             role={entry.data.role}

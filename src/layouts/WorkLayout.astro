@@ -1,0 +1,77 @@
+---
+import Head from "@components/Head.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import BackToPrev from "@components/BackToPrev.astro";
+import RelatedLinks from "@components/RelatedLinks.astro";
+import { SITE } from "@consts";
+import { breadcrumbSchema } from "@lib/seo";
+import type { RelatedLink } from "@lib/related";
+
+type Props = {
+  pageTitle: string;
+  description: string;
+  company: string;
+  role: string;
+  dateRange: string;
+  relatedArticles?: RelatedLink[];
+  relatedTalks?: RelatedLink[];
+};
+
+const {
+  pageTitle,
+  description,
+  company,
+  role,
+  dateRange,
+  relatedArticles = [],
+  relatedTalks = [],
+} = Astro.props;
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+const jsonLd = [
+  breadcrumbSchema([
+    { name: SITE.NAME, url: new URL("/", Astro.site).href },
+    { name: "Work", url: new URL("/work/", Astro.site).href },
+    { name: company, url: pageUrl },
+  ]),
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head title={pageTitle} description={description} jsonLd={jsonLd} />
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-[max(1rem,env(safe-area-inset-top))] focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-lime-400 focus:text-zinc-900 focus:text-sm focus:font-mono focus:no-underline focus-ring">Skip to content</a>
+    <Header />
+    <main id="main">
+      <div class="mx-auto max-w-2xl px-4 sm:px-5">
+        <div class="space-y-12">
+          <div>
+            <BackToPrev href="/work">Back to work</BackToPrev>
+          </div>
+
+          <div class="animate-hero space-y-8">
+            <div class="signal-mark"></div>
+            <div class="text-xs font-mono text-meta">{dateRange}</div>
+            <h1 class="text-3xl sm:text-4xl md:text-[3.25rem] font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
+              {company}
+            </h1>
+            <p class="text-xl sm:text-2xl text-accent">{role}</p>
+          </div>
+
+          <article class="prose dark:prose-invert max-w-none prose-p:text-zinc-600 dark:prose-p:text-zinc-400 prose-a:text-lime-600 dark:prose-a:text-lime-400">
+            <slot />
+          </article>
+
+          <RelatedLinks heading="Related writing" items={relatedArticles} />
+          <RelatedLinks heading="Related talks" items={relatedTalks} />
+        </div>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

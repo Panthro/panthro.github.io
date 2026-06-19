@@ -1,0 +1,36 @@
+---
+import { getCollection, render } from "astro:content";
+import WorkLayout from "@layouts/WorkLayout.astro";
+import { SITE } from "@consts";
+import { dateRange } from "@lib/utils";
+import { resolveArticleLinks, resolveTalkLinks } from "@lib/related";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("work");
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const pageTitle = `${entry.data.role} at ${entry.data.company} · ${SITE.NAME}`;
+const description = `${entry.data.role} at ${entry.data.company} — part of ${SITE.NAME}'s career in fintech, distributed systems, and platform engineering.`;
+
+const relatedArticles = await resolveArticleLinks(entry.data.relatedArticles);
+const relatedTalks = await resolveTalkLinks(entry.data.relatedTalks);
+---
+
+<WorkLayout
+  pageTitle={pageTitle}
+  description={description}
+  company={entry.data.company}
+  role={entry.data.role}
+  dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
+  relatedArticles={relatedArticles}
+  relatedTalks={relatedTalks}
+>
+  <Content />
+</WorkLayout>

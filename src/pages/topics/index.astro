@@ -1,0 +1,43 @@
+---
+import { getCollection } from "astro:content";
+import PageLayout from "@layouts/PageLayout.astro";
+import Container from "@components/Container.astro";
+import { TOPICS } from "@consts";
+
+const topics = (await getCollection("topics")).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title)
+);
+---
+
+<PageLayout title={TOPICS.TITLE} description={TOPICS.DESCRIPTION}>
+  <Container>
+    <div class="space-y-10">
+      <div class="animate-hero">
+        <div class="signal-mark mb-6"></div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
+          Topics
+        </h1>
+      </div>
+
+      <p class="font-mono text-sm text-prose max-w-xl">
+        Curated clusters of writing, talks, and work — grouped by the problems I have actually shipped against.
+      </p>
+
+      <ul class="flex flex-col space-y-5">
+        {topics.map((topic) => (
+          <li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+            <a
+              href={`/topics/${topic.id}/`}
+              class="focus-ring group block touch-target-block"
+            >
+              <div class="font-display font-bold text-lg text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+                {topic.data.title}
+              </div>
+              <p class="text-sm text-meta mt-1">{topic.data.description}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </Container>
+</PageLayout>

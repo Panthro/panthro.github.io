@@ -1,16 +1,6 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
-const work = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/work" }),
-  schema: z.object({
-    company: z.string(),
-    role: z.string(),
-    dateStart: z.coerce.date(),
-    dateEnd: z.union([z.coerce.date(), z.string()]),
-  }),
-});
-
 const speaking = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/speaking" }),
   schema: z.object({
@@ -19,6 +9,33 @@ const speaking = defineCollection({
     date: z.coerce.date(),
     location: z.string(),
     link: z.string().optional(),
+    description: z.string().optional(),
+    relatedArticles: z.array(z.string()).optional().default([]),
+    relatedTalks: z.array(z.string()).optional().default([]),
+    relatedWork: z.array(z.string()).optional().default([]),
+  }),
+});
+
+const work = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/work" }),
+  schema: z.object({
+    company: z.string(),
+    role: z.string(),
+    dateStart: z.coerce.date(),
+    dateEnd: z.union([z.coerce.date(), z.string()]),
+    relatedArticles: z.array(z.string()).optional().default([]),
+    relatedTalks: z.array(z.string()).optional().default([]),
+  }),
+});
+
+const topics = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/topics" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    relatedArticles: z.array(z.string()).optional().default([]),
+    relatedTalks: z.array(z.string()).optional().default([]),
+    relatedWork: z.array(z.string()).optional().default([]),
   }),
 });
 
@@ -34,4 +51,4 @@ const articles = defineCollection({
   }),
 });
 
-export const collections = { work, speaking, articles };
+export const collections = { work, speaking, articles, topics };

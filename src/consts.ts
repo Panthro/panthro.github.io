@@ -34,6 +34,12 @@ export const ARTICLES: Metadata = {
     "Articles by Rafael Roman on distributed systems, fintech engineering, fraud prevention, energy tech, and engineering leadership from N26, Personio, and Upgrid.",
 };
 
+export const TOPICS: Metadata = {
+  TITLE: "Topics — Fraud, Streaming, Fintech · Rafael Roman",
+  DESCRIPTION:
+    "Curated topic hubs by Rafael Roman — fraud prevention, stream processing, engineering leadership, fintech infrastructure, and energy tech.",
+};
+
 export const SOCIALS: Socials = [
   {
     NAME: "linkedin",

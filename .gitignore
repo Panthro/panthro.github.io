@@ -27,6 +27,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Local design critique cache (Impeccable)
+.impeccable/critique/
+
 # Old Jekyll
 _site/
 .sass-cache/
