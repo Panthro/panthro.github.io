@@ -9,7 +9,11 @@
 
 html {
   overflow-y: scroll;
-  color-scheme: dark;
+  color-scheme: light dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
 }
 
 html.dark {
@@ -24,28 +28,26 @@ body {
 body {
   @apply font-sans antialiased;
   @apply flex flex-col;
-  @apply bg-zinc-950 dark:bg-zinc-950;
-  @apply text-zinc-400 dark:text-zinc-400;
+  @apply bg-zinc-100 text-zinc-600;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
-html:not(.dark) body {
-  @apply bg-zinc-100 text-zinc-600;
+html.dark body {
+  @apply bg-zinc-950 text-zinc-400;
 }
 
 header {
   @apply fixed top-0 left-0 right-0 z-50 py-4 sm:py-5;
-  @apply bg-zinc-950/80 dark:bg-zinc-950/80;
+  @apply bg-zinc-100/80 border-b border-zinc-200;
   @apply backdrop-blur-md saturate-150;
-  @apply border-b border-zinc-800/50;
   padding-top: max(1rem, env(safe-area-inset-top));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
-html:not(.dark) header {
-  @apply bg-zinc-100/80 border-zinc-200;
+html.dark header {
+  @apply bg-zinc-950/80 border-zinc-800/50;
 }
 
 main {
