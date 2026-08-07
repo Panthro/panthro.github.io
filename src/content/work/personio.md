@@ -2,7 +2,7 @@
 company: "Personio"
 role: "Principal Engineer"
 dateStart: "03/01/2024"
-dateEnd: "05/01/2025"
+dateEnd: "01/01/2025"
 relatedArticles:
   - code-freeze-purpose
 relatedTalks: []

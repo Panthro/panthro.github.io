@@ -29,6 +29,11 @@ Thumbs.db
 
 # Local design critique cache (Impeccable)
 .impeccable/critique/
+.impeccable/live/
+.impeccable/settings.local.json
+
+# Local agent / IDE artifacts
+.claude/
 
 # Old Jekyll
 _site/
