@@ -12,10 +12,12 @@ relatedWork:
   - n26
   - personio
   - gft
+  - ibm
+  - gft-2009
 ---
 
 Two decades of fintech infrastructure work across neobanks, HR scale-ups, and international banking delivery. The through-line is regulated environments where downtime has a cost measured in regulation and reputation, not just uptime percentages.
 
-N26 covers payments architecture and fraud at European scale. Personio covers platform engineering during hypergrowth. GFT is where the banking delivery foundation was built across multiple countries.
+N26 covers payments architecture and fraud at European scale. Personio covers platform engineering during hypergrowth. Early GFT and IBM built the banking and security delivery foundation; the later GFT stint is where that foundation became architecture leadership across multiple countries.
 
 Articles and talks linked here focus on the systems decisions — not résumé milestones.
