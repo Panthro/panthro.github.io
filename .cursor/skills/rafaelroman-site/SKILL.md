@@ -37,9 +37,9 @@ description: Work on rafaelroman.com — Rafael Roman personal brand Astro site.
 
 ### Add a journey step
 
-Use when adding `place` or `project` landmarks, or when splitting/renumbering the timeline. For talks and work, prefer creating the speaking/work file first, then the journey step.
+Use when adding `study` or `project` landmarks, or when splitting/renumbering the timeline. For talks and work, prefer creating the speaking/work file first, then the journey step.
 
-1. `src/content/journey/<order>-<slug>.md` — `order`, `chapter` (`brazil`|`spain`|`switzerland`), `kind` (`place`|`career`|`project`|`talk`), `dateLabel`, `title`, `summary`, `lat`, `lng`, `place`, optional `href`
+1. `src/content/journey/<order>-<slug>.md` — `order`, `chapter` (`brazil`|`spain`|`switzerland`), `kind` (`study`|`career`|`project`|`talk`), `dateLabel`, `title`, `summary`, `lat`, `lng`, `place`, optional `href`
 2. Set `href` to `/work/`, `/speaking/`, or `/articles/` detail pages when applicable
 3. Renumber `order` on neighbors if inserting mid-timeline
 4. Browser-test `/journey/` — overview at top, map zoom on scroll; light + dark + reduced-motion

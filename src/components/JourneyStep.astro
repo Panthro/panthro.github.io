@@ -1,5 +1,5 @@
 ---
-type StepKind = "place" | "career" | "project" | "talk";
+type StepKind = "study" | "career" | "project" | "talk";
 
 type Props = {
   dateLabel: string;
@@ -13,7 +13,7 @@ type Props = {
 const { dateLabel, title, summary, kind, href, index } = Astro.props;
 
 const kindLabels: Record<StepKind, string> = {
-  place: "place",
+  study: "study",
   career: "work",
   project: "launch",
   talk: "talk",

@@ -137,7 +137,7 @@ Scroll-driven timeline + sticky map at `/journey/`. Steps are **manual** — add
 ```yaml
 order: 12                         # unique; chronological across all steps
 chapter: spain                    # brazil | spain | switzerland
-kind: talk                        # place | career | project | talk
+kind: talk                        # study | career | project | talk
 dateLabel: "2023"
 title: "Kafka Summit London"
 summary: "..."                    # timeline card (~150 chars)

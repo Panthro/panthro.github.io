@@ -416,24 +416,25 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
       >
         <path className="journey-world-land" d={landPath} />
 
-        {routePath ? (
-          <path className="journey-world-route-base" d={routePath} />
-        ) : null}
+        <g className="journey-world-routes">
+          {routePath ? (
+            <path className="journey-world-route-base" d={routePath} />
+          ) : null}
 
-        {progressPath ? (
-          <path className="journey-world-route-progress" d={progressPath} />
-        ) : null}
+          {progressPath ? (
+            <path className="journey-world-route-progress" d={progressPath} />
+          ) : null}
+        </g>
 
+        <g className="journey-world-pins">
         {projectedPins.map(({ step, x, y, visible }) => {
-          if (!visible) return null;
+          if (!visible || step.index !== activeIndex) return null;
 
-          const isActive = step.index === activeIndex;
-          const isPast = step.index < activeIndex;
           const label = pinLabel(step);
           const labelLayout = resolvePinLabelLayout(
             { x, y, index: step.index, step },
             projectedPins.filter((pin) => pin.visible),
-            isActive
+            true
           );
 
           return (
@@ -441,16 +442,15 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
               key={step.index}
               className={[
                 "journey-world-pin",
-                isActive ? "is-active" : "",
-                isPast ? "is-past" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+                "is-active",
+                `journey-world-pin--${step.kind}`,
+              ].join(" ")}
               transform={`translate(${x} ${y})`}
               data-journey-map-marker={step.index}
               role="button"
               tabIndex={0}
               aria-label={`${step.kind}: ${step.title}`}
+              aria-current="true"
               onClick={() => scrollToStep(step.index)}
               onKeyDown={(event) => {
                 if (event.key !== "Enter" && event.key !== " ") return;
@@ -458,15 +458,7 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
                 scrollToStep(step.index);
               }}
             >
-              {isActive ? (
-                <circle className="journey-world-pin-halo" r={10} cx={0} cy={0} />
-              ) : null}
-              <circle
-                className="journey-world-pin-dot"
-                r={isActive ? 5 : 4}
-                cx={0}
-                cy={0}
-              />
+              <circle className="journey-world-pin-dot" r={7} cx={0} cy={0} />
               <text
                 className="journey-world-pin-label"
                 x={labelLayout.dx}
@@ -478,6 +470,7 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
             </g>
           );
         })}
+        </g>
       </svg>
     </div>
   );

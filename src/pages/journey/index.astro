@@ -5,6 +5,7 @@ import Footer from "@components/Footer.astro";
 import JourneyChapter from "@components/JourneyChapter.astro";
 import JourneyStep from "@components/JourneyStep.astro";
 import JourneyWorldMap from "@components/journey/JourneyWorldMap";
+import JourneyMapKindLegend from "@components/journey/JourneyMapKindLegend";
 import { getCollection } from "astro:content";
 import { JOURNEY } from "@consts";
 import { breadcrumbSchema } from "@lib/seo";
@@ -52,7 +53,7 @@ type JourneyBlock =
       dateLabel: string;
       title: string;
       summary: string;
-      kind: "place" | "career" | "project" | "talk";
+      kind: "study" | "career" | "project" | "talk";
       href?: string;
       index: number;
     };
@@ -184,6 +185,7 @@ const jsonLd = [
           <p class="journey-map-caption text-meta font-mono text-xs uppercase tracking-[0.16em]">
             The route · São Paulo → Basel
           </p>
+          <JourneyMapKindLegend />
         </aside>
       </div>
     </main>

@@ -57,7 +57,7 @@ const journey = defineCollection({
   schema: z.object({
     order: z.number(),
     chapter: z.enum(["brazil", "spain", "switzerland"]),
-    kind: z.enum(["place", "career", "project", "talk"]),
+    kind: z.enum(["study", "career", "project", "talk"]),
     dateLabel: z.string(),
     title: z.string(),
     summary: z.string(),

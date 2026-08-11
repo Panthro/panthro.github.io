@@ -3,7 +3,7 @@ import type { GeoProjection } from "d3-geo";
 import type { MultiPoint } from "geojson";
 
 export type ChapterId = "brazil" | "spain" | "switzerland";
-export type StepKind = "place" | "career" | "project" | "talk";
+export type StepKind = "study" | "career" | "project" | "talk";
 
 export type JourneyMapStep = {
   index: number;
@@ -280,10 +280,10 @@ export function flowScaleForPanel(presetScale: number, panelSize: number): numbe
 }
 
 const FLOW_KIND_ZOOM: Record<StepKind, number> = {
-  place: 1.35,
-  career: 1.5,
-  project: 1.6,
-  talk: 1.85,
+  study: 2.1,
+  career: 2.35,
+  project: 2.5,
+  talk: 2.75,
 };
 
 /** Flow layout: zoomed-out view showing the full route in the sticky panel */

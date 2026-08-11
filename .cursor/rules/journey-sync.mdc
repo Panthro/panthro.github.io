@@ -37,7 +37,7 @@ Split roles at the same company (e.g. GFT Brazil vs GFT Spain) = separate journe
 ```yaml
 order: 12
 chapter: spain                    # brazil | spain | switzerland
-kind: talk                        # place | career | project | talk
+kind: talk                        # study | career | project | talk
 dateLabel: "2023"
 title: "Kafka Summit London"
 summary: "..."                    # ~150 chars, timeline card copy

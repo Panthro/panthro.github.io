@@ -409,6 +409,70 @@ html.scrolled #back-to-top {
   pointer-events: none;
 }
 
+.journey-map-legend {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.5rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.journey-map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.journey-map-legend-label {
+  @apply font-mono text-[10px] uppercase tracking-[0.08em] text-meta;
+}
+
+.journey-map-legend-dot {
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background: var(--pin-color);
+}
+
+.journey-map-legend-dot--study {
+  --pin-color: rgb(37 99 235);
+}
+
+.journey-map-legend-dot--career {
+  --pin-color: rgb(113 113 122);
+}
+
+.journey-map-legend-dot--project {
+  --pin-color: rgb(217 119 6);
+}
+
+.journey-map-legend-dot--talk {
+  --pin-color: rgb(101 163 13);
+}
+
+.dark .journey-map-legend-dot--study {
+  --pin-color: rgb(96 165 250);
+}
+
+.dark .journey-map-legend-dot--career {
+  --pin-color: rgb(161 161 170);
+}
+
+.dark .journey-map-legend-dot--project {
+  --pin-color: rgb(251 191 36);
+}
+
+.dark .journey-map-legend-dot--talk {
+  --pin-color: rgb(163 230 53);
+}
+
 @media (min-width: 1024px) {
   .journey-flow {
     display: grid;
@@ -467,6 +531,12 @@ html.scrolled #back-to-top {
 @media (max-width: 1023px) {
   .journey-map-caption {
     display: none;
+  }
+
+  .journey-map-legend {
+    position: static;
+    justify-content: center;
+    padding: 0.75rem 1rem 1rem;
   }
 }
 
@@ -628,87 +698,63 @@ html.scrolled #back-to-top {
   stroke: rgb(163 230 53);
 }
 
+.journey-world-routes {
+  pointer-events: none;
+}
+
+.journey-world-pins {
+  pointer-events: none;
+}
+
 .journey-world-pin {
   cursor: pointer;
   outline: none;
   pointer-events: auto;
 }
 
+.journey-world-pin--study {
+  --pin-color: rgb(37 99 235);
+}
+
+.journey-world-pin--career {
+  --pin-color: rgb(113 113 122);
+}
+
+.journey-world-pin--project {
+  --pin-color: rgb(217 119 6);
+}
+
+.journey-world-pin--talk {
+  --pin-color: rgb(101 163 13);
+}
+
+.dark .journey-world-pin--study {
+  --pin-color: rgb(96 165 250);
+}
+
+.dark .journey-world-pin--career {
+  --pin-color: rgb(161 161 170);
+}
+
+.dark .journey-world-pin--project {
+  --pin-color: rgb(251 191 36);
+}
+
+.dark .journey-world-pin--talk {
+  --pin-color: rgb(163 230 53);
+}
+
 .journey-world-pin-dot {
-  fill: rgb(244 244 245);
-  stroke: rgb(113 113 122);
-  stroke-width: 1.25;
+  fill: var(--pin-color);
+  stroke: rgb(244 244 245);
+  stroke-width: 2.5;
   transition:
     fill 300ms var(--ease-out-quart),
-    stroke 300ms var(--ease-out-quart),
-    r 300ms var(--ease-out-expo);
+    stroke 300ms var(--ease-out-quart);
 }
 
 .dark .journey-world-pin-dot {
-  fill: rgb(24 24 27);
-  stroke: rgb(161 161 170);
-}
-
-.journey-world-pin-halo {
-  fill: rgb(163 230 53 / 0.18);
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: journey-pin-pulse 2.4s ease-in-out infinite;
-}
-
-.dark .journey-world-pin-halo {
-  fill: rgb(163 230 53 / 0.12);
-}
-
-@keyframes journey-pin-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.75;
-    transform: scale(1.2);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .journey-world-pin-halo {
-    animation: none;
-  }
-}
-
-.journey-world-pin:hover .journey-world-pin-dot,
-.journey-world-pin:focus-visible .journey-world-pin-dot {
-  fill: rgb(163 230 53 / 0.75);
-  stroke: rgb(101 163 13);
-}
-
-.dark .journey-world-pin:hover .journey-world-pin-dot,
-.dark .journey-world-pin:focus-visible .journey-world-pin-dot {
-  fill: rgb(101 163 13 / 0.85);
-  stroke: rgb(163 230 53);
-}
-
-.journey-world-pin.is-past .journey-world-pin-dot {
-  fill: rgb(163 230 53 / 0.45);
-  stroke: rgb(101 163 13);
-}
-
-.dark .journey-world-pin.is-past .journey-world-pin-dot {
-  fill: rgb(101 163 13 / 0.55);
-  stroke: rgb(163 230 53);
-}
-
-.journey-world-pin.is-active .journey-world-pin-dot {
-  fill: rgb(163 230 53);
-  stroke: rgb(101 163 13);
-}
-
-.dark .journey-world-pin.is-active .journey-world-pin-dot {
-  fill: rgb(101 163 13);
-  stroke: rgb(163 230 53);
+  stroke: rgb(9 9 11);
 }
 
 .journey-world-pin-label {
@@ -718,13 +764,6 @@ html.scrolled #back-to-top {
   text-transform: uppercase;
   fill: rgb(113 113 122);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 200ms var(--ease-out-quart);
-}
-
-.journey-world-pin.is-active .journey-world-pin-label,
-.journey-world-pin:hover .journey-world-pin-label,
-.journey-world-pin:focus-visible .journey-world-pin-label {
   opacity: 1;
 }
 
@@ -739,11 +778,6 @@ html.scrolled #back-to-top {
 
 .dark .journey-world-pin.is-active .journey-world-pin-label {
   fill: rgb(163 230 53);
-}
-
-.journey-world-pin:focus-visible .journey-world-pin-dot {
-  stroke: rgb(101 163 13);
-  stroke-width: 2;
 }
 
 .journey-steps-list {
@@ -857,7 +891,7 @@ html.scrolled #back-to-top {
   margin-bottom: 0.75rem;
 }
 
-.journey-step--place .journey-step-title {
+.journey-step--study .journey-step-title {
   font-size: clamp(1.375rem, 3vw, 1.875rem);
 }
 
