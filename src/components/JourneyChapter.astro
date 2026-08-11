@@ -1,0 +1,30 @@
+---
+type ChapterId = "brazil" | "spain" | "switzerland";
+
+type Props = {
+  chapter: ChapterId;
+  place: string;
+  era: string;
+  shortLabel: string;
+};
+
+const { chapter, place, era, shortLabel } = Astro.props;
+---
+
+<div
+  class="journey-chapter article-reveal"
+  id={`chapter-${chapter}`}
+  data-journey-chapter={chapter}
+  aria-labelledby={`chapter-${chapter}-title`}
+>
+  <p class="journey-chapter-era text-meta font-mono text-xs uppercase tracking-[0.2em]">
+    {era}
+  </p>
+  <h2
+    id={`chapter-${chapter}-title`}
+    class="journey-chapter-place font-display font-extrabold tracking-tight text-heading text-balance"
+  >
+    {place}
+  </h2>
+  <p class="journey-chapter-short text-prose">{shortLabel}</p>
+</div>

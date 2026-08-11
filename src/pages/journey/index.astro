@@ -1,0 +1,192 @@
+---
+import Head from "@components/Head.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import JourneyChapter from "@components/JourneyChapter.astro";
+import JourneyStep from "@components/JourneyStep.astro";
+import JourneyWorldMap from "@components/journey/JourneyWorldMap";
+import { getCollection } from "astro:content";
+import { JOURNEY } from "@consts";
+import { breadcrumbSchema } from "@lib/seo";
+import { buildMapSteps, journeyGeoFields, type ChapterId } from "@lib/journey-map";
+
+const CHAPTER_META: Record<
+  ChapterId,
+  { place: string; era: string; shortLabel: string; navLabel: string }
+> = {
+  brazil: {
+    place: "São Paulo",
+    era: "Origins",
+    shortLabel: "FATEC, first banking delivery, IBM innovation lab, Importa Brasil.",
+    navLabel: "Brazil",
+  },
+  spain: {
+    place: "Barcelona",
+    era: "A decade in Spain",
+    shortLabel: "GFT architecture, N26, side projects, international stages.",
+    navLabel: "Spain",
+  },
+  switzerland: {
+    place: "Basel",
+    era: "Building Upgrid",
+    shortLabel: "Co-founding Upgrid — energy infrastructure with a fintech correctness bar.",
+    navLabel: "Switzerland",
+  },
+};
+
+const chapterNav = (Object.entries(CHAPTER_META) as [ChapterId, (typeof CHAPTER_META)[ChapterId]][]).map(
+  ([id, meta]) => ({ id, label: meta.navLabel })
+);
+
+const steps = (await getCollection("journey")).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const mapSteps = buildMapSteps(steps.map(journeyGeoFields));
+
+type JourneyBlock =
+  | { type: "chapter"; chapter: ChapterId }
+  | {
+      type: "step";
+      chapter: ChapterId;
+      dateLabel: string;
+      title: string;
+      summary: string;
+      kind: "place" | "career" | "project" | "talk";
+      href?: string;
+      index: number;
+    };
+
+const blocks: JourneyBlock[] = [];
+let stepIndex = 0;
+let lastChapter: ChapterId | null = null;
+
+for (const step of steps) {
+  const chapter = step.data.chapter;
+
+  if (chapter !== lastChapter) {
+    blocks.push({ type: "chapter", chapter });
+    lastChapter = chapter;
+  }
+
+  blocks.push({
+    type: "step",
+    chapter,
+    dateLabel: step.data.dateLabel,
+    title: step.data.title,
+    summary: step.data.summary,
+    kind: step.data.kind,
+    href: step.data.href,
+    index: stepIndex,
+  });
+
+  stepIndex += 1;
+}
+
+const jsonLd = [
+  breadcrumbSchema([
+    { name: "Rafael Roman", url: new URL("/", Astro.site).href },
+    { name: "Journey", url: new URL("/journey/", Astro.site).href },
+  ]),
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head title={JOURNEY.TITLE} description={JOURNEY.DESCRIPTION} jsonLd={jsonLd} />
+  </head>
+  <body class="journey-route-page">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-[max(1rem,env(safe-area-inset-top))] focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-lime-400 focus:text-zinc-950 dark:focus:text-zinc-950 focus:text-sm focus:font-mono focus:no-underline focus-ring"
+    >
+      Skip to content
+    </a>
+    <Header />
+    <main id="main" data-journey class="journey-page">
+      <div class="journey-canvas" data-journey-canvas>
+        <div class="journey-map-layer" aria-label="Journey map">
+          <JourneyWorldMap client:load steps={mapSteps} />
+          <p class="journey-map-caption text-meta font-mono text-xs uppercase tracking-[0.16em]">
+            The route · São Paulo → Basel
+          </p>
+        </div>
+
+        <div class="journey-content">
+          <div class="journey-intro animate-hero">
+            <div class="journey-intro-inner">
+              <div class="signal-mark mb-8"></div>
+              <h1 class="journey-intro-title font-display font-extrabold tracking-tight text-balance text-heading">
+                A path from São Paulo to Basel
+              </h1>
+              <p class="journey-intro-lede text-prose">
+                Twenty years of building systems where a bug is someone&apos;s money — across Brazil,
+                Spain, and Switzerland. Follow the route. Each landmark adds to the story.
+              </p>
+            </div>
+          </div>
+
+          <nav class="journey-chapter-nav journey-chapter-nav--sticky" aria-label="Jump to chapter">
+            {
+              chapterNav.map(({ id, label }) => (
+                <a
+                  href={`#chapter-${id}`}
+                  class="journey-chapter-nav-link focus-ring touch-target"
+                  data-journey-chapter-link={id}
+                >
+                  {label}
+                </a>
+              ))
+            }
+          </nav>
+
+          <ol class="journey-steps-list" aria-label="Life journey" data-journey-landmarks>
+            {
+              blocks.map((block) => {
+                if (block.type === "chapter") {
+                  const meta = CHAPTER_META[block.chapter];
+                  return (
+                    <li class="journey-chapter-item">
+                      <JourneyChapter
+                        chapter={block.chapter}
+                        place={meta.place}
+                        era={meta.era}
+                        shortLabel={meta.shortLabel}
+                      />
+                    </li>
+                  );
+                }
+
+                return (
+                  <JourneyStep
+                    dateLabel={block.dateLabel}
+                    title={block.title}
+                    summary={block.summary}
+                    kind={block.kind}
+                    href={block.href}
+                    index={block.index}
+                  />
+                );
+              })
+            }
+          </ol>
+
+          <footer class="journey-end article-reveal">
+            <p class="journey-end-label text-meta font-mono text-xs uppercase tracking-[0.2em]">
+              Present
+            </p>
+            <p class="journey-end-copy text-prose max-w-xl">
+              Still building. Still speaking. Based in Basel — writing the next chapter at{" "}
+              <a href="https://upgrid.ch" class="text-accent hover:text-lime-600 dark:hover:text-lime-400 focus-ring transition-colors duration-300">
+                Upgrid
+              </a>
+              .
+            </p>
+          </footer>
+        </div>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

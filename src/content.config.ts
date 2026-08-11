@@ -52,4 +52,22 @@ const articles = defineCollection({
   }),
 });
 
-export const collections = { work, speaking, articles, topics };
+const journey = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/journey" }),
+  schema: z.object({
+    order: z.number(),
+    chapter: z.enum(["brazil", "spain", "switzerland"]),
+    kind: z.enum(["place", "career", "project", "talk"]),
+    dateLabel: z.string(),
+    title: z.string(),
+    summary: z.string(),
+    href: z.string().optional(),
+    lat: z.number(),
+    lng: z.number(),
+    place: z.string().optional(),
+    labelDx: z.number().optional(),
+    labelBelow: z.boolean().optional(),
+  }),
+});
+
+export const collections = { work, speaking, articles, topics, journey };

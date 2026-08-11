@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-19T16:00:00.000Z",
+  "title": "Design System: Rafael Roman",
+  "extensions": {
+    "colorMeta": {
+      "void-black": {
+        "role": "neutral",
+        "displayName": "Void Black",
+        "canonical": "oklch(7% 0.004 286)",
+        "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"]
+      },
+      "void-charcoal": {
+        "role": "neutral",
+        "displayName": "Void Charcoal",
+        "canonical": "oklch(14% 0.004 286)",
+        "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"]
+      },
+      "iron": {
+        "role": "neutral",
+        "displayName": "Iron",
+        "canonical": "oklch(21% 0.005 286)",
+        "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(49% 0.006 286)",
+        "tonalRamp": ["#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7"]
+      },
+      "ash": {
+        "role": "neutral",
+        "displayName": "Ash",
+        "canonical": "oklch(72% 0.003 286)",
+        "tonalRamp": ["#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5"]
+      },
+      "platinum": {
+        "role": "neutral",
+        "displayName": "Platinum",
+        "canonical": "oklch(92% 0.003 286)",
+        "tonalRamp": ["#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#fafafa", "#fdfdfd", "#ffffff"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(96% 0.002 286)",
+        "tonalRamp": ["#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#fafafa", "#fdfdfd", "#ffffff", "#ffffff"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": ["#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#ffffff"]
+      },
+      "signal-green": {
+        "role": "primary",
+        "displayName": "Signal Green",
+        "canonical": "oklch(86% 0.22 130)",
+        "tonalRamp": ["#1a2e05", "#365314", "#4d7c0f", "#65a30d", "#84cc16", "#a3e635", "#bef264", "#d9f99d"]
+      },
+      "signal-green-deep": {
+        "role": "primary",
+        "displayName": "Signal Green (Light Mode)",
+        "canonical": "oklch(64% 0.2 130)",
+        "tonalRamp": ["#1a2e05", "#365314", "#4d7c0f", "#65a30d", "#84cc16", "#a3e635", "#bef264", "#d9f99d"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero name, page titles, article h1. Bricolage Grotesque 800. Apply text-wrap: balance."
+      },
+      "headline": {
+        "displayName": "Section Title",
+        "purpose": "Section heads via .section-title — Bricolage Grotesque 800 at 1.5rem, not Inter."
+      },
+      "body-large": {
+        "displayName": "Body Large",
+        "purpose": "Lead paragraphs and article descriptions."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Article prose and work entry content. Max 65–75ch via max-w-2xl."
+      },
+      "label": {
+        "displayName": "Label / Mono",
+        "purpose": "Dates, navigation, ToC links, metadata. Never paragraph prose."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "duration": "300ms",
+        "purpose": "Default easing for color, border, and decoration transitions."
+      },
+      {
+        "name": "ease-hero-reveal",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "duration": "700ms",
+        "purpose": "Hero-only entrance: .animate-hero opacity 0→1 + translateY(12px→0). Content visible by default; reduced-motion bypasses animation."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Signal Mark",
+      "kind": "custom",
+      "refersTo": "signal-mark",
+      "description": "48×4px Signal Green bar above every page hero heading. One per page.",
+      "html": "<div class=\"ds-signal-mark\"></div><h1 class=\"ds-display\">Writing</h1>",
+      "css": ".ds-signal-mark { width: 48px; height: 4px; background-color: #a3e635; margin-bottom: 24px; flex-shrink: 0; } .ds-display { font-family: 'Bricolage Grotesque Variable', Inter, system-ui, sans-serif; font-size: clamp(2.25rem, 5vw, 3rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.025em; color: #ffffff; text-wrap: balance; margin: 0; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Fixed header with blur, safe-area padding, and focus rings.",
+      "html": "<header class=\"ds-header\"><div class=\"ds-header-inner\"><a class=\"ds-nav-brand\" href=\"/\">Rafael Roman</a><nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-item--active\" href=\"/articles\">writing</a><a class=\"ds-nav-item\" href=\"/work\">work</a></nav></div></header>",
+      "css": ".ds-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 20px 0; padding-top: max(1rem, env(safe-area-inset-top)); background-color: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px) saturate(150%); border-bottom: 1px solid rgba(39, 39, 42, 0.5); } .ds-header-inner { max-width: 672px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; } .ds-nav-brand { font-family: Inter, system-ui, sans-serif; font-size: 1rem; font-weight: 700; color: #ffffff; text-decoration: none; letter-spacing: -0.025em; min-height: 44px; display: inline-flex; align-items: center; transition: color 300ms ease-in-out; } .ds-nav-brand:hover { color: #a3e635; } .ds-nav-brand:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; } .ds-nav { display: flex; gap: 4px; } .ds-nav-item { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 400; color: #71717a; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 8px; transition: color 300ms ease-in-out; } .ds-nav-item:hover { color: #ffffff; } .ds-nav-item--active { color: #a3e635; } .ds-nav-item:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }"
+    },
+    {
+      "name": "Inline Link",
+      "kind": "custom",
+      "refersTo": "inline-link",
+      "description": "Underlined link with lime decoration. Hover shifts text to Signal Green.",
+      "html": "<a class=\"ds-link\" href=\"https://upgrid.ch\">Upgrid</a>",
+      "css": ".ds-link { display: inline; color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(163, 230, 53, 0.4); transition: color 300ms ease-in-out, text-decoration-color 300ms ease-in-out; font-family: Inter, system-ui, sans-serif; } .ds-link:hover { color: #a3e635; text-decoration-color: rgba(163, 230, 53, 0.5); } .ds-link:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }"
+    },
+    {
+      "name": "Section Title",
+      "kind": "custom",
+      "refersTo": "section-title",
+      "description": "Bricolage Grotesque section heading with signal hierarchy.",
+      "html": "<h2 class=\"ds-section-title\">Work</h2>",
+      "css": ".ds-section-title { font-family: 'Bricolage Grotesque Variable', Inter, system-ui, sans-serif; font-size: 1.5rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: #ffffff; margin: 0; }"
+    },
+    {
+      "name": "Article Entry",
+      "kind": "custom",
+      "description": "List entry with left-border hover affordance and Bricolage title.",
+      "html": "<li class=\"ds-entry\"><div class=\"ds-entry-date\">Jun 19, 2026</div><a class=\"ds-entry-title\" href=\"/articles/example\">Rebuilding Fraud Prevention</a><p class=\"ds-entry-desc\">How we replaced a static rule-based system...</p></li>",
+      "css": ".ds-entry { list-style: none; padding-left: 16px; border-left: 1px solid transparent; transition: border-color 300ms ease-in-out; } .ds-entry:hover { border-left-color: #3f3f46; } .ds-entry-date { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #a1a1aa; margin-bottom: 2px; } .ds-entry-title { font-family: 'Bricolage Grotesque Variable', Inter, system-ui, sans-serif; font-size: 1.125rem; font-weight: 700; color: #ffffff; text-decoration: none; line-height: 1.375; transition: color 300ms ease-in-out; } .ds-entry-title:hover { color: #a3e635; } .ds-entry-title:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; } .ds-entry-desc { font-size: 0.875rem; color: #a1a1aa; margin: 4px 0 0; }"
+    },
+    {
+      "name": "Back Navigation",
+      "kind": "custom",
+      "refersTo": "back-nav",
+      "description": "Bordered back link with arrow affordance and 44px touch target.",
+      "html": "<a class=\"ds-back-nav\" href=\"/articles\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><polyline points=\"12 5 5 12 12 19\"></polyline></svg>Back to writing</a>",
+      "css": ".ds-back-nav { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px 10px 28px; position: relative; font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; color: #a1a1aa; text-decoration: none; border: 1px solid #27272a; transition: color 300ms ease-in-out, border-color 300ms ease-in-out, background-color 300ms ease-in-out; } .ds-back-nav svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); } .ds-back-nav:hover { color: #ffffff; border-color: rgba(163, 230, 53, 0.5); background-color: rgba(163, 230, 53, 0.05); } .ds-back-nav:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }"
+    },
+    {
+      "name": "Table of Contents Link",
+      "kind": "nav",
+      "description": "Mono ToC link with active state in Signal Green.",
+      "html": "<nav aria-label=\"Table of contents\"><a class=\"ds-toc-link ds-toc-link--active\" href=\"#section\">Why Apache Flink</a><a class=\"ds-toc-link\" href=\"#other\">What I'd do differently</a></nav>",
+      "css": ".ds-toc-link { display: flex; align-items: center; min-height: 44px; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: #a1a1aa; text-decoration: none; transition: color 300ms ease-in-out; } .ds-toc-link:hover { color: #a3e635; } .ds-toc-link--active { color: #a3e635; } .ds-toc-link:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }"
+    },
+    {
+      "name": "Callout (Note)",
+      "kind": "custom",
+      "description": "Article callout box with mono uppercase label.",
+      "html": "<div class=\"ds-callout\"><div class=\"ds-callout-label\">Note</div><p class=\"ds-callout-body\">Flink's managed state meant rules could access full behavioral history without external lookups.</p></div>",
+      "css": ".ds-callout { margin: 24px 0; padding: 16px; border: 1px solid #3f3f46; background-color: rgba(24, 24, 27, 0.6); } .ds-callout-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #a3e635; margin-bottom: 8px; } .ds-callout-body { font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.625; color: #d4d4d8; margin: 0; }"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "button",
+      "refersTo": "theme-toggle",
+      "description": "44px circular icon button — sole permitted radius exception.",
+      "html": "<button class=\"ds-theme-toggle\" aria-label=\"Dark theme\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path></svg></button>",
+      "css": ".ds-theme-toggle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #71717a; border-radius: 50%; cursor: pointer; transition: color 300ms ease-in-out; } .ds-theme-toggle:hover { color: #a3e635; } .ds-theme-toggle:focus-visible { outline: 2px solid #a3e635; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Basel Monolith",
+    "overview": "This system is built from the authority of restraint. The surface is near-black — not dark mode by default but permanent and intentional, like ink pressed into stone. Swiss precision governs every column, margin, and typographic interval: each earns its place by function, not formula. The single accent color appears as a signal, not a decoration — it fires once per context and recedes.\n\nThe register is executive with technical depth. The personality is Precise. Principled. Rare. — which means the design is permitted to be quiet to the point of austerity, because the substance carries the weight.\n\nWhat this system explicitly rejects: developer portfolio clichés (skills bars, project grids, scrolling card decks); VC-bro personal branding (hype, buzzword soup, manufactured LinkedIn warmth); agency flash (case-study heaviness, decorative glassmorphism, visual performance for its own sake). The monolith doesn't perform — it stands.",
+    "keyCharacteristics": [
+      "Dark-primary surface with semantic text tiers via utility classes",
+      "One accent color at ≤10% visual area per viewport; signal mark anchors page heroes",
+      "Three typefaces: Bricolage Grotesque (display + sections), Inter (body), JetBrains Mono (metadata)",
+      "No box shadows — depth through tonal zinc layering and header blur only",
+      "Hero-only entrance animation; all other content visible by default",
+      "WCAG AA baseline: semantic tokens, 44px touch targets, lime focus rings, safe-area insets"
+    ],
+    "rules": [
+      {
+        "name": "The Monolith Rule",
+        "body": "Void Black (#09090b) is the base and it is permanent. Never substitute zinc-900 as the page background, never warm it with a chroma tint.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Signal Rule",
+        "body": "Signal Green appears at ≤10% of any given viewport's visual area. Its rarity is its authority. A screen with three green elements has none — the signal has become noise.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pair Rule",
+        "body": "Every semantic text token has an explicit light/dark pair. Never ship a zinc shade that only works in one theme.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voice Rule",
+        "body": "Bricolage Grotesque leads at display and section sizes; Inter carries body; JetBrains Mono marks data. Each face has a strictly scoped role.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight Ceiling Rule",
+        "body": "800 is the maximum weight, reserved for Bricolage Grotesque at display and section sizes. Inter caps at 700. font-black (900) is prohibited.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces do not lift. When separation is needed, use a 1px Iron border — not a shadow. The header blur is the system's single elevation exception.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do treat Signal Green as a signal, not a color scheme. One focal accent per viewport.",
+      "Do use semantic utility classes (.text-heading, .text-prose, .text-meta, .text-accent, .border-subtle) — not raw zinc/lime classes in components.",
+      "Do set display headings with text-wrap: balance and long prose with text-wrap: pretty.",
+      "Do keep all content within the 672px (max-w-2xl) column.",
+      "Do use JetBrains Mono only for dates, nav, metadata, code, and structural in-article labels.",
+      "Do apply .focus-ring to every interactive element. Keyboard focus must be visible.",
+      "Do enforce 44px minimum touch targets on mobile.",
+      "Do animate hero entrance only (.animate-hero). All other content ships visible.",
+      "Do verify contrast in both light and dark themes before shipping.",
+      "Do use the signal mark once per page hero as the visual accent anchor."
+    ],
+    "donts": [
+      "Don't use border-left thicker than 1px as a colored stripe accent.",
+      "Don't use gradient text (background-clip: text).",
+      "Don't add box shadows except header blur.",
+      "Don't add border radius except on theme-toggle icon buttons (44px circles).",
+      "Don't design this as a developer portfolio. No skills bars, no project grids, no Hello World energy.",
+      "Don't introduce VC-bro branding: hype language, buzzword soup, manufactured warmth.",
+      "Don't add agency-level visual flash: decorative glassmorphism, animated gradients, hover lift effects.",
+      "Don't warm the background. The cream/sand/beige band is forbidden.",
+      "Don't introduce a fourth typeface.",
+      "Don't gate content visibility on JavaScript animation classes.",
+      "Don't use numbered section markers (01 / 02 / 03) as scaffolding.",
+      "Don't add uppercase eyebrow labels above every section heading."
+    ]
+  }
+}

@@ -37,7 +37,7 @@ html.dark body {
   @apply bg-zinc-950 text-zinc-400;
 }
 
-header {
+header.site-header {
   @apply fixed top-0 left-0 right-0 z-50 py-4 sm:py-5;
   @apply bg-zinc-100/80 border-b border-zinc-200;
   @apply backdrop-blur-md saturate-150;
@@ -46,8 +46,12 @@ header {
   padding-right: env(safe-area-inset-right);
 }
 
-html.dark header {
+html.dark header.site-header {
   @apply bg-zinc-950/80 border-zinc-800/50;
+}
+
+.journey-route-page header.site-header {
+  @apply bg-zinc-100/55 dark:bg-zinc-950/55 border-zinc-200/70 dark:border-zinc-800/40;
 }
 
 main {
@@ -352,5 +356,628 @@ html.scrolled #back-to-top {
   #back-to-prev .nav-arrow-chevron,
   #back-to-top .nav-arrow-chevron {
     transform: translateX(0);
+  }
+}
+
+/* Journey page — expedition map (one-off wider stage) */
+.journey-page {
+  position: relative;
+  overflow-x: clip;
+  padding: 0;
+  --journey-header-offset: calc(max(4.5rem, env(safe-area-inset-top)) + 1.25rem);
+}
+
+.journey-canvas {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+.journey-map-layer {
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100dvh;
+  min-height: 27.5rem;
+  pointer-events: none;
+  align-self: start;
+}
+
+.journey-map-layer .journey-world-map-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  pointer-events: none;
+}
+
+.journey-map-caption {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.5rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  z-index: 2;
+  margin: 0;
+  pointer-events: none;
+}
+
+.journey-content {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 1;
+  width: min(100%, 36rem);
+  padding:
+    var(--journey-header-offset)
+    clamp(1rem, 4vw, 2.5rem)
+    clamp(4rem, 10vh, 7rem);
+  min-height: 100dvh;
+}
+
+.journey-intro {
+  margin-bottom: clamp(2rem, 5vh, 3rem);
+}
+
+.journey-intro-inner {
+  margin-top: calc(-1 * var(--journey-header-offset));
+  padding:
+    calc(var(--journey-header-offset) + clamp(1.25rem, 3vh, 2rem))
+    0
+    clamp(1.25rem, 3vh, 2rem);
+  background: linear-gradient(
+    to right,
+    rgb(244 244 245 / 0.92) 0%,
+    rgb(244 244 245 / 0.72) 72%,
+    transparent 100%
+  );
+}
+
+.dark .journey-intro-inner {
+  background: linear-gradient(
+    to right,
+    rgb(9 9 11 / 0.92) 0%,
+    rgb(9 9 11 / 0.72) 72%,
+    transparent 100%
+  );
+}
+
+.journey-intro-title {
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 14ch;
+}
+
+.journey-intro-lede {
+  margin-top: 1.5rem;
+  font-size: clamp(1.125rem, 2.2vw, 1.375rem);
+  line-height: 1.5;
+  max-width: 32rem;
+}
+
+@media (max-width: 1023px) {
+  .journey-canvas {
+    display: block;
+  }
+
+  .journey-map-layer {
+    position: relative;
+    height: 45vh;
+    min-height: 16rem;
+    max-height: 28rem;
+  }
+
+  .journey-content {
+    width: 100%;
+    min-height: auto;
+    padding-top: clamp(1.5rem, 4vh, 2.5rem);
+  }
+
+  .journey-intro-inner {
+    background: rgb(244 244 245 / 0.92);
+  }
+
+  .dark .journey-intro-inner {
+    background: rgb(9 9 11 / 0.92);
+  }
+
+  .journey-map-caption {
+    display: none;
+  }
+}
+
+.journey-chapter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.journey-chapter-nav--sticky {
+  position: sticky;
+  top: var(--journey-header-offset);
+  z-index: 20;
+  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+  padding: 0.75rem 0;
+  background: rgb(244 244 245 / 0.88);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgb(228 228 231);
+}
+
+.dark .journey-chapter-nav--sticky {
+  background: rgb(9 9 11 / 0.92);
+  border-bottom-color: rgb(39 39 42);
+}
+
+.journey-chapter-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: rgb(113 113 122);
+  border: 1px solid rgb(228 228 231);
+  transition:
+    color 300ms var(--ease-out-quart),
+    border-color 300ms var(--ease-out-quart),
+    background-color 300ms var(--ease-out-quart);
+}
+
+.dark .journey-chapter-nav-link {
+  color: rgb(161 161 170);
+  border-color: rgb(39 39 42);
+}
+
+.journey-chapter-nav-link:hover,
+.journey-chapter-nav-link:focus-visible {
+  @apply text-lime-600 dark:text-lime-400 border-lime-600/40 dark:border-lime-400/40;
+}
+
+.journey-chapter-nav-link.is-active {
+  color: rgb(24 24 27);
+  background: rgb(163 230 53);
+  border-color: rgb(101 163 13);
+}
+
+.dark .journey-chapter-nav-link.is-active {
+  color: rgb(9 9 11);
+  background: rgb(163 230 53);
+  border-color: rgb(163 230 53);
+}
+
+.journey-world-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  pointer-events: none;
+}
+
+.journey-world-map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black var(--journey-fade-top, 14%),
+    black calc(100% - var(--journey-fade-bottom, 14%)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black var(--journey-fade-top, 14%),
+    black calc(100% - var(--journey-fade-bottom, 14%)),
+    transparent 100%
+  );
+}
+
+.journey-world-map-wrap--fade-left .journey-world-map-svg {
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black var(--journey-fade-top, 14%),
+      black calc(100% - var(--journey-fade-bottom, 14%)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black var(--journey-fade-left, 40%)
+    );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black var(--journey-fade-top, 14%),
+      black calc(100% - var(--journey-fade-bottom, 14%)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black var(--journey-fade-left, 40%)
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.journey-world-land {
+  fill: rgb(228 228 231 / 0.7);
+  stroke: rgb(161 161 170);
+  stroke-width: 0.5;
+}
+
+.dark .journey-world-land {
+  fill: rgb(39 39 42 / 0.85);
+  stroke: rgb(82 82 91);
+}
+
+.journey-world-route-base {
+  fill: none;
+  stroke: rgb(161 161 170);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 4 6;
+  opacity: 0.85;
+}
+
+.dark .journey-world-route-base {
+  stroke: rgb(63 63 70);
+}
+
+.journey-world-route-progress {
+  fill: none;
+  stroke: rgb(101 163 13);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dark .journey-world-route-progress {
+  stroke: rgb(163 230 53);
+}
+
+.journey-world-pin {
+  cursor: pointer;
+  outline: none;
+  pointer-events: auto;
+}
+
+.journey-world-pin-dot {
+  fill: rgb(244 244 245);
+  stroke: rgb(113 113 122);
+  stroke-width: 1.25;
+  transition:
+    fill 300ms var(--ease-out-quart),
+    stroke 300ms var(--ease-out-quart),
+    r 300ms var(--ease-out-expo);
+}
+
+.dark .journey-world-pin-dot {
+  fill: rgb(24 24 27);
+  stroke: rgb(161 161 170);
+}
+
+.journey-world-pin-halo {
+  fill: rgb(163 230 53 / 0.18);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: journey-pin-pulse 2.4s ease-in-out infinite;
+}
+
+.dark .journey-world-pin-halo {
+  fill: rgb(163 230 53 / 0.12);
+}
+
+@keyframes journey-pin-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.75;
+    transform: scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-world-pin-halo {
+    animation: none;
+  }
+}
+
+.journey-world-pin:hover .journey-world-pin-dot,
+.journey-world-pin:focus-visible .journey-world-pin-dot {
+  fill: rgb(163 230 53 / 0.75);
+  stroke: rgb(101 163 13);
+}
+
+.dark .journey-world-pin:hover .journey-world-pin-dot,
+.dark .journey-world-pin:focus-visible .journey-world-pin-dot {
+  fill: rgb(101 163 13 / 0.85);
+  stroke: rgb(163 230 53);
+}
+
+.journey-world-pin.is-past .journey-world-pin-dot {
+  fill: rgb(163 230 53 / 0.45);
+  stroke: rgb(101 163 13);
+}
+
+.dark .journey-world-pin.is-past .journey-world-pin-dot {
+  fill: rgb(101 163 13 / 0.55);
+  stroke: rgb(163 230 53);
+}
+
+.journey-world-pin.is-active .journey-world-pin-dot {
+  fill: rgb(163 230 53);
+  stroke: rgb(101 163 13);
+}
+
+.dark .journey-world-pin.is-active .journey-world-pin-dot {
+  fill: rgb(101 163 13);
+  stroke: rgb(163 230 53);
+}
+
+.journey-world-pin-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: rgb(113 113 122);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out-quart);
+}
+
+.journey-world-pin.is-active .journey-world-pin-label,
+.journey-world-pin:hover .journey-world-pin-label,
+.journey-world-pin:focus-visible .journey-world-pin-label {
+  opacity: 1;
+}
+
+.dark .journey-world-pin-label {
+  fill: rgb(161 161 170);
+}
+
+.journey-world-pin.is-active .journey-world-pin-label {
+  fill: rgb(101 163 13);
+  font-weight: 700;
+}
+
+.dark .journey-world-pin.is-active .journey-world-pin-label {
+  fill: rgb(163 230 53);
+}
+
+.journey-world-pin:focus-visible .journey-world-pin-dot {
+  stroke: rgb(101 163 13);
+  stroke-width: 2;
+}
+
+.journey-steps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.875rem, 2vh, 1.25rem);
+}
+
+.journey-chapter-item {
+  list-style: none;
+  margin: clamp(2.5rem, 6vh, 4rem) 0 clamp(0.75rem, 2vh, 1.25rem);
+  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid rgb(228 228 231);
+  background: rgb(244 244 245 / 0.65);
+}
+
+.dark .journey-chapter-item {
+  border-color: rgb(39 39 42);
+  background: rgb(24 24 27 / 0.55);
+}
+
+.journey-chapter-item:first-child {
+  margin-top: 0;
+}
+
+.journey-chapter {
+  padding-left: 0;
+}
+
+.journey-chapter-place {
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  margin-top: 0.5rem;
+}
+
+.journey-chapter-short {
+  margin-top: 1rem;
+  max-width: 36rem;
+  font-size: clamp(1rem, 1.8vw, 1.125rem);
+  line-height: 1.55;
+}
+
+.journey-step {
+  list-style: none;
+  position: relative;
+  padding: clamp(1.25rem, 3vh, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid rgb(228 228 231);
+  border-left-width: 3px;
+  border-left-color: rgb(228 228 231);
+  background: rgb(244 244 245 / 0.35);
+  transition:
+    border-color 300ms var(--ease-out-quart),
+    background-color 300ms var(--ease-out-quart);
+}
+
+.dark .journey-step {
+  border-color: rgb(39 39 42);
+  border-left-color: rgb(39 39 42);
+  background: rgb(24 24 27 / 0.35);
+}
+
+.journey-step.is-active {
+  border-left-color: rgb(101 163 13);
+  background: rgb(244 244 245 / 0.75);
+}
+
+.dark .journey-step.is-active {
+  border-left-color: rgb(163 230 53);
+  background: rgb(24 24 27 / 0.65);
+}
+
+.journey-step.is-past {
+  border-left-color: rgb(163 230 53 / 0.45);
+}
+
+.dark .journey-step.is-past {
+  border-left-color: rgb(101 163 13 / 0.55);
+}
+
+.journey-step-body {
+  min-width: 0;
+}
+
+.journey-step-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.journey-step-kind {
+  @apply font-mono text-xs uppercase tracking-[0.16em] text-accent;
+}
+
+.journey-step-date {
+  @apply font-mono text-xs text-meta tabular-nums;
+}
+
+.journey-step-title {
+  font-family: "Bricolage Grotesque Variable", Inter, system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.journey-step--place .journey-step-title {
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+}
+
+.journey-step--career .journey-step-title {
+  font-size: clamp(1.5rem, 3.5vw, 2.375rem);
+}
+
+.journey-step--project .journey-step-title {
+  font-size: clamp(1.3125rem, 2.8vw, 1.875rem);
+}
+
+.journey-step--talk .journey-step-title {
+  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+}
+
+.journey-step-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: none;
+  transition: color 300ms var(--ease-out-quart);
+}
+
+.journey-step-link-mark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  color: rgb(101 163 13);
+  transition: transform 300ms var(--ease-out-quart);
+}
+
+.dark .journey-step-link-mark {
+  color: rgb(163 230 53);
+}
+
+.journey-step-link:hover,
+.journey-step-link:focus-visible {
+  @apply text-lime-600 dark:text-lime-400;
+}
+
+.journey-step-link:hover .journey-step-link-mark,
+.journey-step-link:focus-visible .journey-step-link-mark {
+  transform: translateX(3px);
+}
+
+.journey-step-summary {
+  font-size: clamp(1rem, 1.6vw, 1.125rem);
+  line-height: 1.6;
+  max-width: 42rem;
+}
+
+.journey-step--talk .journey-step-summary {
+  max-width: 38rem;
+}
+
+.journey-step--career.is-active .journey-step-title {
+  @apply text-lime-700 dark:text-lime-300;
+}
+
+.journey-end {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 80rem);
+  margin-inline: auto;
+  padding: clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2.5rem) clamp(6rem, 14vh, 9rem);
+  border-top: 1px solid rgb(228 228 231);
+}
+
+.dark .journey-end {
+  border-top-color: rgb(39 39 42);
+}
+
+.journey-end-copy {
+  margin-top: 0.75rem;
+  font-size: clamp(1.0625rem, 2vw, 1.25rem);
+}
+
+html.reveal-ready .journey-chapter,
+html.reveal-ready .journey-step,
+html.reveal-ready .journey-end {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 650ms var(--ease-out-expo),
+    transform 650ms var(--ease-out-expo);
+}
+
+html.reveal-ready .journey-chapter.show,
+html.reveal-ready .journey-step.show,
+html.reveal-ready .journey-end.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-ready .journey-chapter,
+  html.reveal-ready .journey-step,
+  html.reveal-ready .journey-end,
+  html.reveal-ready .journey-chapter.show,
+  html.reveal-ready .journey-step.show,
+  html.reveal-ready .journey-end.show {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }

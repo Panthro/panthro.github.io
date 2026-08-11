@@ -1,0 +1,47 @@
+---
+type StepKind = "place" | "career" | "project" | "talk";
+
+type Props = {
+  dateLabel: string;
+  title: string;
+  summary: string;
+  kind: StepKind;
+  href?: string;
+  index: number;
+};
+
+const { dateLabel, title, summary, kind, href, index } = Astro.props;
+
+const kindLabels: Record<StepKind, string> = {
+  place: "place",
+  career: "work",
+  project: "launch",
+  talk: "talk",
+};
+---
+
+<li
+  class:list={["journey-step", "article-reveal", `journey-step--${kind}`]}
+  data-journey-step
+  data-journey-step-index={index}
+>
+  <div class="journey-step-body">
+    <div class="journey-step-meta">
+      <span class="journey-step-kind">{kindLabels[kind]}</span>
+      <span class="journey-step-date">{dateLabel}</span>
+    </div>
+
+    <h3 class="journey-step-title text-heading">
+      {href ? (
+        <a href={href} class="journey-step-link focus-ring">
+          {title}
+          <span class="journey-step-link-mark" aria-hidden="true">→</span>
+        </a>
+      ) : (
+        title
+      )}
+    </h3>
+
+    <p class="journey-step-summary text-prose">{summary}</p>
+  </div>
+</li>

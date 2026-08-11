@@ -41,6 +41,7 @@ src/
     speaking/*.md       # Talk metadata → /speaking/[slug]/
     work/*.md           # Career entries → /work/[slug]/
     topics/*.md         # Curated topic hubs → /topics/[slug]/
+    journey/*.md        # Journey steps → /journey/ (scroll path page)
   layouts/
     PageLayout.astro    # Standard pages; pass full SEO title (no auto suffix)
     ArticleLayout.astro # Articles: ToC, author bio, related, BlogPosting schema
@@ -57,9 +58,10 @@ src/
     work/[...slug].astro
     topics/[...slug].astro
     topics/index.astro
+    journey/index.astro # Scroll-driven career/life path
     rss.xml.ts          # RSS feed (published articles only in prod)
     robots.txt.ts
-  consts.ts             # SITE metadata, HOME/WORK/SPEAKING/ARTICLES/TOPICS SEO titles
+  consts.ts             # SITE metadata, HOME/WORK/SPEAKING/ARTICLES/TOPICS/JOURNEY SEO titles
   styles/global.css     # Semantic tokens, motion, article-reveal system
 public/og-default.png   # Default social preview image (1200×630)
 ```

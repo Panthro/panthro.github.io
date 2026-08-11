@@ -40,6 +40,12 @@ description: Work on rafaelroman.com — Rafael Roman personal brand Astro site.
 3. Only create hubs for clusters with real content overlap
 4. Browser-test `/topics/<slug>/`
 
+### Add a journey step
+
+1. `src/content/journey/<order>-<slug>.md` — `order`, `chapter` (`brazil`|`spain`|`switzerland`), `kind` (`place`|`career`|`project`|`talk`), `dateLabel`, `title`, `summary`, optional `href`
+2. Set `href` to existing `/work/`, `/speaking/`, or `/articles/` detail pages when applicable
+3. Browser-test `/journey/` scroll path in light + dark + reduced-motion
+
 ### SEO / programmatic pages
 
 - **Strategy:** brand first; talks/work/topics support long-tail without thin pSEO
@@ -58,7 +64,7 @@ description: Work on rafaelroman.com — Rafael Roman personal brand Astro site.
 ### Ship
 
 - Branch: **`master`** (not `main`)
-- `pnpm build && pnpm lint` + browser spot-check (homepage, 1 article, 1 talk, 1 topic)
+- `pnpm build && pnpm lint` + browser spot-check (homepage, 1 article, 1 talk, 1 topic, `/journey/`)
 - Push → GitHub Actions deploy → verify live URLs + sitemap
 
 ## Pitfalls

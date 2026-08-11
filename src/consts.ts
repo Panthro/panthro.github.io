@@ -40,6 +40,12 @@ export const TOPICS: Metadata = {
     "Curated topic hubs by Rafael Roman — fraud prevention, stream processing, engineering leadership, fintech infrastructure, and energy tech.",
 };
 
+export const JOURNEY: Metadata = {
+  TITLE: "Journey — São Paulo to Basel · Rafael Roman",
+  DESCRIPTION:
+    "The path from São Paulo to Basel — career, launches, and talks across Brazil, Spain, and Switzerland. A scroll-driven story of building systems where correctness is financial.",
+};
+
 export const SOCIALS: Socials = [
   {
     NAME: "linkedin",
