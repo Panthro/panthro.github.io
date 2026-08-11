@@ -272,6 +272,79 @@ export function lerpChapterView(
   };
 }
 
+const FLOW_PANEL_REFERENCE = 560;
+
+/** Normalize chapter preset scale for a half-viewport map panel */
+export function flowScaleForPanel(presetScale: number, panelSize: number): number {
+  return presetScale * (panelSize / FLOW_PANEL_REFERENCE);
+}
+
+const FLOW_KIND_ZOOM: Record<StepKind, number> = {
+  place: 1.35,
+  career: 1.5,
+  project: 1.6,
+  talk: 1.85,
+};
+
+/** Flow layout: zoomed-out view showing the full route in the sticky panel */
+export function resolveFlowOverviewView(
+  routePoints: [number, number][],
+  width: number,
+  height: number
+): ChapterView {
+  if (routePoints.length < 2) return CANVAS_VIEW;
+
+  const pad = 0.1;
+  const projection = geoNaturalEarth1();
+  projection.fitExtent(
+    [
+      [width * pad, height * pad],
+      [width * (1 - pad), height * (1 - pad)],
+    ],
+    { type: "MultiPoint", coordinates: routePoints }
+  );
+
+  const fittedScale = projection.scale();
+  const panelSize = Math.min(width, height);
+  const inverted = projection.invert?.([width / 2, height / 2]);
+  const center: [number, number] = inverted ?? CANVAS_VIEW.center;
+
+  return {
+    center,
+    scale: fittedScale * (FLOW_PANEL_REFERENCE / panelSize),
+    topFadePct: 8,
+    bottomFadePct: 12,
+    fadeRight: false,
+  };
+}
+
+/** Per-step target view for the flow layout — center on the pin with kind-based zoom */
+export function resolveFlowView(
+  step: Pick<JourneyMapStep, "chapter" | "kind" | "lat" | "lng">
+): ChapterView {
+  const chapterView = CHAPTER_VIEW[step.chapter];
+
+  return {
+    ...chapterView,
+    center: [step.lng, step.lat],
+    scale: chapterView.scale * FLOW_KIND_ZOOM[step.kind],
+  };
+}
+
+/** Build projection from a ChapterView for the sticky map panel (no left gutter) */
+export function createFlowProjection(
+  width: number,
+  height: number,
+  view: ChapterView
+): GeoProjection {
+  const panelSize = Math.min(width, height);
+
+  return geoNaturalEarth1()
+    .center(view.center)
+    .scale(flowScaleForPanel(view.scale, panelSize))
+    .translate([width / 2, height / 2]);
+}
+
 /** Astro glob loader keeps geo fields on rendered frontmatter, not always on entry.data */
 export function journeyGeoFields(entry: {
   data: {

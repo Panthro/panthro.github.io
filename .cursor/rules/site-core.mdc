@@ -25,7 +25,7 @@ Astro 6 static site, pnpm, Tailwind. Deploy: push to **`master`** → GitHub Pag
 
 ## SEO (quick ref)
 
-Detail pages exist for talks, work, and topics — see [AGENTS.md](../../AGENTS.md) § SEO & programmatic pages. Rules: `.cursor/rules/seo-meta.mdc`, `.cursor/rules/programmatic-seo.mdc`.
+Detail pages exist for talks, work, topics, and journey — see [AGENTS.md](../../AGENTS.md). Rules: `.cursor/rules/seo-meta.mdc`, `.cursor/rules/programmatic-seo.mdc`, `.cursor/rules/journey-sync.mdc` (keep `/journey/` in sync with speaking + work).
 
 ## Commits
 

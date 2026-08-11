@@ -1,0 +1,62 @@
+---
+description: Keep /journey/ timeline and map in sync when editing work, talks, or journey steps
+globs: src/content/speaking/**,src/content/work/**,src/content/journey/**,src/pages/journey/**,src/components/journey/**,src/lib/journey-map.ts,src/lib/journey-scroll-spy.ts
+alwaysApply: false
+---
+
+# Journey sync
+
+`/journey/` is **not** auto-generated. Every talk on `/speaking/` and every major career stint on `/work/` needs a matching step in `src/content/journey/*.md`, or it will be missing from the scroll timeline and world map.
+
+Read the full schema and location rules in [AGENTS.md](../../AGENTS.md) § Journey.
+
+## When adding or editing a talk (`src/content/speaking/`)
+
+1. Add or update `src/content/journey/<order>-<slug>.md` with `kind: talk`
+2. Set `href: "/speaking/<slug>/"` (same slug as the speaking file)
+3. Set `dateLabel` from talk year; set `order` so steps stay **chronological** (renumber neighbors if inserting)
+4. Set `chapter`: `brazil` | `spain` | `switzerland` by career era (most talks → `spain`)
+5. Set `lat`, `lng`, `place` to the **event city** (e.g. London, Copenhagen, Rovinj)
+6. Write a one-line `summary` (~150 chars) — can mirror `description` on the talk
+7. Browser-test `/journey/` — scroll to the step; map pin and label must match
+
+**Rule:** item count on `/speaking/` = talk steps on `/journey/`. No orphan talks.
+
+## When adding or editing work (`src/content/work/`)
+
+1. Add or update a journey step with `kind: career` for each stint that belongs on the path
+2. Set `href: "/work/<slug>/"`; `dateLabel` from `dateStart`–`dateEnd`
+3. Set `lat`, `lng`, `place` to where **you worked from** (home office / usual base), **not** company HQ unless that was your base
+4. Multiple offices → combined label (e.g. `Basel · Zurich`) and midpoint coordinates
+5. Renumber `order` when inserting; keep timeline chronological
+
+Split roles at the same company (e.g. GFT Brazil vs GFT Spain) = separate journey files, separate work pages if both exist.
+
+## Journey step frontmatter
+
+```yaml
+order: 12
+chapter: spain                    # brazil | spain | switzerland
+kind: talk                        # place | career | project | talk
+dateLabel: "2023"
+title: "Kafka Summit London"
+summary: "..."                    # ~150 chars, timeline card copy
+href: "/speaking/kafka-summit-london-2023/"   # optional; link career/talk steps
+lat: 51.5074
+lng: -0.1278
+place: "London"                   # map pin label
+labelDx: -8                       # optional label offset
+labelBelow: true                  # optional
+```
+
+## Chapter headings (not in journey files)
+
+Chapter hero titles (`Spain`, `Switzerland`, …) live in `src/pages/journey/index.astro` → `CHAPTER_META`. Country/region names for multi-city chapters; city names for map pins on individual steps.
+
+## Checklist before ship
+
+- [ ] Every `/speaking/` slug has a journey talk step with matching `href`
+- [ ] Every listed `/work/` stint has a journey career step with matching `href`
+- [ ] `order` values are unique and chronological
+- [ ] Map locations follow the rules above (work base vs talk venue)
+- [ ] `/journey/` scroll + map verified in browser (overview at top, zoom on scroll)

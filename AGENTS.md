@@ -111,6 +111,8 @@ Body markdown = unique page content (required for SEO — not frontmatter-only).
 
 Verify external links before shipping. Sessionize profile (`https://sessionize.com/rafaelroman`) is the canonical speaker hub. KotlinConf 2024: `https://2024.kotlinconf.com/talks/551172/` (Sessionize slug 404'd).
 
+**Journey:** Every talk on `/speaking/` must have a matching step in `src/content/journey/` (`kind: talk`, `href: "/speaking/<slug>/"`, event-city `lat`/`lng`/`place`, chronological `order`). See § Journey below and `.cursor/rules/journey-sync.mdc`.
+
 ### Work (`src/content/work/*.md`)
 
 Each entry has a detail page at `/work/<slug>/` (slug = filename, e.g. `n26`).
@@ -125,6 +127,44 @@ relatedTalks: [talk-slug]
 ```
 
 Body markdown = career narrative on the detail page. List views link company name → detail page.
+
+**Journey:** Every work stint on `/work/` that belongs on the career path must have a matching step in `src/content/journey/` (`kind: career`, `href: "/work/<slug>/"`, `lat`/`lng`/`place` = where you worked from, chronological `order`). See § Journey below and `.cursor/rules/journey-sync.mdc`.
+
+### Journey (`src/content/journey/*.md`)
+
+Scroll-driven timeline + sticky map at `/journey/`. Steps are **manual** — adding a talk or work entry does not create them automatically.
+
+```yaml
+order: 12                         # unique; chronological across all steps
+chapter: spain                    # brazil | spain | switzerland
+kind: talk                        # place | career | project | talk
+dateLabel: "2023"
+title: "Kafka Summit London"
+summary: "..."                    # timeline card (~150 chars)
+href: "/speaking/kafka-summit-london-2023/"   # link to detail page when applicable
+lat: 51.5074                      # map pin
+lng: -0.1278
+place: "London"                   # pin label (city or "Basel · Zurich")
+labelDx: -8                       # optional label nudge
+labelBelow: true                  # optional
+```
+
+**Sync rules**
+
+| Source | Journey `kind` | Location on map |
+|--------|----------------|-----------------|
+| `speaking/*.md` | `talk` | **Event city** (where the conference/meetup was) |
+| `work/*.md` | `career` | **Where you worked from** (office/base), not company HQ by default |
+| Side projects | `project` | Relevant city or market |
+
+- **Talks:** 1:1 with `/speaking/` — count must match; each needs `href` + geo fields.
+- **Work:** each stint on the path needs a step; split chapters (e.g. GFT Brazil vs GFT Spain) = separate files.
+- **Order:** renumber when inserting mid-timeline; `dateLabel` from talk year or work dates.
+- **Chapter heroes** (`Spain`, `Switzerland`, …): `CHAPTER_META` in `src/pages/journey/index.astro`, not in journey frontmatter.
+
+Map behaviour: zoomed-out full route at step 0; zooms to active pin on scroll. Implementation: `JourneyWorldMap.tsx`, `journey-map.ts`, `journey-scroll-spy.ts`.
+
+Validate `/journey/` in browser after any speaking, work, or journey edit.
 
 ### Topics (`src/content/topics/*.md`)
 
@@ -265,7 +305,8 @@ Minimum checks after visual or SEO changes:
 2. One article (e.g. `/articles/code-freeze-purpose/`)
 3. One talk detail (e.g. `/speaking/kotlinconf-2024/`)
 4. One topic hub (e.g. `/topics/fraud-prevention/`)
-5. `/speaking/` or `/work/` if list entries changed
+5. `/journey/` when speaking, work, or journey content changed (overview at top; map follows scroll)
+6. `/speaking/` or `/work/` if list entries changed
 
 Run `pnpm build && pnpm lint` before ship.
 

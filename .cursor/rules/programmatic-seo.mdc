@@ -28,6 +28,8 @@ relatedWork: [work-id]        # speaking + topics only
 
 Update **both directions** when linking (e.g. new talk → add to N26 work + fraud-prevention topic).
 
+**Journey:** new or updated talks/work → sync `src/content/journey/` (see `.cursor/rules/journey-sync.mdc`).
+
 ## Content quality gates
 
 - **Talks:** body abstract required; verify `link` URL live
