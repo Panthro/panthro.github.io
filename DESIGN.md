@@ -118,6 +118,19 @@ A near-monochromatic dark spectrum anchored at void-black, articulated through z
 - **Paper** (`#f4f4f5` / `zinc-100`): Light mode surface.
 - **Ink** (`#ffffff`): Display and headline text on dark.
 
+### Off-ramp values
+
+Two hex values sit off the Tailwind zinc ramp, and only these two. `.text-meta` is the tertiary
+text tier and needs to read one step below `.text-prose` without dropping under WCAG AA. `zinc-500`
+— the obvious choice — fails on both surfaces (4.40:1 on Paper, 4.12:1 on Void Black), so the tier
+uses half-steps:
+
+- **Meta Light** (`#6a6a73`): `.text-meta` on light. 4.87:1 on Paper, 5.35:1 on white.
+- **Meta Dark** (`#8c8c96`): `.text-meta` on dark. 5.97:1 on Void Black, 5.32:1 on Void Charcoal.
+
+Do not add a third off-ramp value without a contrast measurement that justifies it, and never place
+`.text-meta` on a surface lighter than Platinum (`#e4e4e7`), where it falls to 4.22:1.
+
 ### Semantic utilities
 Implemented in `src/styles/global.css` as theme-aware classes — use these instead of raw zinc/lime utilities in components:
 
@@ -125,7 +138,7 @@ Implemented in `src/styles/global.css` as theme-aware classes — use these inst
 |---|---|---|---|
 | `.text-heading` | white | zinc-900 | Titles, names, entry headlines |
 | `.text-prose` | zinc-400 | zinc-600 | Body and secondary copy |
-| `.text-meta` | zinc-400 | zinc-600 | Dates, captions, footer |
+| `.text-meta` | `#8c8c96` | `#6a6a73` | Dates, captions, tags, footer — the tertiary tier |
 | `.text-accent` | lime-400 | lime-600 | Role labels, speaker callouts |
 | `.border-subtle` | zinc-800 | zinc-200 | Section dividers |
 | `.bg-surface-muted` | zinc-800 | zinc-200 | Author avatar block |
@@ -208,8 +221,18 @@ Article layout uses `@tailwindcss/typography` with Bricolage on h1–h3, Inter o
 
 **Author bio / related:** Muted surface block (`.bg-surface-muted`), initials in Signal Green, related entries with left-border hover affordance matching list entries.
 
-### Theme Toggle (Footer)
-Three icon buttons (light / dark / system), 44×44px (`.size-11`), `rounded-full` — the sole permitted radius exception, scoped to these hit-target circles only. Stroke icons shift to Signal Green on hover. `.focus-ring`.
+### Theme Toggle (Header)
+`src/components/ThemeToggle.astro`, last item in the header row. A **single cycling button** —
+system → light → dark → system — 44×44px (`.size-11`), `rounded-full`: the sole permitted radius
+exception, scoped to this hit-target circle only. The icon and the `aria-label` always describe the
+mode currently in effect, so the control carries its own active state instead of needing three
+targets to express it. Stroke icon shifts to Signal Green on hover. `.focus-ring`.
+
+Three `hidden` proxy buttons (`light-theme-button`, `dark-theme-button`, `system-theme-button`) sit
+alongside it and hold the ids that `Head.astro`'s inline theme script binds to; the visible button
+forwards a click to whichever matches the next mode. They carry `hidden` + `aria-hidden` +
+`tabindex="-1"`, so they are neither focusable nor announced. All theme state still lives in
+`Head.astro`.
 
 ### Motion
 - **Hero entrance:** `.animate-hero` — opacity 0→1, translateY(12px→0), 700ms ease-out. Applied to page hero blocks only. Content is visible by default if JS fails or `prefers-reduced-motion: reduce`.

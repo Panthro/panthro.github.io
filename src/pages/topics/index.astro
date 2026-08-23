@@ -4,9 +4,48 @@ import PageLayout from "@layouts/PageLayout.astro";
 import Container from "@components/Container.astro";
 import { TOPICS } from "@consts";
 
-const topics = (await getCollection("topics")).sort((a, b) =>
-  a.data.title.localeCompare(b.data.title)
-);
+const [topics, articles, talks, work] = await Promise.all([
+  getCollection("topics"),
+  getCollection("articles", ({ data }) => (import.meta.env.DEV ? true : !data.draft)),
+  getCollection("speaking"),
+  getCollection("work"),
+]);
+
+const publishedArticles = new Set(articles.map((article) => article.id));
+const publishedTalks = new Set(talks.map((talk) => talk.id));
+const publishedWork = new Set(work.map((entry) => entry.id));
+
+const entries = topics
+  .map((topic) => {
+    const counts = [
+      {
+        n: (topic.data.relatedArticles ?? []).filter((slug: string) =>
+          publishedArticles.has(slug)
+        ).length,
+        one: "article",
+        many: "articles",
+      },
+      {
+        n: (topic.data.relatedTalks ?? []).filter((slug: string) =>
+          publishedTalks.has(slug)
+        ).length,
+        one: "talk",
+        many: "talks",
+      },
+      {
+        n: (topic.data.relatedWork ?? []).filter((slug: string) =>
+          publishedWork.has(slug)
+        ).length,
+        one: "role",
+        many: "roles",
+      },
+    ]
+      .filter((count) => count.n > 0)
+      .map((count) => `${count.n} ${count.n === 1 ? count.one : count.many}`);
+
+    return { topic, summary: counts.join(" · ") };
+  })
+  .sort((a, b) => a.topic.data.title.localeCompare(b.topic.data.title));
 ---
 
 <PageLayout title={TOPICS.TITLE} description={TOPICS.DESCRIPTION}>
@@ -17,23 +56,29 @@ const topics = (await getCollection("topics")).sort((a, b) =>
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
           Topics
         </h1>
+        <p class="mt-6 text-lg leading-snug text-pretty text-prose max-w-xl">
+          Each cluster pulls together the writing, talks and roles behind one problem I have
+          actually shipped against. Start here if you want the argument rather than the
+          chronology.
+        </p>
       </div>
 
-      <p class="font-mono text-sm text-prose max-w-xl">
-        Curated clusters of writing, talks, and work — grouped by the problems I have actually shipped against.
-      </p>
-
-      <ul class="flex flex-col space-y-5">
-        {topics.map((topic) => (
-          <li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+      <ul class="border-t border-subtle">
+        {entries.map(({ topic, summary }) => (
+          <li class="border-b border-subtle">
             <a
               href={`/topics/${topic.id}/`}
-              class="focus-ring group block touch-target-block"
+              class="focus-ring group block py-5"
             >
-              <div class="font-display font-bold text-lg text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
-                {topic.data.title}
+              <div class="flex flex-wrap items-baseline gap-x-3">
+                <span class="font-display font-bold text-lg text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+                  {topic.data.title}
+                </span>
+                {summary && (
+                  <span class="font-mono text-xs text-meta">{summary}</span>
+                )}
               </div>
-              <p class="text-sm text-meta mt-1">{topic.data.description}</p>
+              <p class="text-sm text-prose mt-1.5">{topic.data.description}</p>
             </a>
           </li>
         ))}

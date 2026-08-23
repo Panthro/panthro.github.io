@@ -7,8 +7,8 @@ import JourneyStep from "@components/JourneyStep.astro";
 import JourneyWorldMap from "@components/journey/JourneyWorldMap";
 import JourneyMapKindLegend from "@components/journey/JourneyMapKindLegend";
 import { getCollection } from "astro:content";
-import { JOURNEY } from "@consts";
-import { breadcrumbSchema } from "@lib/seo";
+import { JOURNEY, SITE } from "@consts";
+import { PERSON_ID, breadcrumbSchema } from "@lib/seo";
 import { buildMapSteps, journeyGeoFields, type ChapterId } from "@lib/journey-map";
 
 const CHAPTER_META: Record<
@@ -84,10 +84,62 @@ for (const step of steps) {
   stepIndex += 1;
 }
 
+const siteUrl = new URL("/", Astro.site).href;
+const journeyUrl = new URL("/journey/", Astro.site).href;
+
+const PAGE_HEADING = "A path from São Paulo to Basel";
+
+/**
+ * `/journey` is a biography page, not a listing: `AboutPage` about the Person,
+ * whose `mainEntity` is the ordered landmark list the page actually renders.
+ * Built inline because src/lib/seo.ts is owned elsewhere.
+ *
+ * Every value below comes from the journey collection — nothing is derived or
+ * inferred. `dateLabel` is deliberately not mapped to a schema date property:
+ * the labels are ranges ("2005–2009") and would have to be invented into ISO.
+ */
+const journeySchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "@id": `${journeyUrl}#journey`,
+  url: journeyUrl,
+  name: PAGE_HEADING,
+  description: JOURNEY.DESCRIPTION,
+  inLanguage: "en",
+  isPartOf: { "@id": `${siteUrl}#website` },
+  about: {
+    "@type": "Person",
+    "@id": PERSON_ID,
+    name: SITE.NAME,
+    url: siteUrl,
+  },
+  spatialCoverage: [
+    { "@type": "Country", name: "Brazil" },
+    { "@type": "Country", name: "Spain" },
+    { "@type": "Country", name: "Switzerland" },
+  ],
+  mainEntity: {
+    "@type": "ItemList",
+    name: `${SITE.NAME} — career and life landmarks`,
+    numberOfItems: steps.length,
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    itemListElement: steps.map((step, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: step.data.title,
+      description: step.data.summary,
+      ...(step.data.href
+        ? { url: new URL(step.data.href, Astro.site).href }
+        : {}),
+    })),
+  },
+};
+
 const jsonLd = [
+  journeySchema,
   breadcrumbSchema([
-    { name: "Rafael Roman", url: new URL("/", Astro.site).href },
-    { name: "Journey", url: new URL("/journey/", Astro.site).href },
+    { name: SITE.NAME, url: siteUrl },
+    { name: "Journey", url: journeyUrl },
   ]),
 ];
 ---
@@ -112,7 +164,7 @@ const jsonLd = [
             <div class="journey-intro-inner">
               <div class="signal-mark mb-8"></div>
               <h1 class="journey-intro-title font-display font-extrabold tracking-tight text-balance text-heading">
-                A path from São Paulo to Basel
+                {PAGE_HEADING}
               </h1>
               <p class="journey-intro-lede text-prose">
                 Twenty years of building systems where a bug is someone&apos;s money — across Brazil,
@@ -193,7 +245,32 @@ const jsonLd = [
     <script>
       import { startJourneyScrollSpy } from "@lib/journey-scroll-spy";
 
-      startJourneyScrollSpy();
+      let stopSpy: (() => void) | null = null;
+
+      function halt() {
+        stopSpy?.();
+        stopSpy = null;
+      }
+
+      /**
+       * Idempotent: view transitions re-run this on every navigation, and a
+       * module script is only ever evaluated once per URL, so the listeners
+       * below are what keep the page working when the reader comes back.
+       */
+      function boot() {
+        halt();
+        if (!document.querySelector("[data-journey]")) return;
+        stopSpy = startJourneyScrollSpy();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot, { once: true });
+      } else {
+        boot();
+      }
+
+      document.addEventListener("astro:page-load", boot);
+      document.addEventListener("astro:before-swap", halt);
     </script>
   </body>
 </html>

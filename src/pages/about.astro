@@ -1,0 +1,248 @@
+---
+import PageLayout from "@layouts/PageLayout.astro";
+import Container from "@components/Container.astro";
+import Link from "@components/Link.astro";
+import { personSchema, breadcrumbSchema, PERSON_ID } from "@lib/seo";
+import { ABOUT, SITE, SOCIALS } from "@consts";
+
+const TED_TALK =
+  "https://www.ted.com/talks/rafael_roman_la_ia_no_es_el_mundo_de_las_peliculas_es_ya_la_realidad";
+const MEDIUM = "https://medium.com/@panthro";
+
+const socialByName = Object.fromEntries(
+  SOCIALS.map((social) => [social.NAME, social.HREF])
+);
+const linkedin = socialByName.linkedin;
+
+// Visible outbound profile links. Entity consolidation needs these on the page,
+// not only inside JSON-LD.
+const PROFILES = [
+  { href: linkedin, label: "LinkedIn", note: "the fastest way to reach me" },
+  { href: socialByName.github, label: "GitHub", note: "code" },
+  { href: socialByName.stackoverflow, label: "Stack Overflow", note: "answers" },
+  { href: socialByName.sessionize, label: "Sessionize", note: "speaker profile" },
+  { href: TED_TALK, label: "TED", note: "the TEDxLleida talk" },
+  { href: MEDIUM, label: "Medium", note: "where four of these pieces first ran" },
+];
+
+// The home page emits ProfilePage; this page emits AboutPage so the two do not
+// compete as the canonical profile node. Both point at the same Person @id, and
+// personSchema() ships the full node so /about resolves standalone too.
+const jsonLd = [
+  personSchema(ABOUT.DESCRIPTION),
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": `${new URL("/about/", Astro.site).href}#aboutpage`,
+    url: new URL("/about/", Astro.site).href,
+    name: "About Rafael Roman",
+    description: ABOUT.DESCRIPTION,
+    inLanguage: "en",
+    mainEntity: { "@id": PERSON_ID },
+  },
+  breadcrumbSchema([
+    { name: SITE.NAME, url: new URL("/", Astro.site).href },
+    { name: "About", url: new URL("/about/", Astro.site).href },
+  ]),
+];
+---
+
+<PageLayout title={ABOUT.TITLE} description={ABOUT.DESCRIPTION} jsonLd={jsonLd}>
+  <Container>
+    <div class="animate-hero">
+      <div class="signal-mark mb-6"></div>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-heading">
+        Rafael Roman
+      </h1>
+      <p class="mt-6 text-xl sm:text-2xl leading-snug text-pretty text-prose max-w-xl">
+        I am the co-founder and CTO of{" "}
+        <Link href="https://upgrid.ch" external>Upgrid</Link>, in Basel. I have spent twenty
+        years building software where being wrong costs someone money.
+      </p>
+    </div>
+
+    <figure class="mt-10">
+      <picture>
+        <source
+          type="image/webp"
+          srcset="/rafael-roman-400.webp 400w, /rafael-roman.webp 800w"
+          sizes="(min-width: 712px) 632px, calc(100vw - 2rem)"
+        />
+        <img
+          src="/rafael-roman.jpg"
+          srcset="/rafael-roman-400.jpg 400w, /rafael-roman.jpg 800w"
+          sizes="(min-width: 712px) 632px, calc(100vw - 2rem)"
+          width="800"
+          height="800"
+          alt="Rafael Roman"
+          fetchpriority="high"
+          decoding="async"
+          class="w-full aspect-[4/3] object-cover object-[52%_0%]"
+        />
+      </picture>
+    </figure>
+
+    <div class="mt-16 space-y-16">
+      <section class="space-y-5">
+        <h2 class="section-title">São Paulo</h2>
+        <p class="text-base leading-relaxed text-prose">
+          I studied Systems Analysis and Information Technology at FATEC Sorocaba between 2005
+          and 2009, and started working in banking delivery before I was done. My first
+          professional chapter was at GFT Technologies: rich internet applications for
+          international banking clients, then mobile, where I built internal SDKs and
+          frameworks and led a small team shipping an internal app store.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          In 2012 I joined IBM&apos;s innovation lab in Hortolândia as a Java Technical Lead.
+          I led a team building an internal product to detect and prevent leakage of
+          confidential information across the company, and took it from prototype through
+          design and delivery into production. It was the first time I owned a product end to
+          end inside a large organisation.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          On the side I ran Importa Brasil, an online bulletin board for people importing
+          goods from Brazil, as sole owner and developer. At its peak it had more than 65,000
+          members and around 4,000 visits a day.
+        </p>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">Lleida, then Barcelona</h2>
+        <p class="text-base leading-relaxed text-prose">
+          In 2015 I moved to Spain and rejoined GFT, in Lleida, as Software Architect and Tech
+          Lead. For four years I delivered production banking platforms for financial
+          institutions across Europe: core banking systems, compliance infrastructure, digital
+          banking portals, microservices, cloud migration, and internal tooling that other
+          delivery teams in the practice ended up using. I worked directly with client
+          engineering leadership on architecture and led cross-functional teams.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          Lleida is where I started speaking. I mentored master&apos;s projects at the
+          Universitat de Lleida and spoke often through local meetup groups. In 2019 I gave a
+          TEDx talk there,{" "}
+          <Link href="/speaking/tedx-lleida-2019/">
+            &ldquo;AI Is Not the World of Movies, It&apos;s Already Reality&rdquo;
+          </Link>. Most of the Lleida sessions were never recorded; that one was.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          I kept building things alone at night. Notastica automated receipt submission for
+          Brazilian non-profits collecting tax donations, taking 45 seconds of manual work per
+          receipt down to 3; it served more than 20 non-profits, processed 1.8 million
+          receipts, and helped raise over R$1M. Crochet.land is a Flutter app I built and
+          maintained solo, with 100,000+ downloads, around 18,000 monthly active users and a
+          4.9 rating.
+        </p>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">N26, and Personio</h2>
+        <p class="text-base leading-relaxed text-prose">
+          I joined <Link href="/work/n26/">N26</Link> in November 2019 and stayed four years.
+          As Tech Lead I architected the fee charging platform that became standard
+          infrastructure embedded in N26&apos;s ledger APIs across Europe. As Principal
+          Engineer I delivered the architectural vision for payments, covering bank and
+          peer-to-peer transfers, and for customer acquisition. I also led the overhaul of
+          financial crime prevention: a static rule engine spread across microservices,
+          replaced by a real-time Apache Flink streaming system in under six months.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          That rebuild is what I have spoken about most. It became a{" "}
+          <Link href="/speaking/kotlinconf-2024/">KotlinConf talk</Link> in Copenhagen, and the
+          event-driven architecture work around it became a{" "}
+          <Link href="/speaking/kafka-summit-london-2023/">Kafka Summit London</Link> session on
+          the outbox pattern.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          In March 2024 I moved to <Link href="/work/personio/">Personio</Link> as Principal
+          Engineer, doing platform engineering at one of Europe&apos;s leading HR tech
+          companies during a critical growth phase: technical direction for core platform
+          services, engineering standards, and cross-team technical authority.
+        </p>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">Basel</h2>
+        <p class="text-base leading-relaxed text-prose">
+          I co-founded <Link href="/work/upgrid/">Upgrid</Link> in January 2025 and built the
+          platform from the first commit. Swiss energy reform had opened a window for
+          Lokale Energiegemeinschaften, and the software underneath them did not exist yet:
+          SDAT metering ingestion, fifteen-minute consumption allocation, a billing engine,
+          Swiss QR-bill PDF generation, Bexio sync, and operator workflows for community
+          formation and exception handling. Three regulated community models &mdash; ZEV, LEG
+          and vZEV &mdash; run as distinct workflows, serving consumers, full operator
+          accounts, co-brand partners and affiliates from one codebase. It carries 2k+
+          members, 250+ communities and 150+ municipalities today.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          The architecture was a deliberate call for a small team: seven apps and ~70 workspace
+          packages in a monorepo on a shared Postgres schema with row-level-security
+          multi-tenancy, which is the opposite of the roughly 200-service estate I came from.
+          I take product and go-to-market too
+          when that is where the bottleneck sits: the savings calculator, the LEG explainer
+          content, the co-brand and affiliate landing pages, the signup instrumentation.
+        </p>
+        <p class="text-base leading-relaxed text-prose">
+          From São Paulo, a decade in Spain, based in Basel.{" "}
+          <Link href="/journey/">Walk the whole route on the map</Link>.
+        </p>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">Speaking</h2>
+        <p class="text-base leading-relaxed text-prose">
+          I speak on stream processing and event-driven architecture, fraud prevention in
+          regulated fintech, and the shape of an engineering career. Stages so far include
+          Kafka Summit London, KotlinConf Copenhagen, WeAreDevelopers World Congress in
+          Berlin, DevBCN, JavaCro and TEDxLleida, plus N26 meetups in Berlin and Barcelona.{" "}
+          <Link href="/speaking/">Every talk is listed here</Link>, with booking details.
+        </p>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">Elsewhere</h2>
+        <ul class="border-t border-subtle">
+          {
+            PROFILES.map((profile) => (
+              <li class="border-b border-subtle">
+                <a
+                  href={profile.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="focus-ring group flex flex-wrap items-baseline gap-x-3 py-3.5"
+                >
+                  <span class="font-display font-bold text-lg text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+                    {profile.label}
+                  </span>
+                  <span class="font-mono text-xs text-meta">{profile.note}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="section-title">Get in touch</h2>
+        <p class="text-base leading-relaxed text-prose max-w-xl">
+          Energy and fintech infrastructure, teams shipping software into regulation, and
+          conference programmes looking for a speaker: LinkedIn is where I read messages.
+        </p>
+        {linkedin && (
+          <a
+            href={linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="focus-ring group inline-flex items-center gap-x-3 border border-subtle px-5 py-3.5 hover:border-lime-600/50 dark:hover:border-lime-400/50 hover:bg-lime-400/5 transition-colors duration-300"
+          >
+            <span class="font-medium text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+              Message me on LinkedIn
+            </span>
+            <span class="font-mono text-sm text-meta group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        )}
+      </section>
+    </div>
+  </Container>
+</PageLayout>

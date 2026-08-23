@@ -1,14 +1,20 @@
 ---
 import "../styles/global.css";
+// Must be imported here, not from src/pages/journey/index.astro: CSS imported
+// from a page's own frontmatter (or from a component only that page renders) is
+// silently dropped from the production bundle in this Astro/Vite setup — it
+// works in `astro dev` and is absent from `dist/`. All CSS ships as one bundle
+// anyway, so the page-scoped import bought nothing.
+import "../styles/journey.css";
 import "@fontsource/inter/latin-400.css";
 import "@fontsource/inter/latin-600.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
 import "@fontsource-variable/bricolage-grotesque";
+// Only the two faces used above the fold are preloaded. Inter 600 and both
+// JetBrains Mono weights are still imported as CSS above; preloading them too
+// puts five high-priority font requests in front of LCP.
 import inter400 from "@fontsource/inter/files/inter-latin-400-normal.woff2";
-import inter600 from "@fontsource/inter/files/inter-latin-600-normal.woff2";
-import jbmono400 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2";
-import jbmono600 from "@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2";
 import bgVariable from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2";
 
 import { ClientRouter } from "astro:transitions";
@@ -60,16 +66,23 @@ const ogImage = new URL(ogImagePath, Astro.site);
     if (dark) document.documentElement.classList.add("dark");
   })();
 </script>
+<meta name="theme-color" content="#f4f4f5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+
+<!-- Icons -->
 <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="msapplication-config" content="/browserconfig.xml" />
 <meta name="generator" content={Astro.generator} />
 
-<!-- Font preloads -->
+<!-- Font preloads: only the two faces that render above the fold -->
 <link rel="preload" href={bgVariable} as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href={inter400} as="font" type="font/woff2" crossorigin/>
-<link rel="preload" href={inter600} as="font" type="font/woff2" crossorigin/>
-<link rel="preload" href={jbmono400} as="font" type="font/woff2" crossorigin/>
-<link rel="preload" href={jbmono600} as="font" type="font/woff2" crossorigin/>
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -126,6 +139,7 @@ const ogImage = new URL(ogImagePath, Astro.site);
   var _scrollHandler = null;
   var _tocObserver = null;
   var _revealObserver = null;
+  var _schemeWatcher = null;
 
   function init() {
     preloadTheme();
@@ -155,13 +169,18 @@ const ogImage = new URL(ogImagePath, Astro.site);
       toggleTheme(getPreferredDark());
     });
 
-    window.matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", function(event) {
+    // Registered once for the lifetime of the document. init() re-runs on every
+    // astro:after-swap, and matchMedia() returns a fresh MediaQueryList each call,
+    // so registering here would leak one live handler per client-side navigation.
+    if (!_schemeWatcher) {
+      _schemeWatcher = window.matchMedia("(prefers-color-scheme: dark)");
+      _schemeWatcher.addEventListener("change", function(event) {
         var theme = localStorage.theme;
         if (!theme || theme === "system") {
           toggleTheme(event.matches);
         }
       });
+    }
 
     if (_scrollHandler) {
       document.removeEventListener("scroll", _scrollHandler);
@@ -223,6 +242,44 @@ const ogImage = new URL(ogImagePath, Astro.site);
 
     elements.forEach(function(element) {
       _revealObserver.observe(element);
+    });
+
+    // A scroll reveal is right for content you scroll into and wrong for content
+    // you arrive at. Anything already at or above the fold on first paint — hash
+    // jumps, restored scroll positions, short pages — is shown immediately and
+    // without transition; only what is genuinely below the fold animates.
+    revealAlreadyInView();
+    window.addEventListener("load", revealAlreadyInView, { once: true });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(revealAlreadyInView);
+    }
+  }
+
+  function revealAlreadyInView() {
+    if (!_revealObserver) return;
+
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    var settled = [];
+
+    document.querySelectorAll(".article-reveal").forEach(function(element) {
+      if (element.classList.contains("show")) return;
+      if (element.getBoundingClientRect().top >= viewportHeight) return;
+
+      element.style.transition = "none";
+      element.classList.add("show");
+      _revealObserver.unobserve(element);
+      settled.push(element);
+    });
+
+    if (settled.length === 0) return;
+
+    // Force the untransitioned state to paint before handing transitions back,
+    // otherwise the restore lands in the same frame and the fade runs anyway.
+    void document.documentElement.offsetHeight;
+    requestAnimationFrame(function() {
+      settled.forEach(function(element) {
+        element.style.transition = "";
+      });
     });
   }
 

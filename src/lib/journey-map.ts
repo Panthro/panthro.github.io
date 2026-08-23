@@ -59,15 +59,6 @@ export const CANVAS_VIEW: ChapterView = {
   fadeRight: false,
 };
 
-/** @deprecated Use CANVAS_VIEW */
-export const DEFAULT_VIEW: ChapterView = CANVAS_VIEW;
-
-export function buildRoutePoints(
-  steps: Pick<JourneyMapStep, "lng" | "lat">[]
-): [number, number][] {
-  return steps.map((step) => [step.lng, step.lat]);
-}
-
 export function buildMapSteps(
   steps: Array<{
     chapter: ChapterId;
@@ -169,22 +160,6 @@ export function routeProgressPointCount(
   return Math.min(steps.length, Math.max(1, activeIndex + 1));
 }
 
-export function resolveMapView(
-  chapter: ChapterId,
-  activeStep?: Pick<JourneyMapStep, "lat" | "lng">
-): ChapterView {
-  const chapterView = CHAPTER_VIEW[chapter];
-  if (!activeStep) return chapterView;
-
-  return {
-    ...chapterView,
-    center: [
-      chapterView.center[0] * 0.72 + activeStep.lng * 0.28,
-      chapterView.center[1] * 0.72 + activeStep.lat * 0.28,
-    ],
-  };
-}
-
 /** Canvas layout: global view with a subtle nudge toward the active pin */
 export function resolveCanvasView(
   activeStep?: Pick<JourneyMapStep, "lat" | "lng">
@@ -279,35 +254,78 @@ export function flowScaleForPanel(presetScale: number, panelSize: number): numbe
   return presetScale * (panelSize / FLOW_PANEL_REFERENCE);
 }
 
-const FLOW_KIND_ZOOM: Record<StepKind, number> = {
-  study: 2.1,
-  career: 2.35,
-  project: 2.5,
-  talk: 2.75,
+/**
+ * Smallest geographic span a chapter frame may show, in degrees.
+ *
+ * Brazil's four landmarks sit inside ~0.7° of each other and Switzerland is a
+ * single point; fitting either literally would zoom past any recognizable
+ * coastline or border. The floor is what makes the frame read as a *place* —
+ * roughly "southeast Brazil", "western Europe", "the Alps".
+ */
+const CHAPTER_MIN_SPAN_DEG: Record<ChapterId, number> = {
+  brazil: 17,
+  spain: 15,
+  switzerland: 9,
 };
 
-/** Flow layout: zoomed-out view showing the full route in the sticky panel */
-export function resolveFlowOverviewView(
-  routePoints: [number, number][],
+/** Fraction of the panel reserved as breathing room around a chapter frame. */
+const CHAPTER_FRAME_PAD = 0.16;
+
+/**
+ * Chapter-scoped framing: one regional view per chapter, not one global frame.
+ *
+ * A single projection containing both São Paulo and Basel spends most of its
+ * area on the Atlantic. Framing per chapter puts the pins at a legible scale and
+ * turns the camera move into part of the narrative — the frame travels when the
+ * reader changes continent, and holds still while they read a chapter.
+ */
+export function resolveChapterFrame(
+  chapter: ChapterId,
+  points: [number, number][],
   width: number,
   height: number
 ): ChapterView {
-  if (routePoints.length < 2) return CANVAS_VIEW;
+  const preset = CHAPTER_VIEW[chapter];
+  if (points.length === 0) return preset;
 
-  const pad = 0.1;
+  const lngs = points.map((point) => point[0]);
+  const lats = points.map((point) => point[1]);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  const minSpan = CHAPTER_MIN_SPAN_DEG[chapter];
+  const centerLng = (minLng + maxLng) / 2;
+  const centerLat = (minLat + maxLat) / 2;
+  const halfLng = Math.max((maxLng - minLng) / 2, minSpan / 2);
+  const halfLat = Math.max((maxLat - minLat) / 2, minSpan / 2);
+
+  const corners: [number, number][] = [
+    [centerLng - halfLng, centerLat - halfLat],
+    [centerLng + halfLng, centerLat - halfLat],
+    [centerLng + halfLng, centerLat + halfLat],
+    [centerLng - halfLng, centerLat + halfLat],
+  ];
+
   const projection = geoNaturalEarth1();
   projection.fitExtent(
     [
-      [width * pad, height * pad],
-      [width * (1 - pad), height * (1 - pad)],
+      [width * CHAPTER_FRAME_PAD, height * CHAPTER_FRAME_PAD],
+      [width * (1 - CHAPTER_FRAME_PAD), height * (1 - CHAPTER_FRAME_PAD)],
     ],
-    { type: "MultiPoint", coordinates: routePoints }
+    { type: "MultiPoint", coordinates: corners }
   );
 
   const fittedScale = projection.scale();
+  if (!Number.isFinite(fittedScale) || fittedScale <= 0) return preset;
+
   const panelSize = Math.min(width, height);
   const inverted = projection.invert?.([width / 2, height / 2]);
-  const center: [number, number] = inverted ?? CANVAS_VIEW.center;
+  const center: [number, number] =
+    inverted && Number.isFinite(inverted[0]) && Number.isFinite(inverted[1])
+      ? [inverted[0], inverted[1]]
+      : [centerLng, centerLat];
 
   return {
     center,
@@ -315,19 +333,6 @@ export function resolveFlowOverviewView(
     topFadePct: 8,
     bottomFadePct: 12,
     fadeRight: false,
-  };
-}
-
-/** Per-step target view for the flow layout — center on the pin with kind-based zoom */
-export function resolveFlowView(
-  step: Pick<JourneyMapStep, "chapter" | "kind" | "lat" | "lng">
-): ChapterView {
-  const chapterView = CHAPTER_VIEW[step.chapter];
-
-  return {
-    ...chapterView,
-    center: [step.lng, step.lat],
-    scale: chapterView.scale * FLOW_KIND_ZOOM[step.kind],
   };
 }
 

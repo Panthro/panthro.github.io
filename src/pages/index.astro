@@ -6,7 +6,7 @@ import Link from "@components/Link.astro";
 import WorkEntry from "@components/WorkEntry.astro";
 import ArticleEntry from "@components/ArticleEntry.astro";
 import { dateRange } from "@lib/utils";
-import { personSchema, webSiteSchema } from "@lib/seo";
+import { profilePageSchema, webSiteSchema } from "@lib/seo";
 import { SITE, HOME, SOCIALS } from "@consts";
 
 const allwork = (await getCollection("work"))
@@ -28,116 +28,205 @@ const recentArticles = (
   .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf())
   .slice(0, SITE.NUM_ARTICLES_ON_HOMEPAGE);
 
-const jsonLd = [personSchema(HOME.DESCRIPTION), webSiteSchema(HOME.DESCRIPTION)];
+const journeyLandmarks = (await getCollection("journey")).length;
+
+// Product scale, from src/content/work/upgrid.md
+const UPGRID_METRICS = [
+  { value: "2k+", label: "members" },
+  { value: "250+", label: "communities" },
+  { value: "150+", label: "municipalities" },
+];
+
+const linkedin = SOCIALS.find((social) => social.NAME === "linkedin")?.HREF;
+const secondarySocials = SOCIALS.filter((social) => social.NAME !== "linkedin");
+const SOCIAL_LABEL: Record<string, string> = {
+  github: "GitHub",
+  stackoverflow: "Stack Overflow",
+  sessionize: "Sessionize",
+};
+
+const jsonLd = [profilePageSchema(HOME.DESCRIPTION), webSiteSchema(HOME.DESCRIPTION)];
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION} jsonLd={jsonLd}>
   <Container>
-    <div class="space-y-28">
-      <section class="animate-hero space-y-8">
-        <div class="signal-mark mb-8"></div>
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold leading-[1.05] tracking-tight text-balance text-zinc-900 dark:text-white">
-          Rafael Roman
-        </h1>
-        <p class="text-xl sm:text-2xl leading-snug text-pretty text-zinc-600 dark:text-zinc-400 max-w-xl">
-          CTO & Co-founder at{" "}
-          <Link href="https://upgrid.ch" external>Upgrid</Link>
-          {" "}&mdash; building the platform behind Switzerland&apos;s local energy communities.
-          <span class="text-zinc-400 dark:text-zinc-500">20+ years engineering critical infrastructure before becoming a founder.</span>
+    <section class="animate-hero space-y-8 mb-28 sm:mb-40">
+      <div class="signal-mark mb-8"></div>
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold leading-[1.05] tracking-tight text-balance text-zinc-900 dark:text-white">
+        Rafael Roman
+      </h1>
+      <p class="text-xl sm:text-2xl leading-snug text-pretty text-prose max-w-xl">
+        CTO & Co-founder at{" "}
+        <Link href="https://upgrid.ch" external>Upgrid</Link>
+        {" "}&mdash; building the platform behind Switzerland&apos;s local energy communities.
+        <span class="text-meta">20+ years engineering critical infrastructure before becoming a founder.</span>
+      </p>
+
+      <figure class="!mt-10">
+        <picture>
+          <source
+            type="image/webp"
+            srcset="/rafael-roman-400.webp 400w, /rafael-roman.webp 800w"
+            sizes="(min-width: 712px) 632px, calc(100vw - 2rem)"
+          />
+          <img
+            src="/rafael-roman.jpg"
+            srcset="/rafael-roman-400.jpg 400w, /rafael-roman.jpg 800w"
+            sizes="(min-width: 712px) 632px, calc(100vw - 2rem)"
+            width="800"
+            height="800"
+            alt="Rafael Roman"
+            fetchpriority="high"
+            decoding="async"
+            class="w-full aspect-[3/2] sm:aspect-[16/9] object-cover object-[52%_8%]"
+          />
+        </picture>
+      </figure>
+
+      <div class="space-y-5 text-base leading-relaxed text-prose">
+        <p>
+          Upgrid is the software that has to exist before neighbours in Switzerland can buy
+          each other&apos;s solar electricity. A grid operator&apos;s metering file arrives on
+          its own schedule, in its own format, and has to come out the other end as an invoice
+          that holds up legally.
         </p>
-        <div class="space-y-4 font-mono text-sm">
-          <p>
-            Upgrid is regulated energy infrastructure: SDAT ingestion, allocation, Swiss QR-bill
-            billing, and operator workflows for ZEV, LEG, and vZEV communities &mdash; full
-            operators, co-brand partners (municipalities and installers), and affiliates on one
-            codebase. 2k+ members, 250+ communities, 150+ municipalities.
-          </p>
-          <p>
-            Four years at <Link href="https://n26.com" external>N26</Link> as Principal Engineer &mdash;
-            payments architecture for millions of European customers, fraud prevention
-            rebuilt end-to-end in six months. Then Principal Engineer at Personio.
-            Before that: a decade delivering banking platforms across Europe at GFT,
-            and three years at IBM&apos;s innovation lab.
-          </p>
-          <p>
-            <span class="text-accent">Speaker:</span>{" "}
-            Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, JavaCro, DevBCN, TEDx.
-          </p>
-          <p class="text-zinc-400 dark:text-zinc-500">
-            Based in Basel. From S&atilde;o Paulo. A decade in Barcelona.{" "}
-            <Link href="/journey">Walk the journey &rarr;</Link>
-          </p>
-        </div>
-      </section>
+        <p>
+          I built the platform from the first commit: metering ingestion, fifteen-minute
+          consumption allocation, billing, Swiss QR-bill generation, and the operator workflows
+          for forming a community and handling the exceptions. Three regulated community models
+          &mdash; ZEV, LEG and vZEV &mdash; run as distinct workflows on one codebase.
+        </p>
+      </div>
 
-      {work.length > 0 && (
-        <section class="space-y-6">
-          <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h2 class="section-title">
-              Work
-            </h2>
-            <Link href="/work">
-              See all
-            </Link>
-          </div>
-          <ul class="flex flex-col space-y-4">
-            {work.map(entry => (
-              <WorkEntry
-                slug={entry.id}
-                dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
-                company={entry.data.company}
-                role={entry.data.role}
-                truncate
-              >
-                <entry.Content />
-              </WorkEntry>
-            ))}
-          </ul>
-        </section>
-      )}
+      <dl class="!mt-8 grid grid-cols-3 border border-subtle divide-x divide-zinc-200 dark:divide-zinc-800">
+        {
+          UPGRID_METRICS.map((metric) => (
+            <div class="flex flex-col-reverse p-3 sm:p-5">
+              <dt class="mt-1 font-mono text-[11px] sm:text-xs text-meta leading-snug">
+                {metric.label}
+              </dt>
+              <dd class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-heading">
+                {metric.value}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
 
-      {recentArticles.length > 0 && (
-        <section class="space-y-6">
-          <div class="flex flex-wrap gap-y-2 items-center justify-between">
-            <h2 class="section-title">
-              Writing
-            </h2>
-            <Link href="/articles">
-              See all
-            </Link>
-          </div>
-          <ul class="flex flex-col space-y-4">
-            {recentArticles.map(article => (
-              <ArticleEntry
-                title={article.data.title}
-                description={article.data.description}
-                slug={article.id}
-                date={article.data.date}
-                tags={article.data.tags}
-              />
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section class="space-y-4">
-        <h2 class="section-title">
-          Connect
-        </h2>
+      <div class="space-y-5 text-base leading-relaxed text-prose">
+        <p>
+          Before Upgrid: four years at <Link href="https://n26.com" external>N26</Link> as
+          Principal Engineer &mdash; payments architecture for millions of European customers,
+          and financial crime prevention rebuilt from a static rule engine onto real-time
+          Apache Flink in under six months. Then Principal Engineer at Personio. Before that,
+          a decade of banking platforms across Europe at GFT and three years in IBM&apos;s
+          innovation lab.
+        </p>
         <p class="font-mono text-sm">
-          Interested in distributed systems, fintech, energy tech, or engineering leadership? Find me on:
+          <span class="text-accent">Speaker:</span>{" "}
+          Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, JavaCro, DevBCN, TEDx.
         </p>
-        <ul class="flex flex-wrap gap-2">
-          {SOCIALS.map((SOCIAL, i) => (
-            <li class="flex gap-x-2 text-nowrap items-center py-1">
-              <Link href={SOCIAL.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}>
-                {SOCIAL.NAME}
-              </Link>
-              {i < SOCIALS.length - 1 && <span class="text-zinc-700">/</span>}
-            </li>
+      </div>
+
+      <a
+        href="/journey/"
+        class="focus-ring group !mt-10 block border border-subtle p-5 sm:p-6 hover:border-lime-600/50 dark:hover:border-lime-400/50 hover:bg-lime-400/5 transition-colors duration-300"
+      >
+        <span class="font-mono text-xs uppercase tracking-[0.16em] text-meta">
+          The journey
+        </span>
+        <span class="mt-2 block font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+          S&atilde;o Paulo &rarr; Basel
+        </span>
+        <span class="mt-2 block text-sm text-prose">
+          {journeyLandmarks} landmarks across Brazil, Spain and Switzerland, on a map that follows you down the page.
+        </span>
+      </a>
+    </section>
+
+    {work.length > 0 && (
+      <section class="space-y-6 mb-20 sm:mb-24">
+        <div class="flex flex-wrap gap-y-2 items-center justify-between">
+          <h2 class="section-title">
+            Work
+          </h2>
+          <Link href="/work/">
+            See all
+          </Link>
+        </div>
+        <ul class="flex flex-col space-y-4">
+          {work.map(entry => (
+            <WorkEntry
+              slug={entry.id}
+              dateRange={dateRange(entry.data.dateStart, entry.data.dateEnd)}
+              company={entry.data.company}
+              role={entry.data.role}
+              truncate
+            >
+              <entry.Content />
+            </WorkEntry>
           ))}
         </ul>
       </section>
-    </div>
+    )}
+
+    {recentArticles.length > 0 && (
+      <section class="space-y-6 mb-28 sm:mb-36">
+        <div class="flex flex-wrap gap-y-2 items-center justify-between">
+          <h2 class="section-title">
+            Writing
+          </h2>
+          <Link href="/articles/">
+            See all
+          </Link>
+        </div>
+        <ul class="flex flex-col space-y-4">
+          {recentArticles.map(article => (
+            <ArticleEntry
+              title={article.data.title}
+              description={article.data.description}
+              slug={article.id}
+              date={article.data.date}
+              tags={article.data.tags}
+            />
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="space-y-6">
+      <h2 class="section-title">
+        Connect
+      </h2>
+      <p class="text-base leading-relaxed text-prose max-w-xl">
+        I want to hear about energy and fintech infrastructure, teams shipping software into
+        regulation, and conference programmes looking for a speaker on streaming or the
+        staff-engineer path.
+      </p>
+      {linkedin && (
+        <a
+          href={linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring group inline-flex items-center gap-x-3 border border-subtle px-5 py-3.5 hover:border-lime-600/50 dark:hover:border-lime-400/50 hover:bg-lime-400/5 transition-colors duration-300"
+        >
+          <span class="font-medium text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+            Message me on LinkedIn
+          </span>
+          <span class="font-mono text-sm text-meta group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300" aria-hidden="true">
+            &rarr;
+          </span>
+        </a>
+      )}
+      <ul class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-sm">
+        {secondarySocials.map((social) => (
+          <li>
+            <Link href={social.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL_LABEL[social.NAME] ?? social.NAME}`}>
+              {SOCIAL_LABEL[social.NAME] ?? social.NAME}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   </Container>
 </PageLayout>

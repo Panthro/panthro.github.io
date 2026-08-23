@@ -2,14 +2,39 @@
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import Container from "@components/Container.astro";
-import ArticleEntry from "@components/ArticleEntry.astro";
 import { ARTICLES } from "@consts";
+
+// Reading time is computed in articles/[...slug].astro too. Duplicated here
+// rather than shared, because that file is owned elsewhere this pass.
+function readingTimeMinutes(body: string): number {
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+const topicSlugs = new Set((await getCollection("topics")).map((topic) => topic.id));
+const topicTitles = new Map(
+  (await getCollection("topics")).map((topic) => [topic.id, topic.data.title])
+);
 
 const articles = (
   await getCollection("articles", ({ data }) =>
     import.meta.env.DEV ? true : !data.draft
   )
-).sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+)
+  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf())
+  .map((article) => {
+    const topic = (article.data.tags ?? []).find((tag) => topicSlugs.has(tag));
+    return {
+      ...article,
+      readTime: readingTimeMinutes(article.body ?? ""),
+      topic: topic ? { slug: topic, title: topicTitles.get(topic)! } : null,
+      dateStr: article.data.date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+    };
+  });
 ---
 
 <PageLayout title={ARTICLES.TITLE} description={ARTICLES.DESCRIPTION}>
@@ -20,22 +45,45 @@ const articles = (
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold leading-[1.08] tracking-tight text-balance text-zinc-900 dark:text-white">
           Writing
         </h1>
+        <p class="mt-6 text-lg leading-snug text-pretty text-prose max-w-xl">
+          Field notes from twenty years of building regulated systems: streaming, fraud
+          prevention, energy infrastructure, and what leading engineers through all of it
+          actually costs.
+        </p>
       </div>
 
       {articles.length > 0 ? (
         <ul class="flex flex-col space-y-6">
           {articles.map(article => (
-            <ArticleEntry
-              title={article.data.title}
-              description={article.data.description}
-              slug={article.id}
-              date={article.data.date}
-              tags={article.data.tags}
-            />
+            <li class="pl-4 border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors duration-300">
+              <div class="flex flex-wrap items-center gap-x-3 text-xs font-mono text-meta mb-0.5">
+                <span>{article.dateStr}</span>
+                <span aria-hidden="true">·</span>
+                <span>{article.readTime} min read</span>
+                {article.topic && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <a
+                      href={`/topics/${article.topic.slug}/`}
+                      class="focus-ring underline underline-offset-2 decoration-zinc-300 dark:decoration-zinc-700 hover:text-lime-600 dark:hover:text-lime-400 hover:decoration-lime-600/50 dark:hover:decoration-lime-400/50 transition-colors duration-300"
+                    >
+                      {article.topic.title}
+                    </a>
+                  </>
+                )}
+              </div>
+              <a
+                href={`/articles/${article.id}/`}
+                class="focus-ring font-display font-bold text-lg leading-snug text-heading hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+              >
+                {article.data.title}
+              </a>
+              <p class="text-sm text-prose mt-1">{article.data.description}</p>
+            </li>
           ))}
         </ul>
       ) : (
-        <p class="font-mono text-sm text-zinc-500">
+        <p class="font-mono text-sm text-meta">
           Nothing published yet. Check back soon.
         </p>
       )}

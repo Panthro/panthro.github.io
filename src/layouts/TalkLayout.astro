@@ -6,7 +6,7 @@ import BackToPrev from "@components/BackToPrev.astro";
 import RelatedLinks from "@components/RelatedLinks.astro";
 import Link from "@components/Link.astro";
 import { SITE } from "@consts";
-import { breadcrumbSchema, eventSchema } from "@lib/seo";
+import { breadcrumbSchema, eventSchema, isoDate, isVideoUrl } from "@lib/seo";
 import type { RelatedLink } from "@lib/related";
 
 type Props = {
@@ -49,14 +49,19 @@ const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
 const kindLabel =
   kind === "meetup" ? "Meetup" : kind === "community" ? "Community" : null;
 
+// Every talk is a single-day session, so endDate mirrors startDate. Only
+// links that are genuinely a video (TED, YouTube, Vimeo) become a VideoObject —
+// conference session pages and Meetup listings are not recordings.
 const jsonLd = [
   eventSchema({
-    name: talkTitle ? `${talkTitle} — ${event}` : event,
+    name: talkTitle ? `${talkTitle} · ${event}` : event,
     description,
     url: pageUrl,
     startDate: date,
+    endDate: date,
     location,
     externalUrl: externalLink,
+    recordingUrl: isVideoUrl(externalLink) ? externalLink : undefined,
   }),
   breadcrumbSchema([
     { name: SITE.NAME, url: new URL("/", Astro.site).href },
@@ -78,13 +83,13 @@ const jsonLd = [
       <div class="mx-auto max-w-2xl px-4 sm:px-5">
         <div class="space-y-12">
           <div>
-            <BackToPrev href="/speaking">Back to talks</BackToPrev>
+            <BackToPrev href="/speaking/">Back to talks</BackToPrev>
           </div>
 
           <div class="animate-hero space-y-8">
             <div class="signal-mark"></div>
             <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs font-mono text-meta">
-              <time datetime={date.toISOString()}>{formattedDate}</time>
+              <time datetime={isoDate(date)}>{formattedDate}</time>
               <span aria-hidden="true">·</span>
               <span>{location}</span>
               {kindLabel && (

@@ -4,7 +4,7 @@ import PageLayout from "@layouts/PageLayout.astro";
 import Container from "@components/Container.astro";
 import TalkEntry from "@components/TalkEntry.astro";
 import Link from "@components/Link.astro";
-import { SPEAKING } from "@consts";
+import { SPEAKING, SOCIALS } from "@consts";
 import { excerpt } from "@lib/related";
 
 const talks = (await getCollection("speaking"))
@@ -18,6 +18,44 @@ const byYear = talks.reduce((acc, talk) => {
 }, {} as Record<number, typeof talks>);
 
 const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+
+const linkedin = SOCIALS.find((social) => social.NAME === "linkedin")?.HREF ?? "";
+const sessionize =
+  SOCIALS.find((social) => social.NAME === "sessionize")?.HREF ?? "";
+
+// Every topic and format below is evidenced by a talk in src/content/speaking/.
+const TOPICS = [
+  {
+    title: "Stream processing and event-driven architecture",
+    detail:
+      "Apache Flink and Kafka in production — stateful jobs, the outbox pattern, and what it takes to operate them inside a licensed bank.",
+  },
+  {
+    title: "Fraud prevention in regulated fintech",
+    detail:
+      "Replacing a static rule engine with a real-time streaming pipeline at N26, and the latency budget that decision has to fit into.",
+  },
+  {
+    title: "Energy infrastructure as an engineering domain",
+    detail:
+      "Swiss local energy communities: metering data on someone else's schedule, allocation on fifteen-minute intervals, and an invoice with legal consequences.",
+  },
+  {
+    title: "The shape of an engineering career",
+    detail:
+      "The path to staff and principal level, non-traditional routes into the work, and leading platform teams without becoming a bottleneck.",
+  },
+];
+
+const FORMATS = [
+  "Conference session",
+  "Meetup talk",
+  "Panel",
+  "Community / TEDx talk",
+];
+
+const SHORT_BIO =
+  "Rafael Roman is co-founder and CTO of Upgrid, the platform behind Switzerland's local energy communities. He spent four years as Principal Engineer at N26, where he led the rebuild of financial crime prevention onto a real-time Apache Flink pipeline, and has been building regulated software for twenty years across Brazil, Spain and Switzerland. He has spoken at Kafka Summit London, KotlinConf, WeAreDevelopers World Congress, DevBCN, JavaCro and TEDx.";
 ---
 
 <PageLayout title={SPEAKING.TITLE} description={SPEAKING.DESCRIPTION}>
@@ -30,18 +68,83 @@ const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
         </h1>
       </div>
 
-      <div class="space-y-2 font-mono text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-        <p>
-          Conference sessions, meetups, and community talks — from Kafka and Flink at
-          N26 to career panels in Barcelona and Berlin. Full profile on{" "}
-          <Link href="https://sessionize.com/rafaelroman" external>Sessionize</Link>.
-        </p>
-      </div>
+      <p class="text-base leading-relaxed text-prose max-w-xl">
+        Conference sessions, meetups, and community talks &mdash; from Kafka and Flink at N26 to
+        career panels in Barcelona and Berlin. Full profile on{" "}
+        <Link href={sessionize} external>Sessionize</Link>.
+      </p>
+
+      <section class="border border-subtle p-5 sm:p-7 space-y-8" aria-labelledby="booking">
+        <div class="space-y-2">
+          <h2 id="booking" class="section-title">Booking</h2>
+          <p class="text-base leading-relaxed text-prose">
+            Everything a programme committee needs to list a session: the four subjects I
+            speak on, the formats I have done them in, and a bio you can paste.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="font-mono text-xs uppercase tracking-[0.16em] text-meta">
+            What I speak on
+          </h3>
+          <ul class="space-y-4">
+            {
+              TOPICS.map((topic) => (
+                <li>
+                  <div class="font-display font-bold text-base text-heading">
+                    {topic.title}
+                  </div>
+                  <p class="text-sm text-prose mt-0.5">{topic.detail}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-mono text-xs uppercase tracking-[0.16em] text-meta">Formats</h3>
+          <ul class="flex flex-wrap gap-x-2 gap-y-2 font-mono text-xs">
+            {
+              FORMATS.map((format) => (
+                <li class="border border-subtle px-2.5 py-1.5 text-prose">{format}</li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-mono text-xs uppercase tracking-[0.16em] text-meta">
+            Bio, ready to paste
+          </h3>
+          <blockquote class="border-l-2 border-subtle pl-4 text-sm leading-relaxed text-prose">
+            {SHORT_BIO}
+          </blockquote>
+          <p class="font-mono text-xs text-meta">
+            Headshot: <Link href="/rafael-roman.jpg" class="text-prose">rafael-roman.jpg</Link> (800&times;800).
+          </p>
+        </div>
+
+        {linkedin && (
+          <a
+            href={linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="focus-ring group inline-flex items-center gap-x-3 border border-subtle px-5 py-3.5 hover:border-lime-600/50 dark:hover:border-lime-400/50 hover:bg-lime-400/5 transition-colors duration-300"
+          >
+            <span class="font-medium text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+              Invite me on LinkedIn
+            </span>
+            <span class="font-mono text-sm text-meta group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        )}
+      </section>
 
       <div class="space-y-12">
         {years.map(year => (
           <section class="space-y-4">
-            <span class="text-xs font-mono font-semibold text-zinc-500 dark:text-zinc-500 tracking-widest uppercase">
+            <span class="text-xs font-mono font-semibold text-meta tracking-widest uppercase">
                 {year}
             </span>
             <ul class="flex flex-col space-y-5">

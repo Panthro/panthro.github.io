@@ -1,6 +1,49 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
+/**
+ * Canonical taxonomy.
+ *
+ * One vocabulary, not two. Every slug here is a real hub page at
+ * `src/content/topics/<slug>.md` → `/topics/<slug>/`, so every tag rendered on an
+ * article resolves to a page with original body copy and internal links.
+ *
+ * Adding a topic = adding a file in `src/content/topics/` AND a slug here.
+ * Removing one without removing the tags will surface as a build warning below.
+ */
+export const TOPIC_SLUGS = [
+  "energy-tech",
+  "engineering-leadership",
+  "fintech-infrastructure",
+  "fraud-prevention",
+  "stream-processing",
+] as const;
+
+export type TopicSlug = (typeof TOPIC_SLUGS)[number];
+
+/**
+ * Every article's `tags:` is a valid topic slug today, so a typo should fail the
+ * build rather than warn past it.
+ */
+const STRICT_TAGS = true;
+
+const topicTags = z
+  .array(z.string())
+  .optional()
+  .default([])
+  .superRefine((tags, ctx) => {
+    const unknown = tags.filter((tag) => !TOPIC_SLUGS.includes(tag as TopicSlug));
+    if (unknown.length === 0) return;
+
+    const message = `Unknown tag(s): ${unknown.join(", ")}. Tags must be topic slugs (${TOPIC_SLUGS.join(", ")}), each backed by a hub in src/content/topics/.`;
+
+    if (STRICT_TAGS) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+    } else {
+      console.warn(`[taxonomy] ${message}`);
+    }
+  });
+
 const speaking = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/speaking" }),
   schema: z.object({
@@ -46,8 +89,9 @@ const articles = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
     draft: z.boolean().optional().default(false),
-    tags: z.array(z.string()).optional().default([]),
+    tags: topicTags,
     related: z.array(z.string()).optional().default([]),
   }),
 });

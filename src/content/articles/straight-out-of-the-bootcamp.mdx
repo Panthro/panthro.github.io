@@ -3,93 +3,41 @@ title: "Straight Out of the Bootcamp"
 description: "You finished the program. Now what? Stop collecting certificates. Build something recruiters can click. Prepare like interviews are the job — because for a while, they are."
 date: "2021-09-06"
 draft: false
-tags: ["career", "bootcamp", "interviewing", "engineering-leadership"]
+tags: ["engineering-leadership"]
 related:
   - i-hardly-debug-anymore-tdd
   - say-yes-first-platform-teams
 ---
 
 import { Callout } from "../../components/articles/Callout";
-import { PullQuote } from "../../components/articles/PullQuote";
-import { FlowDiagram } from "../../components/articles/FlowDiagram";
-import { Compare } from "../../components/articles/Compare";
-import { SignalList } from "../../components/articles/SignalList";
 import { Checklist } from "../../components/articles/Checklist";
-import { Pipeline } from "../../components/articles/Pipeline";
 import { ExperienceMatrix } from "../../components/articles/ExperienceMatrix";
-import { LessonStack } from "../../components/articles/LessonStack";
 
 You finished your coding bootcamp. The certificate is in your inbox. The invoice is paid. And now you're staring at job boards wondering whether any of it was worth it.
 
-That doubt is normal. Bootcamp marketing shows happy graduates and salary graphs. You might feel like you're on the wrong side of the curve before you've even started. You're not doomed — but the playbook they gave you in week twelve is incomplete.
+That doubt is normal. Bootcamp marketing shows happy graduates and salary graphs, so you can feel like you're on the wrong side of the curve before you've even started. You're not doomed, but the playbook they gave you in week twelve is incomplete.
 
-This is the rest of it. I wrote it in 2021 for people leaving bootcamp. I've since interviewed dozens of engineers on the other side of the table. Nothing here aged out.
+This is the rest of it. I wrote it in 2021 for people leaving bootcamp. I've since interviewed dozens of engineers on the other side of the table, and nothing here aged out.
 
 ## The pipeline you're entering
 
-Getting hired is a funnel. The order shuffles by company, but the stages don't:
+Getting hired is a funnel. The order shuffles by company, but the stages don't: your CV and cover letter, a 30-minute recruiter screen, a technical round of code and system design, and a behavioural round about stories and values.
 
-<FlowDiagram
-  title="Typical hiring path"
-  steps={[
-    { id: "cv", label: "CV / cover", sublabel: "keywords + proof" },
-    { id: "screen", label: "Recruiter", sublabel: "30 min" },
-    { id: "tech", label: "Technical", sublabel: "code + system" },
-    { id: "fit", label: "Behavioral", sublabel: "stories + values" },
-  ]}
-/>
-
-Non-technical recruiters scan for **keywords** — React, Node, Python, whatever the req says. Technical recruiters and hiring managers scan for **evidence** — what you built, what broke, what you fixed. The bootcamp alone rarely clears the second bar. A degree alone often doesn't either.
+Non-technical recruiters scan for **keywords** like React, Node, or Python, whatever the req says. Technical recruiters and hiring managers scan for **evidence**: what you built, what broke, what you fixed. The bootcamp alone rarely clears the second bar. A degree alone often doesn't either.
 
 Your job before the job is to manufacture evidence.
 
 ## Build stuff, not certificates
 
-An attractive CV is not a Canva template. It's **content**.
+An attractive CV is not a Canva template. What makes it attractive is content.
 
-The instinct after bootcamp is to keep learning — another Udemy course, another tutorial, another framework hello-world. I get it. Learning feels productive. But you've been learning for months. What you lack is **proof**.
+The instinct after bootcamp is to keep learning: another Udemy course, another tutorial, another framework hello-world. I get it. Learning feels productive. But you've been learning for months. What you lack is **proof**.
 
-<Compare
-  before={{
-    label: "Certificate collector",
-    items: [
-      "CV lists twelve online courses and zero shipped projects",
-      "Skills section reads like the bootcamp syllabus",
-      "Recruiter match on keywords — hiring manager finds no depth",
-      "Interview stories all start with \"in class we...\"",
-    ],
-  }}
-  after={{
-    label: "Builder",
-    items: [
-      "One or two projects live, deployed, linkable",
-      "README explains trade-offs — not just \"I used React\"",
-      "Gaps from bootcamp filled by building, not watching",
-      "Interview stories about real decisions under constraint",
-    ],
-  }}
-/>
+You can see the difference on paper. One CV lists twelve online courses and zero shipped projects, with a skills section that reads like the bootcamp syllabus. It matches on recruiter keywords and then collapses when a hiring manager looks for depth, because every interview story starts with "in class we…". The other has one or two projects live, deployed, and linkable, a README that explains trade-offs rather than announcing "I used React," and stories about real decisions made under constraint.
 
-Crafting works like knitting. You don't get good at knitting by watching videos about knitting. You knit. Software is the same — especially when you're trying to convince someone you'll be useful on week one.
+Crafting works like knitting. You don't get good at knitting by watching videos about knitting. You knit. Software is the same, especially when you're trying to convince someone you'll be useful on week one.
 
-<SignalList
-  items={[
-    {
-      title: "Fill the gaps bootcamp glossed over",
-      body: "That exercise where the instructor carried you through? Rebuild it alone. The gap you discover is the gap they'll ask about in interviews.",
-    },
-    {
-      title: "Build muscle memory",
-      body: "Remember when git took six tries? By graduation it was automatic. Deployment, debugging, reading stack traces — same process. Repetition on real projects, not drills.",
-    },
-    {
-      title: "Give recruiters something to click",
-      body: "A polished project answers the silent question: if they built this, they can probably build our thing. No project means you're asking them to bet on potential alone.",
-    },
-  ]}
-/>
-
-<PullQuote>If they built that — deployed, maintained, explained — they'll probably survive our codebase. That's the inference you're aiming for.</PullQuote>
+So fill the gaps the bootcamp glossed over. That exercise where the instructor carried you through? Rebuild it alone; the gap you discover is the gap they'll ask about in interviews. Build muscle memory the same way you did with git, which took six tries and then became automatic. Deployment, debugging, and reading stack traces follow the same curve, and repetition on real projects beats drills. Most of all, give recruiters something to click. A polished project answers the silent question: if they built this, they can probably build our thing. No project means you're asking someone to bet on potential alone.
 
 Don't spend three months hunting the perfect startup idea. You're not trying to raise a seed round. You're trying to **look competent and curious** in front of someone with forty CVs and one afternoon.
 
@@ -119,56 +67,25 @@ Pick one. Ship it. Then pick another. Two solid projects beat twelve half-finish
 
 ## Apply, interview, repeat
 
-I used to think preparing for interviews was somehow dishonest — that if I rehearsed, they'd catch me, or worse, I'd land a job I didn't deserve.
+I used to think preparing for interviews was somehow dishonest, that if I rehearsed they'd catch me, or worse, I'd land a job I didn't deserve.
 
-That's wrong. Preparation isn't lying. It's **not wasting the one hour** someone gave you to understand a decade of your life.
+That's wrong. Preparation isn't lying — it's refusing to waste the one hour someone gave you to understand a decade of your life.
 
 We've all walked out of an interview with better answers forming in the car. The goal is to bring those answers *in*, not generate them after.
 
-I still interview periodically even when I'm not looking to leave. Not because I'm restless — because I refuse to let interview muscle atrophy, and because I don't want to stay somewhere from fear of the process. I've been that person. It's a trap.
+I still interview periodically even when I'm not looking to leave. Not because I'm restless, but because I refuse to let the interview muscle atrophy, and because I don't want to stay somewhere out of fear of the process. I've been that person. It's a trap.
 
-<Callout type="tip" title="From the other side of the table">
-  I've interviewed dozens of candidates. We get roughly an hour. It's never fair. Bias is real. Knowing that, showing up unprepared wastes everyone's time — especially yours.
-</Callout>
+I've also interviewed dozens of candidates from the other chair. We get roughly an hour. It's never fair, and bias is real. Knowing that, showing up unprepared wastes everyone's time, starting with yours.
 
 ## The prep doc that changed everything
 
-After reading *Cracking the Coding Interview*, I built a living interview prep document. Mine is seven pages. Yours might be five. The format matters more than the length.
+After reading *Cracking the Coding Interview*, I built a living interview prep document. Mine is seven pages. Yours might be five. The format matters more than the length, and it has five sections.
 
-<Pipeline
-  title="Interview prep doc — sections"
-  stages={[
-    {
-      name: "Intro",
-      duration: "<2 min",
-      detail: "Who you are, what you do, brief history, what you love about the work, what you do outside it. Memorize it until it sounds like you, not a script.",
-    },
-    {
-      name: "Story bank",
-      duration: "1–2 pages",
-      detail: "Experiences mapped to common themes — not only jobs. Bootcamp projects, side builds, team conflicts, failures. Bold the strongest stories.",
-    },
-    {
-      name: "Narrative",
-      duration: "1 page each",
-      detail: "Write out your best stories. Read aloud. Get feedback on how your actions land — framing changes everything.",
-    },
-    {
-      name: "FAQ",
-      duration: "½ page",
-      detail: "Pre-written answers to predictable questions. Edit until they sound honest, not rehearsed.",
-    },
-    {
-      name: "Your questions",
-      duration: "5–20+",
-      detail: "What you'll ask them. This is where I've changed my mind about candidates more than once.",
-    },
-  ]}
-/>
+The **intro** is under two minutes: who you are, what you do, brief history, what you love about the work, what you do outside it. Memorize it until it sounds like you rather than a script. The **story bank** runs one to two pages of experiences mapped to common themes, and not only jobs; bootcamp projects, side builds, team conflicts, and failures all count. Bold the strongest ones. The **narratives** are a page each for your best stories, written out and read aloud, with feedback on how your actions land, because framing changes everything. The **FAQ** is half a page of pre-written answers to predictable questions, edited until they sound honest rather than rehearsed. And **your questions** for them, five to twenty-plus, is where I have changed my mind about candidates more than once.
 
 ### The story matrix
 
-Fill a grid with real experiences — jobs, bootcamp builds, open source, life. Don't worry which story fits best yet. Dump everything in first. Then **bold** the ones that show judgment, ownership, and growth.
+Fill a grid with real experiences: jobs, bootcamp builds, open source, life. Don't worry which story fits best yet. Dump everything in first. Then **bold** the ones that show judgment, ownership, and growth.
 
 <ExperienceMatrix
   title="Map stories before you need them"
@@ -185,68 +102,57 @@ Fill a grid with real experiences — jobs, bootcamp builds, open source, life. 
 
 ### Control the narrative
 
-Same facts, different frame — completely different impression.
+Same facts, different frame, completely different impression.
 
-Compare: *"Criminal sentenced to death for breaking the rules"* vs *"Religious leader tortured and killed by a dictator."* Same person. The headline you choose for your own stories matters.
+Compare: *"Criminal sentenced to death for breaking the rules"* against *"Religious leader tortured and killed by a dictator."* Same person. The headline you choose for your own stories matters.
 
-You're not inventing experience. You're presenting the **true version that shows your judgment**, not the version that makes you sound passive or careless. Write the story. Read it out loud. Ask a friend how *you* sound in it — not just what happened.
+You're not inventing experience. You're presenting the **true version that shows your judgment**, rather than the version that makes you sound passive or careless. Write the story. Read it out loud. Ask a friend how *you* sound in it, not just what happened.
 
 ### Questions you'll get anyway
 
-Have written answers ready. Edit them until they're concise and sound like speech:
+Have written answers ready, edited until they're concise and sound like speech. Write these before your next interview:
 
-<Checklist
-  title="Write these before the next interview"
-  items={[
-    { question: "Why do you want to work here?" },
-    { question: "Why should we hire you?" },
-    { question: "Why are you leaving / why did you leave?" },
-    { question: "Where do you see yourself in five years?" },
-    { question: "What do you do outside of work?" },
-    { question: "Strengths and weaknesses — with examples, not adjectives" },
-  ]}
-/>
+- Why do you want to work here?
+- Why should we hire you?
+- Why are you leaving, or why did you leave?
+- Where do you see yourself in five years?
+- What do you do outside of work?
+- Strengths and weaknesses, with examples rather than adjectives
 
 ### Questions you ask them
 
-When they say *"Any questions for us?"* — do not wing it.
+When they say *"Any questions for us?"*, do not wing it.
 
 I've reversed a positive impression because of what a candidate asked. I've also flipped a lukewarm one because they asked something sharp about on-call, tech debt, or how decisions get made.
 
-Prepare at least **five**. Keep a longer list — I maintain twenty-plus — and pick the ones that fit each company. Some will be answered during the interview. The rest are your closing move.
+Prepare at least **five**. Keep a longer list, I maintain twenty-plus, and pick the ones that fit each company. Some will be answered during the interview. The rest are your closing move.
 
 ## What success looks like
 
-Bootcamp outcomes vary. Industry surveys have consistently shown most graduates land technical roles within months — but aggregates don't pay your rent. Your outcome is individual.
+Bootcamp outcomes vary, and aggregates don't pay your rent. Your outcome is individual, and the lever you control is whether you show up as **another graduate** or as **someone who already builds**.
 
-The lever you control isn't the market. It's whether you show up as **another graduate** or as **someone who already builds**.
+Four things are non-negotiable. Ship before you apply again, because one live project changes how your CV reads and zero projects means competing on hope. Prepare, because it respects their time and yours. Tell stories rather than syllabi: interviewers remember "we had a production incident" and forget "I completed module four." And keep interviewing even after you land, because the skill rusts and fear of the process traps people in the wrong rooms.
 
-<LessonStack
-  title="Non-negotiables"
-  lessons={[
-    {
-      title: "Ship before you apply more",
-      body: "One live project changes how your CV reads. Zero projects means you're competing on hope.",
-    },
-    {
-      title: "Prep is respect",
-      body: "For their time and yours. Unprepared isn't authentic — it's unprepared.",
-    },
-    {
-      title: "Stories beat syllabi",
-      body: "Interviewers remember narratives. \"We had a production incident\" beats \"I completed module four.\"",
-    },
-    {
-      title: "Keep interviewing",
-      body: "Even after you land. Skill rusts. Fear of the process traps people in the wrong rooms.",
-    },
-  ]}
-/>
+You don't need to be in the top 1% of bootcamp grads. You need to be in the group that did the unglamorous work after graduation: built, applied, prepared, iterated. That part is repetition, not luck.
 
-You don't need to be in the top 1% of bootcamp grads. You need to be in the group that **did the unglamorous work after graduation** — built, applied, prepared, iterated.
+## Questions
 
-That's the 83% pipeline. Not luck. Repetition.
+### What should you do right after finishing a coding bootcamp?
 
-<Callout type="note" title="Originally published">
-  This piece first appeared as [Straight out of the bootcamp](https://medium.com/@panthro/straight-out-of-the-bootcamp-5ff121f6c3ad) (September 2021) and on [rafaelroman.com](https://rafaelroman.com/2021/08/09/out-of-bootcamp/). Rewritten and expanded for this site.
+Stop taking courses and start shipping. Build one or two projects that are live, deployed, and linkable, with a README that explains your trade-offs. Recruiters scan for keywords, but hiring managers scan for evidence, and a bootcamp certificate alone rarely clears that second bar.
+
+### What kind of projects impress a hiring manager?
+
+Four that work well: a deployed portfolio or CV site, a small app that solves one real problem you actually have, a bot or automation that runs without you babysitting it, and a small game or interactive thing. One workflow done properly with error handling beats a half-finished clone of a big product.
+
+### How do you prepare for a developer interview?
+
+Build a living prep doc with five sections: a sub-two-minute intro, a story bank mapped to common themes, written-out narratives for your best stories, pre-written answers to predictable questions, and at least five questions to ask them. Read the narratives out loud and get feedback on how you sound in them.
+
+### Is it dishonest to rehearse interview answers?
+
+No. Preparation is how you avoid wasting the one hour someone gave you to understand a decade of your life. Interviews are roughly an hour, they are never fair, and bias is real; showing up unprepared costs you more than it costs them.
+
+<Callout type="note" title="Originally published on Medium">
+  This piece first appeared as [Straight out of the bootcamp](https://medium.com/@panthro/straight-out-of-the-bootcamp-5ff121f6c3ad) (September 2021). Rewritten and expanded for this site.
 </Callout>

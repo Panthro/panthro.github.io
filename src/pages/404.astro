@@ -1,29 +1,65 @@
 ---
+import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import Container from "@components/Container.astro";
 import Link from "@components/Link.astro";
+
+const recentArticles = (
+  await getCollection("articles", ({ data }) =>
+    import.meta.env.DEV ? true : !data.draft
+  )
+)
+  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf())
+  .slice(0, 4)
+  .map((article) => ({
+    ...article,
+    dateStr: article.data.date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+  }));
 ---
 
 <PageLayout
   title="Page not found · Rafael Roman"
-  description="The page you're looking for doesn't exist. Browse work, writing, and talks by Rafael Roman."
+  description="The page you're looking for doesn't exist. Browse recent writing, work, and talks by Rafael Roman."
 >
   <Container>
-    <div class="animate-hero space-y-8 py-16">
+    <div class="animate-hero space-y-8 py-8">
       <div class="signal-mark"></div>
       <h1 class="text-3xl sm:text-4xl font-display font-extrabold tracking-tight text-heading">
         Page not found
       </h1>
-      <p class="text-prose max-w-xl">
-        That URL doesn't exist. Try one of these instead:
+      <p class="text-base leading-relaxed text-prose max-w-xl">
+        That URL doesn&apos;t exist. Here is what people usually came for, or start from the{" "}
+        <Link href="/about/">about page</Link>.
       </p>
-      <ul class="font-mono text-sm space-y-2">
-        <li><Link href="/">Home</Link></li>
-        <li><Link href="/work">Work</Link></li>
-        <li><Link href="/journey">Journey</Link></li>
-        <li><Link href="/articles">Writing</Link></li>
-        <li><Link href="/speaking">Talks</Link></li>
-      </ul>
     </div>
+
+    {recentArticles.length > 0 && (
+      <section class="mt-10 space-y-6">
+        <div class="flex flex-wrap gap-y-2 items-center justify-between">
+          <h2 class="section-title">Recent writing</h2>
+          <Link href="/articles/">See all</Link>
+        </div>
+        <ul class="border-t border-subtle">
+          {recentArticles.map(article => (
+            <li class="border-b border-subtle">
+              <a
+                href={`/articles/${article.id}/`}
+                class="focus-ring group block py-4"
+              >
+                <div class="text-xs font-mono text-meta">{article.dateStr}</div>
+                <div class="mt-0.5 font-display font-bold text-lg leading-snug text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
+                  {article.data.title}
+                </div>
+                <p class="text-sm text-prose mt-1">{article.data.description}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
   </Container>
 </PageLayout>

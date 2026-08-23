@@ -8,7 +8,13 @@ description: "Skills, experiences, and trade-offs on the path to staff-level eng
 relatedArticles:
   - straight-out-of-the-bootcamp
 relatedTalks:
+  - wearedevelopers-world-congress-2024
+  - javacro-2024
   - n26-career-journeys-2023
+relatedWork:
+  - personio
 ---
 
-Session at Barcelona's developer conference on the path to staff-level engineering — building depth in programming and architecture, developing leadership without abandoning craft, and the continuous learning that makes the role sustainable.
+Session at Barcelona's developer conference on the path to staff-level engineering: building depth in programming and architecture, developing leadership without abandoning craft, and the continuous learning that makes the role sustainable.
+
+I gave the same talk twice more in 2024 — at the [WeAreDevelopers World Congress](/speaking/wearedevelopers-world-congress-2024/) in Berlin and at [JavaCro](/speaking/javacro-2024/) in Croatia.

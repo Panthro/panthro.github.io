@@ -1,6 +1,6 @@
 ---
 title: "Fraud Prevention"
-description: "Real-time fraud and financial crime prevention at neobank scale — architecture, streaming, and lessons from rebuilding N26's risk engine."
+description: "Rebuilding N26's fraud engine: a static rule engine spread across dozens of microservices replaced by a stateful Apache Flink pipeline in six months, payment to decision in ~52ms."
 relatedArticles:
   - rebuilding-fraud-prevention-at-n26
   - engineering-at-n26-tech-stack
@@ -11,8 +11,14 @@ relatedWork:
   - n26
 ---
 
-Financial crime prevention at a neobank is not a rules engine problem — it is a latency, data, and organizational problem. The static microservice sprawl we inherited at N26 could not keep pace with attack patterns that changed weekly.
+In six months at N26 we replaced a static rule engine spread across dozens of microservices with a single stateful Apache Flink pipeline. Shipping a new fraud rule went from four weeks, or three to six months for anything that needed state, to about two weeks. A payment reaches a risk decision in roughly 52 milliseconds.
 
-Rebuilding the system meant committing to stream processing: event-time semantics, managed state, and operational discipline for jobs that cannot go down during a payment. The fraud article on this site walks through that rebuild in detail; the KotlinConf and Kafka Summit talks cover the streaming and event-driven angles from the same period.
+Financial crime prevention at a neobank is not a rules engine problem — it is a latency, data, and organizational problem. The microservice sprawl we inherited could not keep pace with attack patterns that changed weekly, and the bottleneck was never the rule logic. It was the deployment pipeline underneath it.
 
-If you are evaluating how to modernize risk at scale, start with the article, then the talks — they are different lenses on the same body of work.
+Rebuilding meant committing to stream processing: event-time semantics, managed state, and the operational discipline required for jobs that cannot go down mid-payment. It also meant getting the monitoring in before the business logic, which we did in the wrong order.
+
+## Where to start
+
+[Rebuilding Fraud Prevention from Scratch in Six Months](/articles/rebuilding-fraud-prevention-at-n26/) walks through the rebuild: the latency budget, the score thresholds, the rollout, and what it cost. [Engineering at N26](/articles/engineering-at-n26-tech-stack/) is the wide-angle companion piece, covering the platform the rebuild ran on.
+
+Two talks cover the same body of work from different angles: [KotlinConf 2024](/speaking/kotlinconf-2024/) on the Flink migration itself, and [Kafka Summit London 2023](/speaking/kafka-summit-london-2023/) on the event-driven architecture beneath it. For the mechanics rather than the outcome, see [Stream Processing](/topics/stream-processing/).

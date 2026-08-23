@@ -1,66 +1,63 @@
 ---
 import Container from "@components/Container.astro";
+import ThemeToggle from "@components/ThemeToggle.astro";
 import { SITE } from "@consts";
 
 const pathname = Astro.url.pathname;
+
+// `/topics` is hidden on the narrowest viewports to keep the header one row
+// tall (the journey layout depends on a fixed header height). The anchor stays
+// in the DOM either way, so it still carries internal link equity.
+// Trailing slashes: Astro builds directory-format URLs, so a bare "/work"
+// would 301 on every page view. `match` stays slash-free so startsWith() also
+// catches detail routes (/work/n26/).
+const NAV = [
+  { href: "/about/", label: "about", match: "/about" },
+  { href: "/work/", label: "work", match: "/work" },
+  { href: "/journey/", label: "journey", match: "/journey" },
+  { href: "/articles/", label: "writing", match: "/articles" },
+  { href: "/speaking/", label: "talks", match: "/speaking" },
+  { href: "/topics/", label: "topics", match: "/topics", compact: false },
+];
 ---
 
 <header class="site-header">
   <Container>
-    <div class="flex flex-wrap gap-y-2 justify-between items-center">
-      <a href="/" class="touch-target focus-ring font-bold text-zinc-900 dark:text-white tracking-tight hover:text-lime-600 dark:hover:text-lime-400 active:text-lime-600 dark:active:text-lime-400 transition-colors duration-300">
+    <div class="flex items-center justify-between gap-x-3">
+      <a
+        href="/"
+        class="touch-target focus-ring shrink-0 font-bold text-zinc-900 dark:text-white tracking-tight hover:text-lime-600 dark:hover:text-lime-400 active:text-lime-600 dark:active:text-lime-400 transition-colors duration-300"
+      >
         {SITE.NAME}
       </a>
-      <nav class="flex gap-1 sm:gap-4 text-sm font-mono">
-        <a
-          href="/work"
-          class:list={[
-            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
-            pathname.startsWith("/work")
-              ? "text-lime-600 dark:text-lime-400"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-          ]}
-          aria-current={pathname.startsWith("/work") ? "page" : undefined}
-        >
-          work
-        </a>
-        <a
-          href="/journey"
-          class:list={[
-            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
-            pathname.startsWith("/journey")
-              ? "text-lime-600 dark:text-lime-400"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-          ]}
-          aria-current={pathname.startsWith("/journey") ? "page" : undefined}
-        >
-          journey
-        </a>
-        <a
-          href="/articles"
-          class:list={[
-            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
-            pathname.startsWith("/articles")
-              ? "text-lime-600 dark:text-lime-400"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-          ]}
-          aria-current={pathname.startsWith("/articles") ? "page" : undefined}
-        >
-          writing
-        </a>
-        <a
-          href="/speaking"
-          class:list={[
-            "touch-target focus-ring px-2 sm:px-0 transition-colors duration-300",
-            pathname.startsWith("/speaking")
-              ? "text-lime-600 dark:text-lime-400"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-          ]}
-          aria-current={pathname.startsWith("/speaking") ? "page" : undefined}
-        >
-          talks
-        </a>
+
+      <nav
+        aria-label="Primary"
+        class="flex min-w-0 flex-1 items-center justify-start sm:justify-end gap-x-2.5 sm:gap-x-4 overflow-x-auto scrollbar-none nav-scroll-fade text-xs sm:text-sm font-mono"
+      >
+        {
+          NAV.map((item) => {
+            const active = pathname.startsWith(item.match);
+            return (
+              <a
+                href={item.href}
+                class:list={[
+                  "touch-target focus-ring shrink-0 transition-colors duration-300",
+                  item.compact === false && "hidden min-[420px]:inline-flex",
+                  active
+                    ? "text-lime-600 dark:text-lime-400"
+                    : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white",
+                ]}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            );
+          })
+        }
       </nav>
+
+      <ThemeToggle />
     </div>
   </Container>
 </header>

@@ -63,6 +63,7 @@ src/
     robots.txt.ts
   consts.ts             # SITE metadata, HOME/WORK/SPEAKING/ARTICLES/TOPICS/JOURNEY SEO titles
   styles/global.css     # Semantic tokens, motion, article-reveal system
+  styles/journey.css    # All .journey-* rules (imported from Head.astro — see note there)
 public/og-default.png   # Default social preview image (1200×630)
 ```
 
@@ -196,7 +197,6 @@ Reuse before inventing new ones. All live in `src/components/articles/`:
 | `SignalList` | Bulleted list with lime marks |
 | `FlowDiagram` | Step pipeline |
 | `ScoreThreshold` | Threshold / score bars |
-| `Pipeline` | Linear process stages |
 | `Checklist` | Action lists |
 | `LessonStack` | Stacked takeaways |
 
@@ -237,7 +237,7 @@ Page titles in `consts.ts` are **full SEO strings** (e.g. homepage title already
 |------|---------|
 | Homepage | Full string in `HOME.TITLE` (no suffix added) |
 | Section hubs | Full string in `WORK` / `SPEAKING` / `ARTICLES` / `TOPICS` |
-| Article | `{title} \| Rafael Roman` |
+| Article | `{title} · Rafael Roman` |
 | Talk | `{title or event} · {event} · Rafael Roman` |
 | Work | `{role} at {company} · Rafael Roman` |
 | Topic | `{title} · Topics · Rafael Roman` |

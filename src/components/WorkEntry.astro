@@ -18,15 +18,23 @@ const href = `/work/${slug}/`;
   <div class="font-display font-bold text-lg">
     <a
       href={href}
-      class="text-heading hover:text-lime-600 dark:hover:text-lime-400 focus-ring transition-colors duration-300"
+      class="group text-heading hover:text-lime-600 dark:hover:text-lime-400 focus-ring transition-colors duration-300"
     >
       {company}
+      {truncate && (
+        <span
+          class="font-mono text-sm text-meta group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300"
+          aria-hidden="true"
+        >
+          &rarr;
+        </span>
+      )}
     </a>
   </div>
   <div class="text-sm text-accent">
     {role}
   </div>
-  <article class:list={[truncate && "line-clamp-3"]}>
+  <article class:list={["not-prose text-prose", truncate && "line-clamp-3"]}>
     <slot />
   </article>
 </li>

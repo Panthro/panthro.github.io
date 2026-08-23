@@ -1,0 +1,742 @@
+/*
+ * /journey — split timeline + animated map.
+ *
+ * The single source of truth for every `.journey-*` rule. Imported from
+ * Head.astro right after global.css.
+ *
+ * Why Head.astro and not the page: CSS imported from a page's frontmatter (or
+ * from a component only that page renders) is silently dropped from the
+ * production bundle in this Astro/Vite setup — the rules work in `astro dev`
+ * and are absent from `dist/`. Importing from a component in the shared layout
+ * graph is the only form that survives the build. All CSS lands in one bundle
+ * regardless, so the page-scoped import bought nothing anyway.
+ *
+ * Everything is theme-tokenised on `.journey-page` so variant rules (per kind,
+ * per state) can stay single-class and still win — no `.dark X` descendant
+ * selectors to out-specify, and no source-order games.
+ */
+
+.journey-page {
+  position: relative;
+  overflow-x: clip;
+  padding: 0;
+
+  --journey-header-offset: calc(max(4.5rem, env(safe-area-inset-top)) + 1.25rem);
+
+  --journey-border: rgb(228 228 231);
+  /* zinc-200, not zinc-100: the page itself is zinc-100 in light mode, so a
+     zinc-100 card fill is invisible and the weight tiers collapse. */
+  --journey-surface: rgb(228 228 231 / 0.5);
+  --journey-surface-strong: rgb(228 228 231 / 0.8);
+  --journey-accent: rgb(101 163 13);
+  --journey-accent-past: rgb(163 230 53 / 0.45);
+  --journey-pin-stroke: rgb(244 244 245);
+  --journey-pin-label: rgb(113 113 122);
+  --journey-land-fill: rgb(228 228 231 / 0.7);
+  --journey-land-stroke: rgb(161 161 170);
+  --journey-route-base: rgb(161 161 170);
+
+  /* Kind tokens — one source of truth shared by the map legend, the map pins
+     and the timeline chips, so the colour reads as a system, not decoration. */
+  --journey-kind-study: rgb(37 99 235);
+  --journey-kind-career: rgb(113 113 122);
+  --journey-kind-project: rgb(217 119 6);
+  --journey-kind-talk: rgb(101 163 13);
+  --journey-kind-label: rgb(82 82 91);
+  --journey-kind-label-strong: rgb(24 24 27);
+}
+
+.dark .journey-page {
+  --journey-border: rgb(39 39 42);
+  --journey-surface: rgb(24 24 27 / 0.6);
+  --journey-surface-strong: rgb(24 24 27 / 0.8);
+  --journey-accent: rgb(163 230 53);
+  --journey-accent-past: rgb(101 163 13 / 0.55);
+  --journey-pin-stroke: rgb(9 9 11);
+  --journey-pin-label: rgb(161 161 170);
+  --journey-land-fill: rgb(39 39 42 / 0.85);
+  --journey-land-stroke: rgb(82 82 91);
+  --journey-route-base: rgb(63 63 70);
+
+  --journey-kind-study: rgb(96 165 250);
+  --journey-kind-career: rgb(161 161 170);
+  --journey-kind-project: rgb(251 191 36);
+  --journey-kind-talk: rgb(163 230 53);
+  --journey-kind-label: rgb(113 113 122);
+  --journey-kind-label-strong: rgb(228 228 231);
+}
+
+/* The header sits above the map, so it stays translucent enough to read as one
+   plane with it. Body-level, outside `.journey-page`. */
+.journey-route-page header.site-header {
+  @apply bg-zinc-100/55 dark:bg-zinc-950/55 border-zinc-200/70 dark:border-zinc-800/40;
+}
+
+/* ---------------------------------------------------------------------------
+ * Layout
+ * ------------------------------------------------------------------------- */
+
+.journey-flow {
+  display: flex;
+  flex-direction: column;
+}
+
+.journey-flow-timeline {
+  order: 2;
+  padding:
+    var(--journey-header-offset)
+    clamp(1rem, 4vw, 2.5rem)
+    clamp(4rem, 10vh, 7rem);
+}
+
+.journey-flow-map {
+  order: 1;
+  position: relative;
+  width: 100%;
+  height: 45vh;
+  min-height: 16rem;
+  max-height: 28rem;
+  border-bottom: 1px solid var(--journey-border);
+}
+
+.journey-flow-map .journey-world-map-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+@media (min-width: 1024px) {
+  .journey-flow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .journey-flow-timeline {
+    order: 1;
+    padding:
+      var(--journey-header-offset)
+      clamp(1.5rem, 3vw, 2.5rem)
+      clamp(4rem, 10vh, 7rem)
+      clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .journey-flow-map {
+    order: 2;
+    position: sticky;
+    top: var(--journey-header-offset);
+    width: 100%;
+    height: calc(100dvh - var(--journey-header-offset));
+    min-height: 27.5rem;
+    max-height: none;
+    border-bottom: none;
+    border-left: 1px solid var(--journey-border);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Intro
+ * ------------------------------------------------------------------------- */
+
+.journey-intro {
+  margin-bottom: clamp(2rem, 5vh, 3rem);
+}
+
+.journey-intro-inner {
+  padding: clamp(1.25rem, 3vh, 2rem) 0;
+}
+
+.journey-intro-title {
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 14ch;
+}
+
+.journey-intro-lede {
+  margin-top: 1.5rem;
+  font-size: clamp(1.125rem, 2.2vw, 1.375rem);
+  line-height: 1.5;
+  max-width: 32rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Chapter navigation
+ * ------------------------------------------------------------------------- */
+
+.journey-chapter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.journey-chapter-nav--sticky {
+  position: sticky;
+  top: var(--journey-header-offset);
+  z-index: 20;
+  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+  padding: 0.75rem 0;
+  background: rgb(244 244 245 / 0.88);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--journey-border);
+}
+
+.dark .journey-chapter-nav--sticky {
+  background: rgb(9 9 11 / 0.92);
+}
+
+.journey-chapter-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--journey-kind-label);
+  border: 1px solid var(--journey-border);
+  transition:
+    color 300ms var(--ease-out-quart),
+    border-color 300ms var(--ease-out-quart),
+    background-color 300ms var(--ease-out-quart);
+}
+
+.journey-chapter-nav-link:hover,
+.journey-chapter-nav-link:focus-visible {
+  @apply text-lime-600 dark:text-lime-400 border-lime-600/40 dark:border-lime-400/40;
+}
+
+.journey-chapter-nav-link.is-active {
+  color: rgb(24 24 27);
+  background: rgb(163 230 53);
+  border-color: rgb(101 163 13);
+}
+
+.dark .journey-chapter-nav-link.is-active {
+  color: rgb(9 9 11);
+  background: rgb(163 230 53);
+  border-color: rgb(163 230 53);
+}
+
+/* ---------------------------------------------------------------------------
+ * Map
+ * ------------------------------------------------------------------------- */
+
+.journey-world-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  pointer-events: none;
+}
+
+.journey-world-map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black var(--journey-fade-top, 14%),
+    black calc(100% - var(--journey-fade-bottom, 14%)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black var(--journey-fade-top, 14%),
+    black calc(100% - var(--journey-fade-bottom, 14%)),
+    transparent 100%
+  );
+}
+
+.journey-world-map-wrap--fade-left .journey-world-map-svg {
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black var(--journey-fade-top, 14%),
+      black calc(100% - var(--journey-fade-bottom, 14%)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black var(--journey-fade-left, 40%)
+    );
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black var(--journey-fade-top, 14%),
+      black calc(100% - var(--journey-fade-bottom, 14%)),
+      transparent 100%
+    ),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black var(--journey-fade-left, 40%)
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.journey-world-land {
+  fill: var(--journey-land-fill);
+  stroke: var(--journey-land-stroke);
+  stroke-width: 0.5;
+}
+
+.journey-world-routes,
+.journey-world-pins {
+  pointer-events: none;
+}
+
+.journey-world-route-base {
+  fill: none;
+  stroke: var(--journey-route-base);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 4 6;
+  opacity: 0.85;
+}
+
+/* At regional zoom the travelled route is long and zig-zagged (a talk in London
+   between two Barcelona years). Full-strength lime made it the loudest thing on
+   the page; the stroke should mark progress, not narrate. */
+.journey-world-route-progress {
+  fill: none;
+  stroke: var(--journey-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.journey-world-pin {
+  cursor: pointer;
+  outline: none;
+  pointer-events: auto;
+}
+
+.journey-world-pin--study,
+.journey-map-legend-dot--study {
+  --pin-color: var(--journey-kind-study);
+}
+
+.journey-world-pin--career,
+.journey-map-legend-dot--career {
+  --pin-color: var(--journey-kind-career);
+}
+
+.journey-world-pin--project,
+.journey-map-legend-dot--project {
+  --pin-color: var(--journey-kind-project);
+}
+
+.journey-world-pin--talk,
+.journey-map-legend-dot--talk {
+  --pin-color: var(--journey-kind-talk);
+}
+
+.journey-world-pin-dot {
+  fill: var(--pin-color);
+  stroke: var(--journey-pin-stroke);
+  stroke-width: 2.5;
+  transition:
+    fill 300ms var(--ease-out-quart),
+    stroke 300ms var(--ease-out-quart);
+}
+
+/* Locates the active pin at regional zoom without adding a second colour. */
+.journey-world-pin-halo {
+  fill: var(--pin-color);
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+/* Chapter context: the other landmarks in the region the reader is in, so the
+   active pin reads as a place on a map rather than a lone dot. */
+.journey-world-pins--context {
+  pointer-events: none;
+}
+
+.journey-world-pin-ghost {
+  fill: var(--pin-color);
+  stroke: var(--journey-pin-stroke);
+  stroke-width: 1.25;
+  transition: opacity 400ms var(--ease-out-quart);
+}
+
+.journey-world-pin-ghost.is-past {
+  opacity: 0.7;
+}
+
+.journey-world-pin-ghost.is-future {
+  opacity: 0.38;
+}
+
+.journey-world-pin-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--journey-pin-label);
+  pointer-events: none;
+  opacity: 1;
+}
+
+.journey-world-pin.is-active .journey-world-pin-label {
+  fill: var(--journey-accent);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
+ * Map caption + legend
+ * ------------------------------------------------------------------------- */
+
+.journey-map-caption {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.5rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  z-index: 2;
+  margin: 0;
+  pointer-events: none;
+}
+
+.journey-map-legend {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.5rem);
+  bottom: clamp(1rem, 3vh, 2rem);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.journey-map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.journey-map-legend-label {
+  @apply font-mono text-[10px] uppercase tracking-[0.08em] text-meta;
+}
+
+/* Square markers everywhere: the legend is the key to the timeline chips, and
+   sharp corners are the system default (DESIGN.md). */
+.journey-map-legend-dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--pin-color);
+}
+
+@media (max-width: 1023px) {
+  .journey-map-caption {
+    display: none;
+  }
+
+  .journey-map-legend {
+    position: static;
+    justify-content: center;
+    padding: 0.75rem 1rem 1rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Timeline — chapters
+ * ------------------------------------------------------------------------- */
+
+.journey-steps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.875rem, 2vh, 1.25rem);
+}
+
+/* Chapter heroes sit above career cards in the hierarchy, so they carry at
+   least the same fill. */
+.journey-chapter-item {
+  list-style: none;
+  scroll-margin-top: calc(var(--journey-header-offset) + 1.5rem);
+  margin: clamp(2.5rem, 6vh, 4rem) 0 clamp(0.75rem, 2vh, 1.25rem);
+  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--journey-border);
+  background: var(--journey-surface);
+}
+
+.journey-chapter-item:first-child {
+  margin-top: 0;
+}
+
+.journey-chapter {
+  padding-left: 0;
+}
+
+.journey-chapter-place {
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  margin-top: 0.5rem;
+}
+
+.journey-chapter-short {
+  margin-top: 1rem;
+  max-width: 36rem;
+  font-size: clamp(1rem, 1.8vw, 1.125rem);
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------------------
+ * Timeline — landmarks
+ *
+ * Four kinds, three tiers of visual weight, expressed structurally:
+ *   career   — filled card, largest title            (the spine of the story)
+ *   study    — outlined card                         (formative, but shorter)
+ *   project  — dashed outline card                   (side ventures)
+ *   talk     — no card at all, a rule-hung log entry (the lightest evidence)
+ *
+ * The kind chip in the meta row carries the legend colour; the left border
+ * stays reserved for scroll progress (rest / past / active).
+ * ------------------------------------------------------------------------- */
+
+.journey-step {
+  --journey-kind: var(--journey-kind-career);
+  --step-surface: transparent;
+  --step-surface-active: transparent;
+
+  list-style: none;
+  position: relative;
+  scroll-margin-top: calc(var(--journey-header-offset) + 1.5rem);
+  padding: clamp(1.25rem, 3vh, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--journey-border);
+  border-left-width: 3px;
+  border-left-color: var(--journey-border);
+  background: var(--step-surface);
+  transition:
+    border-color 300ms var(--ease-out-quart),
+    background-color 300ms var(--ease-out-quart);
+}
+
+.journey-step.is-active {
+  border-left-color: var(--journey-accent);
+  background: var(--step-surface-active);
+}
+
+.journey-step.is-past {
+  border-left-color: var(--journey-accent-past);
+}
+
+.journey-step-body {
+  min-width: 0;
+}
+
+.journey-step-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.journey-step-kind {
+  @apply font-mono text-xs uppercase tracking-[0.16em];
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--journey-kind-label);
+}
+
+.journey-step-kind::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--journey-kind);
+}
+
+.journey-step-date {
+  @apply font-mono text-xs text-meta tabular-nums;
+}
+
+.journey-step-title {
+  font-family: "Bricolage Grotesque Variable", Inter, system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+}
+
+.journey-step-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: none;
+  transition: color 300ms var(--ease-out-quart);
+}
+
+.journey-step-link-mark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  color: var(--journey-accent);
+  transition: transform 300ms var(--ease-out-quart);
+}
+
+.journey-step-link:hover,
+.journey-step-link:focus-visible {
+  @apply text-lime-600 dark:text-lime-400;
+}
+
+.journey-step-link:hover .journey-step-link-mark,
+.journey-step-link:focus-visible .journey-step-link-mark {
+  transform: translateX(3px);
+}
+
+.journey-step-summary {
+  font-size: clamp(1rem, 1.6vw, 1.125rem);
+  line-height: 1.6;
+  max-width: 42rem;
+}
+
+/* career — the heaviest landmark */
+.journey-step--career {
+  --journey-kind: var(--journey-kind-career);
+  --step-surface: var(--journey-surface);
+  --step-surface-active: var(--journey-surface-strong);
+  padding: clamp(1.5rem, 3.5vh, 2.25rem) clamp(1.125rem, 2.5vw, 1.75rem);
+}
+
+.journey-step--career .journey-step-kind {
+  color: var(--journey-kind-label-strong);
+}
+
+.journey-step--career .journey-step-title {
+  font-size: clamp(1.5rem, 3.5vw, 2.375rem);
+}
+
+.journey-step--career.is-active .journey-step-title {
+  @apply text-lime-700 dark:text-lime-300;
+}
+
+/* study — outlined, no fill */
+.journey-step--study {
+  --journey-kind: var(--journey-kind-study);
+}
+
+/* project — dashed outline echoes the dashed route on the map */
+.journey-step--project {
+  --journey-kind: var(--journey-kind-project);
+  border-top-style: dashed;
+  border-right-style: dashed;
+  border-bottom-style: dashed;
+}
+
+/* talk — not a card: a compact entry hung off a single rule */
+.journey-step--talk {
+  --journey-kind: var(--journey-kind-talk);
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 2px;
+  padding: 0.625rem 0 0.625rem clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.journey-step--talk .journey-step-meta {
+  margin-bottom: 0.375rem;
+}
+
+.journey-step--talk .journey-step-title {
+  font-size: clamp(1.0625rem, 1.9vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.375rem;
+}
+
+.journey-step--talk .journey-step-summary {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  max-width: 36rem;
+}
+
+/* Consecutive talks tighten up so a run of them reads as one block of evidence
+   rather than eight separate landmarks. */
+.journey-step--talk + .journey-step--talk {
+  margin-top: calc(-1 * clamp(0.375rem, 1vh, 0.625rem));
+}
+
+/* The title link is the only touch target inside a talk row. */
+@media (hover: none) {
+  .journey-step--talk .journey-step-link {
+    padding-block: 0.8125rem;
+    margin-block: -0.8125rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * End block
+ * ------------------------------------------------------------------------- */
+
+.journey-end {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 80rem);
+  margin-inline: auto;
+  padding: clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2.5rem) clamp(6rem, 14vh, 9rem);
+  border-top: 1px solid var(--journey-border);
+}
+
+.journey-end-copy {
+  margin-top: 0.75rem;
+  font-size: clamp(1.0625rem, 2vw, 1.25rem);
+}
+
+/* ---------------------------------------------------------------------------
+ * Reveal
+ *
+ * Arrival state (deep links, restored scroll) is handled site-wide by
+ * `revealAlreadyInView()` in Head.astro, which shows anything at or above the
+ * fold on first paint with transitions suppressed for one frame.
+ * ------------------------------------------------------------------------- */
+
+html.reveal-ready .journey-chapter,
+html.reveal-ready .journey-step,
+html.reveal-ready .journey-end {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 650ms var(--ease-out-expo),
+    transform 650ms var(--ease-out-expo);
+}
+
+html.reveal-ready .journey-chapter.show,
+html.reveal-ready .journey-step.show,
+html.reveal-ready .journey-end.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-ready .journey-chapter,
+  html.reveal-ready .journey-step,
+  html.reveal-ready .journey-end,
+  html.reveal-ready .journey-chapter.show,
+  html.reveal-ready .journey-step.show,
+  html.reveal-ready .journey-end.show {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

@@ -12,8 +12,7 @@ import {
   lerpChapterView,
   pinLabel,
   resolveCanvasView,
-  resolveFlowOverviewView,
-  resolveFlowView,
+  resolveChapterFrame,
   resolvePinLabelLayout,
   routeProgressPointCount,
   type ChapterId,
@@ -21,6 +20,7 @@ import {
   type JourneyMapStep,
 } from "@lib/journey-map";
 import {
+  JOURNEY_ACTIVE_INDEX_ATTR,
   JOURNEY_ACTIVE_STEP_EVENT,
   type JourneyActiveStepEvent,
 } from "@lib/journey-scroll-spy";
@@ -35,10 +35,11 @@ const landFeatures = feature(
   (countries110 as unknown as Topology).objects.countries
 ) as FeatureCollection;
 
-const FLOW_ANIMATION_MS = 720;
+/** Long enough to read as travel between continents, short enough not to stall. */
+const CHAPTER_TRANSITION_MS = 900;
 
-function easeOutExpo(t: number): number {
-  return t >= 1 ? 1 : 1 - 2 ** (-10 * t);
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
 function useContainerSize(ref: React.RefObject<HTMLElement | null>) {
@@ -49,9 +50,11 @@ function useContainerSize(ref: React.RefObject<HTMLElement | null>) {
     if (!node) return;
 
     const update = () => {
-      setSize({
-        width: Math.max(280, node.clientWidth),
-        height: Math.max(320, node.clientHeight),
+      setSize((current) => {
+        const width = Math.max(280, node.clientWidth);
+        const height = Math.max(320, node.clientHeight);
+        if (current.width === width && current.height === height) return current;
+        return { width, height };
       });
     };
 
@@ -78,71 +81,68 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-function resolveInitialView(
-  steps: JourneyMapStep[],
-  variant: "canvas" | "flow"
-): ChapterView {
-  if (variant === "flow") return CANVAS_VIEW;
-  const step = steps[0];
-  if (!step) return resolveCanvasView();
-  return resolveCanvasView(step);
-}
-
-function resolveFlowTargetView(
-  steps: JourneyMapStep[],
-  routePoints: [number, number][],
-  activeIndex: number,
-  width: number,
-  height: number
-): ChapterView {
-  if (activeIndex === 0) {
-    return resolveFlowOverviewView(routePoints, width, height);
-  }
-
-  const step = steps[activeIndex];
-  if (!step) return resolveFlowOverviewView(routePoints, width, height);
-  return resolveFlowView(step);
-}
-
 export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useContainerSize(containerRef);
   const reducedMotion = usePrefersReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [displayView, setDisplayView] = useState<ChapterView>(() =>
-    resolveInitialView(steps, variant)
-  );
+  const [displayView, setDisplayView] = useState<ChapterView>(CANVAS_VIEW);
   const displayViewRef = useRef(displayView);
-  const lastSpyIndexRef = useRef(-1);
+  const lastChapterRef = useRef<ChapterId | null>(null);
   const syncStepStateRef = useRef<(index: number) => void>(() => {});
 
   const activeStep = steps[activeIndex];
   const isFlow = variant === "flow";
-
-  const canvasView = useMemo(
-    () => resolveCanvasView(activeStep),
-    [activeStep]
-  );
+  const activeChapter: ChapterId =
+    activeStep?.chapter ?? steps[0]?.chapter ?? "brazil";
 
   const routePoints = useMemo(
     () => steps.map((step) => [step.lng, step.lat] as [number, number]),
     [steps]
   );
 
+  const chapterPoints = useMemo(
+    () =>
+      steps
+        .filter((step) => step.chapter === activeChapter)
+        .map((step) => [step.lng, step.lat] as [number, number]),
+    [steps, activeChapter]
+  );
+
+  const canvasTargetView = useMemo(
+    () => resolveCanvasView(activeStep),
+    [activeStep]
+  );
+
+  // Frame is a function of the *chapter*, not the step: the camera holds still
+  // while a chapter is read and travels only when the reader changes region.
+  const flowTargetView = useMemo(
+    () => resolveChapterFrame(activeChapter, chapterPoints, width, height),
+    [activeChapter, chapterPoints, width, height]
+  );
+
+  const targetView = isFlow ? flowTargetView : canvasTargetView;
+
   useEffect(() => {
     displayViewRef.current = displayView;
   }, [displayView]);
 
   useEffect(() => {
-    if (!activeStep) return;
+    const previousChapter = lastChapterRef.current;
+    lastChapterRef.current = activeChapter;
 
-    const target = isFlow
-      ? resolveFlowTargetView(steps, routePoints, activeIndex, width, height)
-      : resolveCanvasView(activeStep);
+    const snap = () => {
+      setDisplayView(targetView);
+      displayViewRef.current = targetView;
+    };
 
-    if (reducedMotion) {
-      setDisplayView(target);
-      displayViewRef.current = target;
+    // First paint (correct framing on arrival, including deep links) and resizes
+    // both snap; only a genuine chapter change animates.
+    const chapterChanged =
+      previousChapter !== null && previousChapter !== activeChapter;
+
+    if (reducedMotion || !chapterChanged) {
+      snap();
       return;
     }
 
@@ -151,10 +151,10 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
     let frame = 0;
 
     const tick = (now: number) => {
-      const progress = easeOutExpo(
-        Math.min(1, (now - start) / FLOW_ANIMATION_MS)
+      const progress = easeInOutCubic(
+        Math.min(1, (now - start) / CHAPTER_TRANSITION_MS)
       );
-      const next = lerpChapterView(from, target, progress);
+      const next = lerpChapterView(from, targetView, progress);
       setDisplayView(next);
       displayViewRef.current = next;
 
@@ -165,7 +165,7 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [activeIndex, activeStep, height, isFlow, reducedMotion, routePoints, steps, width]);
+  }, [targetView, activeChapter, reducedMotion]);
 
   const projection = useMemo(() => {
     if (isFlow) {
@@ -220,6 +220,16 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
       };
     });
   }, [projection, steps]);
+
+  const chapterPins = useMemo(
+    () =>
+      projectedPins.filter(
+        (pin) => pin.visible && pin.step.chapter === activeChapter
+      ),
+    [projectedPins, activeChapter]
+  );
+
+  const activePin = chapterPins.find((pin) => pin.step.index === activeIndex);
 
   const scrollToStep = useCallback(
     (index: number) => {
@@ -347,9 +357,11 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
     if (!root) return;
 
     const pageRoot = root as HTMLElement;
+    let lastSpyIndex = -1;
 
     const applyIndex = (index: number) => {
-      lastSpyIndexRef.current = index;
+      if (index === lastSpyIndex) return;
+      lastSpyIndex = index;
       setActiveIndex(index);
       syncStepStateRef.current(index);
     };
@@ -362,32 +374,35 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
 
     root.addEventListener(JOURNEY_ACTIVE_STEP_EVENT, onActiveStep);
 
+    // The spy may have dispatched before this island hydrated; the attribute is
+    // the durable mirror of that state. A MutationObserver covers the (rare)
+    // case of the attribute changing without an event reaching us — and, unlike
+    // the rAF poll it replaces, it costs nothing while the page sits idle.
     const readDatasetIndex = () => {
       const index = Number(pageRoot.dataset.journeyActiveIndex);
       if (Number.isNaN(index)) return;
-      if (index !== lastSpyIndexRef.current) {
-        applyIndex(index);
-      }
+      applyIndex(index);
     };
 
     readDatasetIndex();
 
-    let frame = 0;
-    const poll = () => {
-      readDatasetIndex();
-      frame = requestAnimationFrame(poll);
-    };
-    frame = requestAnimationFrame(poll);
+    const attributeObserver = new MutationObserver(readDatasetIndex);
+    attributeObserver.observe(pageRoot, {
+      attributes: true,
+      attributeFilter: [JOURNEY_ACTIVE_INDEX_ATTR],
+    });
 
     return () => {
       root.removeEventListener(JOURNEY_ACTIVE_STEP_EVENT, onActiveStep);
-      cancelAnimationFrame(frame);
+      attributeObserver.disconnect();
     };
-  }, [isFlow]);
+  }, [isFlow, syncStepState]);
 
   const leftFadePx = canvasMapLeftFadePx(width);
-  const fadeTop = isFlow ? displayView.topFadePct : canvasView.topFadePct;
-  const fadeBottom = isFlow ? displayView.bottomFadePct : canvasView.bottomFadePct;
+  const fadeTop = isFlow ? displayView.topFadePct : canvasTargetView.topFadePct;
+  const fadeBottom = isFlow
+    ? displayView.bottomFadePct
+    : canvasTargetView.bottomFadePct;
 
   return (
     <div
@@ -405,6 +420,7 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
           : { ["--journey-fade-left" as string]: `${leftFadePx}px` }),
       }}
       data-journey-world-map
+      data-journey-map-chapter={activeChapter}
     >
       <svg
         className="journey-world-map-svg"
@@ -426,50 +442,69 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
           ) : null}
         </g>
 
+        {/* Chapter context: every landmark in the region the reader is in, so a
+            pin reads as a place on a map rather than a lone dot. */}
+        <g className="journey-world-pins journey-world-pins--context">
+          {chapterPins.map(({ step, x, y }) => {
+            if (step.index === activeIndex) return null;
+
+            return (
+              <circle
+                key={step.index}
+                className={[
+                  "journey-world-pin-ghost",
+                  `journey-world-pin--${step.kind}`,
+                  step.index < activeIndex ? "is-past" : "is-future",
+                ].join(" ")}
+                r={3}
+                cx={x}
+                cy={y}
+              />
+            );
+          })}
+        </g>
+
         <g className="journey-world-pins">
-        {projectedPins.map(({ step, x, y, visible }) => {
-          if (!visible || step.index !== activeIndex) return null;
+          {activePin ? (
+            (() => {
+              const { step, x, y } = activePin;
+              const label = pinLabel(step);
+              const labelLayout = resolvePinLabelLayout(
+                { x, y, index: step.index, step },
+                chapterPins,
+                true
+              );
 
-          const label = pinLabel(step);
-          const labelLayout = resolvePinLabelLayout(
-            { x, y, index: step.index, step },
-            projectedPins.filter((pin) => pin.visible),
-            true
-          );
-
-          return (
-            <g
-              key={step.index}
-              className={[
-                "journey-world-pin",
-                "is-active",
-                `journey-world-pin--${step.kind}`,
-              ].join(" ")}
-              transform={`translate(${x} ${y})`}
-              data-journey-map-marker={step.index}
-              role="button"
-              tabIndex={0}
-              aria-label={`${step.kind}: ${step.title}`}
-              aria-current="true"
-              onClick={() => scrollToStep(step.index)}
-              onKeyDown={(event) => {
-                if (event.key !== "Enter" && event.key !== " ") return;
-                event.preventDefault();
-                scrollToStep(step.index);
-              }}
-            >
-              <circle className="journey-world-pin-dot" r={7} cx={0} cy={0} />
-              <text
-                className="journey-world-pin-label"
-                x={labelLayout.dx}
-                y={labelLayout.dy}
-                textAnchor={labelLayout.anchor}
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
+              return (
+                <g
+                  key={step.index}
+                  className={[
+                    "journey-world-pin",
+                    "is-active",
+                    `journey-world-pin--${step.kind}`,
+                  ].join(" ")}
+                  transform={`translate(${x} ${y})`}
+                  data-journey-map-marker={step.index}
+                  /* The SVG is aria-hidden and the timeline carries the content,
+                     so the pin must not be focusable — a focusable node inside an
+                     aria-hidden subtree is reachable by keyboard but invisible to
+                     assistive tech. Click stays as a pointer-only shortcut. */
+                  onClick={() => scrollToStep(step.index)}
+                >
+                  <circle className="journey-world-pin-halo" r={13} cx={0} cy={0} />
+                  <circle className="journey-world-pin-dot" r={7} cx={0} cy={0} />
+                  <text
+                    className="journey-world-pin-label"
+                    x={labelLayout.dx}
+                    y={labelLayout.dy}
+                    textAnchor={labelLayout.anchor}
+                  >
+                    {label}
+                  </text>
+                </g>
+              );
+            })()
+          ) : null}
         </g>
       </svg>
     </div>

@@ -1,97 +1,115 @@
 ---
 import Container from "@components/Container.astro";
-import { SITE } from "@consts";
+import { SITE, SOCIALS } from "@consts";
 import BackToTop from "@components/BackToTop.astro";
 
 const year = new Date().getFullYear();
+
+const COLUMNS = [
+  {
+    heading: "Site",
+    links: [
+      { href: "/about/", label: "About" },
+      { href: "/work/", label: "Work" },
+      { href: "/journey/", label: "Journey" },
+    ],
+  },
+  {
+    heading: "Read",
+    links: [
+      { href: "/articles/", label: "Writing" },
+      { href: "/speaking/", label: "Talks" },
+      { href: "/topics/", label: "Topics" },
+    ],
+  },
+];
+
+const LINKEDIN = SOCIALS.find((social) => social.NAME === "linkedin")?.HREF;
+const OTHER_SOCIALS = SOCIALS.filter((social) => social.NAME !== "linkedin");
 ---
 
-<footer>
+<footer class="border-t border-subtle mt-16 sm:mt-24 pt-10">
   <Container>
     <div class="relative">
-      <div class="absolute right-0 -top-16 sm:-top-20">
+      <div class="absolute right-0 -top-24 sm:-top-28">
         <BackToTop />
       </div>
     </div>
-    <div class="flex justify-between items-center">
-      <div class="font-mono text-xs text-meta">
-        &copy; {year} {SITE.NAME}
+
+    <div class="flex flex-wrap gap-x-12 gap-y-8">
+      {
+        COLUMNS.map((column) => (
+          <nav aria-label={column.heading} class="min-w-[7rem]">
+            <h2 class="font-mono text-xs uppercase tracking-[0.16em] text-meta">
+              {column.heading}
+            </h2>
+            <ul class="mt-2">
+              {column.links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="touch-target focus-ring text-sm text-prose hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+
+      <div class="min-w-[10rem]">
+        <h2 class="font-mono text-xs uppercase tracking-[0.16em] text-meta">
+          Profiles
+        </h2>
+        <ul class="mt-2">
+          {
+            LINKEDIN && (
+              <li>
+                <a
+                  href={LINKEDIN}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="touch-target focus-ring text-sm text-heading hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+                >
+                  LinkedIn &mdash; best way to reach me
+                </a>
+              </li>
+            )
+          }
+          {
+            OTHER_SOCIALS.map((social) => (
+              <li>
+                <a
+                  href={social.HREF}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="touch-target focus-ring text-sm text-prose hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+                >
+                  {social.NAME === "github"
+                    ? "GitHub"
+                    : social.NAME === "stackoverflow"
+                      ? "Stack Overflow"
+                      : "Sessionize"}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              href="/rss.xml"
+              class="touch-target focus-ring text-sm text-prose hover:text-lime-600 dark:hover:text-lime-400 transition-colors duration-300"
+            >
+              RSS
+            </a>
+          </li>
+        </ul>
       </div>
-      <div class="flex flex-wrap gap-1 items-center">
-        <button
-          id="light-theme-button"
-          aria-label="Light theme"
-          class="group focus-ring size-11 flex items-center justify-center rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-        </button>
-        <button
-          id="dark-theme-button"
-          aria-label="Dark theme"
-          class="group focus-ring size-11 flex items-center justify-center rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
-            aria-hidden="true"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        </button>
-        <button
-          id="system-theme-button"
-          aria-label="System theme"
-          class="group focus-ring size-11 flex items-center justify-center rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="group-hover:stroke-lime-600 dark:group-hover:stroke-lime-400 transition-colors duration-300 ease-in-out"
-            aria-hidden="true"
-          >
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
-        </button>
-      </div>
+    </div>
+
+    <div class="mt-10 pt-5 border-t border-subtle font-mono text-xs text-meta">
+      &copy; {year} {SITE.NAME}
     </div>
   </Container>
 </footer>

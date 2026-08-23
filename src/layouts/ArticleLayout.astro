@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import Head from "@components/Head.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
@@ -36,8 +37,33 @@ const formattedDate = date.toLocaleDateString("en-US", {
   day: "numeric",
 });
 
-const pageTitle = `${title} | ${SITE.NAME}`;
+const pageTitle = `${title} · ${SITE.NAME}`;
 const articleUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// Resolve the backing entry from the route so BlogPosting can carry wordCount
+// and dateModified without every caller having to thread them through.
+const slug = Astro.url.pathname.replace(/\/+$/, "").split("/").pop() ?? "";
+const entry = (await getCollection("articles")).find((item) => item.id === slug);
+
+// `updated` is optional in the articles collection schema — read it defensively
+// so this works whether or not the field has landed yet.
+const updatedRaw = (entry?.data as { updated?: Date | string } | undefined)
+  ?.updated;
+const dateModified = updatedRaw ? new Date(updatedRaw) : date;
+
+// Approximate prose word count: strip MDX imports, JSX/HTML tags and code
+// fences so component markup doesn't inflate the number.
+function countWords(body: string): number {
+  return body
+    .replace(/^import .*$/gm, "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+const wordCount = entry?.body ? countWords(entry.body) : undefined;
 
 const jsonLd = [
   articleSchema({
@@ -45,7 +71,9 @@ const jsonLd = [
     description,
     url: articleUrl,
     datePublished: date,
+    dateModified,
     tags,
+    wordCount,
   }),
   breadcrumbSchema([
     { name: SITE.NAME, url: new URL("/", Astro.site).href },
@@ -78,7 +106,7 @@ const jsonLd = [
         <div class="space-y-12">
 
           <div>
-            <BackToPrev href="/articles">Back to writing</BackToPrev>
+            <BackToPrev href="/articles/">Back to writing</BackToPrev>
           </div>
 
           <div class="animate-hero space-y-8">
@@ -167,7 +195,7 @@ const jsonLd = [
                 {related.map(item => (
                   <li>
                     <a
-                      href={`/articles/${item.slug}`}
+                      href={`/articles/${item.slug}/`}
                       class="group focus-ring block pl-4 touch-target-block border-l border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 active:border-zinc-400 dark:active:border-zinc-600 transition-colors duration-300"
                     >
                       <div class="font-display font-bold text-heading group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors duration-300">
