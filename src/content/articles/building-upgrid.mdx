@@ -3,90 +3,43 @@ title: "Building Upgrid"
 description: "Co-founding Upgrid as CTO: a Swiss energy-community platform where billing law, metering data, and go-to-market share the same correctness bar as fintech."
 date: "2026-08-07"
 draft: false
-tags: ["energy-tech", "fintech-infrastructure", "engineering-leadership", "architecture"]
+tags: ["energy-tech", "fintech-infrastructure", "engineering-leadership"]
 related:
+  - engineering-at-upgrid-tech-stack
   - rebuilding-fraud-prevention-at-n26
   - code-freeze-purpose
 ---
 
-import { Callout } from "../../components/articles/Callout";
-import { PullQuote } from "../../components/articles/PullQuote";
-import { Compare } from "../../components/articles/Compare";
 import { MetricRow } from "../../components/articles/MetricRow";
-import { SignalList } from "../../components/articles/SignalList";
 import { FlowDiagram } from "../../components/articles/FlowDiagram";
-import { Pipeline } from "../../components/articles/Pipeline";
-import { LessonStack } from "../../components/articles/LessonStack";
 
-When Switzerland opened the door to Lokale Energiegemeinschaften in 2025, most of the conversation was about solar panels and lower bills. Fair enough. But the product we had to build wasn't a landing page with a signup form. It was a platform where grid operators exchange metering data on fixed schedules, allocation runs on fifteen-minute intervals, invoices carry Swiss QR-bill references, and a wrong VAT line is a customer complaint *and* an accounting problem.
+When Switzerland opened the door to Lokale Energiegemeinschaften in 2025, most of the conversation was about solar panels and lower bills. Fair enough. But a landing page with a signup form was never going to be the product. Grid operators exchange metering data on fixed schedules, allocation runs on fifteen-minute intervals, invoices carry Swiss QR-bill references, and a wrong VAT line is a customer complaint *and* an accounting problem.
 
-I co-founded Upgrid as CTO in January 2025. The job wasn't "build an app." It was build the billing, allocation, and operator workflows that make community energy legally and financially real — and ship fast enough to matter while Swiss reform was still fresh.
+I co-founded Upgrid as CTO in January 2025. The job wasn't "build an app." It was to build the billing, allocation, and operator workflows that make community energy legally and financially real, and to ship fast enough to matter while Swiss reform was still fresh. Real money on real invoices, at the same correctness bar I learned at N26.
 
-<PullQuote>Real money on real invoices. Same correctness bar I learned at N26, different domain.</PullQuote>
-
-<Callout type="note" title="Regulatory context">
-  Upgrid operates in Swiss energy law: ZEV, LEG, and vZEV community models each carry different metering, allocation, and billing rules. The platform has to support all of them without pretending they're the same workflow with different labels.
-</Callout>
+Swiss energy law recognises three community models, and the platform supports all of them without pretending they are the same workflow with different labels. A **ZEV** (*Zusammenschluss zum Eigenverbrauch*) is a self-consumption association behind a shared grid connection. A **vZEV** is its virtual form, where members are not physically behind the same connection. A **LEG** (*Lokale Energiegemeinschaft*) is the local energy community model that the 2025 reform opened up. Each carries its own metering, allocation, and billing rules.
 
 ## Who the platform serves
 
-Every product decision at Upgrid starts with who you're optimizing for. Consumers want zero friction. On the supply side we support three operator models — and they want opposite things from the same codebase:
+Every product decision at Upgrid starts with who you're optimizing for, and on the supply side we serve three operator models that want opposite things from the same codebase.
 
-<SignalList
-  items={[
-    {
-      title: "Consumers",
-      body: "Zero-friction signup. Find a community, understand the savings, sign a contract, done. They will not read a manual about Swiss grid topology.",
-    },
-    {
-      title: "Full operator accounts",
-      body: "Grid operators and energy retailers running communities end-to-end: community formation, meter wiring, allocation review, invoice generation, Bexio sync, exception handling. They live in the product daily.",
-    },
-    {
-      title: "Co-brand operators",
-      body: "Municipalities and solar installers who bring members but don't run billing themselves — Upgrid operates the communities on their behalf. Branded join flows and contract-intent triage, one platform underneath.",
-    },
-    {
-      title: "Affiliates",
-      body: "Partners who refer consumers and earn a cut. No operator console, no community management — just tracked signups and attribution. Lightweight by design.",
-    },
-  ]}
-/>
+Consumers want zero friction: find a community, understand the savings, sign a contract, done. They will not read a manual about Swiss grid topology. Full operator accounts are the other extreme. Grid operators and energy retailers run communities end to end, from community formation and meter wiring through allocation review, invoice generation, Bexio sync, and exception handling. They live in the product daily.
 
-As CTO I own the architecture, but I also act as PM and marketing when the bottleneck is clarity — not code. That means savings calculators, LEG explainer content, signup funnel instrumentation, and operator onboarding UX all land on the same roadmap as Postgres migrations.
+Between those sit two lighter models. Co-brand operators, mostly municipalities and solar installers, bring members but don't run billing themselves, so Upgrid operates the communities on their behalf behind branded join flows and contract-intent triage. Affiliates refer consumers and earn a cut, with no operator console and no community management, just tracked signups and attribution.
+
+As CTO I own the architecture, but I also act as PM and marketing when the bottleneck is clarity rather than code. Savings calculators, LEG explainer content, signup funnel instrumentation, and operator onboarding UX all land on the same roadmap as Postgres migrations.
 
 ## The architecture bet: monorepo at small-team scale
 
-At N26 I spent years inside a ~200-service estate. The most valuable work I did there was often *consolidation* — pulling scattered fraud rules into one stateful stream because distribution was causing latency, not defending against it.
+At N26 I spent years inside a ~200-service estate. The most valuable work I did there was often *consolidation*, pulling scattered fraud rules into one stateful stream because distribution was causing latency rather than defending against it.
 
-Upgrid is the opposite call. We're a small team shipping a regulated, money-handling platform. A 37-package monorepo with shared types, one Postgres schema, and one CI pipeline beats microservice coordination when real coupling is high and team size is low.
+Upgrid is the opposite call. We're a small team shipping a regulated, money-handling platform. Seven apps and ~70 workspace packages with shared types, one Postgres schema, and one CI pipeline beats microservice coordination when real coupling is high and team size is low. At N26, service boundaries matched org boundaries and there were enough teams to justify the integration tax. Here there aren't. Shared types remove a whole class of contract bugs, one Postgres database with row-level security handles multi-tenancy, and CI ratchets let architecture improve weekly instead of through big-bang migrations. The coupling in this domain is real. Pretending otherwise wouldn't have made it go away.
 
-<Compare
-  before={{
-    label: "N26 (~200 services)",
-    items: [
-      "High team count — service boundaries match org boundaries",
-      "Distributed state stitched across Kafka topics and REST calls",
-      "Deploy coordination across dozens of repos",
-      "Consolidation became the performance win",
-    ],
-  }}
-  after={{
-    label: "Upgrid (monorepo)",
-    items: [
-      "Small team — shared schema and types reduce integration tax",
-      "One Postgres database with RLS multi-tenancy",
-      "Single CI pipeline with ratchets, not big-bang migrations",
-      "Coupling is real; pretending it's microservices wouldn't help",
-    ],
-  }}
-/>
-
-Team size and actual coupling decide topology. Not fashion.
+Topology should follow team size and the coupling that actually exists. For the full stack tour — apps, metering, allocation, billing, delivery — see [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/).
 
 ## The money path
 
-Community energy isn't CRUD. The path from grid data to customer invoice crosses ingestion, allocation, billing, PDF generation, and accounting sync — and every step has a Swiss-specific rule attached.
+The path from grid data to customer invoice crosses ingestion, allocation, billing, PDF generation, and accounting sync, and every step has a Swiss-specific rule attached. It starts with SDAT, the standardised format Swiss grid operators use to deliver metering data, and ends inside Bexio, the accounting system operators actually close their books in.
 
 <FlowDiagram
   title="Data to invoice"
@@ -99,127 +52,21 @@ Community energy isn't CRUD. The path from grid data to customer invoice crosses
   ]}
 />
 
-<Callout type="warning" title="Where bugs hurt">
-  A UI typo is embarrassing. A wrong allocation on a large vZEV community is an OOM crash, a support ticket, and a recalculation job. A wrong VAT line on a Swiss QR-bill is an invoice dispute. We treat the money path with the same paranoia I brought from financial crime prevention — observability on ingestion, idempotent jobs, and tests on the billing engine before we polish marketing pages.
-</Callout>
+A UI typo is embarrassing. A wrong allocation on a large vZEV community is an out-of-memory crash, a support ticket, and a recalculation job. A wrong VAT line on a Swiss QR-bill, the standardised payment slip every Swiss invoice carries, is a dispute with a customer who is also a member of a community you have to keep running. We treat the money path with the paranoia I brought from financial crime prevention: observability on ingestion, idempotent jobs, and tests on the billing engine before we polish marketing pages.
 
-Contract intents vs live contracts is another example. A prospect signing up through a co-brand operator or affiliate link isn't a billing customer yet. Mixing those lifecycles in one table would have been convenient and wrong. We separated them early — distinct states, distinct workflows — because retrofitting domain boundaries after invoices exist is expensive.
+Contract intents versus live contracts is another example. A prospect signing up through a co-brand operator or affiliate link isn't a billing customer yet. Mixing those lifecycles in one table would have been convenient and wrong, so we separated them early into distinct states and distinct workflows. Retrofitting domain boundaries after invoices exist is expensive.
 
-## Engineering multipliers
+## Applied AI in production
 
-Raw commit counts don't compound. Infrastructure and practices do. These are the decisions that let a small team ship like a larger one without lowering the correctness bar.
+I've seen too many "AI-native" pitches that mean "we use Copilot." Upgrid has three layers, ordered by who benefits.
 
-<SignalList
-  items={[
-    {
-      title: "Company brain",
-      body: "An internal agent in Slack — schema digest, versioned metric definitions, codebase index, read-only connectors to production data, Linear, and PostHog. Ops and product can ask whether a meter is receiving data or how signup traffic looked this month without interrupting an engineer.",
-    },
-    {
-      title: "Infrastructure as code",
-      body: "CDKTF stacks for Better Stack monitors and heartbeats on the SDAT ingestion pipeline, plus PostHog feature flags defined in the repo and deployed via GitHub Actions. Observability and rollout config are versioned and reviewable — not click-ops in vendor UIs.",
-    },
-    {
-      title: "Feature flags and experiments",
-      body: "Triple sync: infrastructure definitions, application constants, and a CI check that fails if they drift. The same PostHog project that powers GTM analytics also gates bill-upload onboarding, operator features, and landing-page experiments.",
-    },
-    {
-      title: "CI ratchets and ADRs",
-      body: "A layered data-access ADR with a check that fails CI on new direct database calls while grandfathering legacy sites. Architecture improves weekly without a big-bang rewrite or winning arguments in meetings.",
-    },
-    {
-      title: "Metrics as code",
-      body: "Business metric definitions live as YAML in the product repo and sync downstream. The company brain queries known metrics — communities, contracts, meter readings — without ad-hoc SQL every time someone asks a question.",
-    },
-    {
-      title: "Agent harness",
-      body: "AGENTS.md, Cursor rules, migration gates, and test requirements in CI. AI-assisted delivery is safe to merge in money-handling code because the guardrails are encoded, not implied.",
-    },
-  ]}
-/>
+Layer one is customer-facing. The highest-friction step in consumer onboarding is typing your meter details correctly, so a customer can upload their existing energy bill instead. Extraction runs through the Vercel AI Gateway with structured output and validation before anything reaches the contract intent, and PostHog tracks the whole funnel: upload started, extraction succeeded, fields accepted. Layer two is company-facing: the company brain lets ops self-serve against live data and an indexed schema. Layer three is engineering-facing: the agent harness encodes migration rules, test gates, and a touch-it-migrate-it policy in CI.
 
-<Compare
-  before={{
-    label: "Click-ops rollout",
-    items: [
-      "Feature flags toggled in vendor UI — no PR, no review",
-      "Monitors configured by hand — drift from prod",
-      "Architecture debates in Slack — no enforcement",
-      "Ops questions routed to whoever is online",
-    ],
-  }}
-  after={{
-    label: "Versioned multipliers",
-    items: [
-      "Flags in IaC + app code + CI sync check",
-      "Monitors and heartbeats in Terraform state",
-      "Ratchets fail CI on new violations only",
-      "Company brain answers from live indexed knowledge",
-    ],
-  }}
-/>
-
-<Pipeline
-  title="How a feature ships and learns"
-  stages={[
-    {
-      name: "Define",
-      duration: "Day 0",
-      detail: "ADR or flag definition in infrastructure config. App constants and preload list updated in the same PR.",
-    },
-    {
-      name: "Gate",
-      duration: "CI",
-      detail: "check:feature-flags and check:data-access run on every pull request. Drift fails the build.",
-    },
-    {
-      name: "Roll out",
-      duration: "Prod",
-      detail: "Gradual flag rollout or PostHog experiment. Operator features ship dark; consumer flows get A/B variants.",
-    },
-    {
-      name: "Learn",
-      duration: "PostHog",
-      detail: "Funnel events, field errors, abandonments — same instrumentation stack as GTM analytics.",
-    },
-  ]}
-/>
-
-The unglamorous work matters too: locale drift checks, Supabase typegen drift detection on PRs, migration timestamp validation. Nobody writes blog posts about those. They keep a monorepo honest.
-
-## Applied AI — shipped, not demoed
-
-I've seen too many "AI-native" pitches that mean "we use Copilot." Upgrid has three layers, ordered by who benefits:
-
-<Compare
-  before={{
-    label: "Demo AI",
-    items: [
-      "Chatbot on the marketing site",
-      "Internal Slack bot with no prod access",
-      "Copilot with no CI gates on output",
-      "No connection to business metrics",
-    ],
-  }}
-  after={{
-    label: "Shipped AI",
-    items: [
-      "Bill-upload pre-fill: customer uploads energy bill, LLM extracts fields, form arrives populated",
-      "Company brain: ops self-serve against live data and indexed schema",
-      "Agent harness: migration rules, test gates, touch-it-migrate-it policy in CI",
-    ],
-  }}
-/>
-
-<Callout type="note" title="Bill upload">
-  The highest-friction step in consumer onboarding is typing your meter details correctly. We run bill extraction through the Vercel AI Gateway with structured output and validation before anything hits the contract intent. PostHog tracks the full bill-upload funnel — upload started, extraction succeeded, fields accepted — alongside the join flow.
-</Callout>
-
-Layer one is customer-facing. Layer two is company-facing. Layer three is engineering-facing. All three need guardrails; only the first two need to work when I'm not in the room.
+All three need guardrails. Only the first two need to work when I'm not in the room.
 
 ## Beyond the keyboard
 
-Engineering multipliers don't matter if nobody signs up. As co-founder I spent serious time on go-to-market: a savings calculator, LEG reform content, SEO guides, co-brand landing pages for municipalities and installers, affiliate attribution, and signup instrumentation built like production software.
+None of that matters if nobody signs up. As co-founder I spent serious time on go-to-market: a savings calculator, LEG reform content, SEO guides, co-brand landing pages for municipalities and installers, affiliate attribution, and signup instrumentation built like production software.
 
 <MetricRow
   metrics={[
@@ -230,80 +77,28 @@ Engineering multipliers don't matter if nobody signs up. As co-founder I spent s
   ]}
 />
 
-<Pipeline
-  title="Consumer signup funnel"
-  stages={[
-    {
-      name: "Landing",
-      duration: "Acquisition",
-      detail: "Referral, direct, organic social, paid search, and organic search — no single growth hack. Co-brand pages for municipalities and installers, affiliate links, and Upgrid-owned SEO content all feed the same join flow.",
-    },
-    {
-      name: "Form",
-      duration: "Instrumented",
-      detail: "join_community.* events track steps, field errors, abandonments, and CTA clicks — not just pageviews. The taxonomy grew over time; early dashboards undercounted what we can measure today.",
-    },
-    {
-      name: "Contract",
-      duration: "Submission",
-      detail: "Contract intents from web, operator-assisted onboarding, and partner channels. Product scale is north of two thousand members — web-only funnel snapshots never captured the full picture.",
-    },
-    {
-      name: "Community",
-      duration: "Assignment",
-      detail: "Auto-selection, operator triage, contract intent → live contract when preconditions are met.",
-    },
-  ]}
-/>
+Acquisition comes from referral, direct, organic social, paid search, and organic search. There was no single growth hack. Co-brand pages for municipalities and installers, affiliate links, and Upgrid-owned SEO content all feed the same join flow. That flow is instrumented properly: `join_community.*` events track steps, field errors, abandonments, and CTA clicks rather than pageviews. Contract intents arrive from web signups, operator-assisted onboarding, and partner channels, and a community gets assigned by auto-selection or operator triage before the intent becomes a live contract.
 
-<Compare
-  before={{
-    label: "Analytics bolted on",
-    items: [
-      "Pageviews only — no funnel steps",
-      "Experiments configured separately from flags",
-      "GTM and engineering use different tools",
-      "No field-level error tracking",
-    ],
-  }}
-  after={{
-    label: "Instrumentation as product",
-    items: [
-      "Rich join_community.* event taxonomy",
-      "Same PostHog project for flags and funnels",
-      "Bill-upload and contract_intent.* operator events",
-      "Funnel conversion and drop-off measured in-product",
-    ],
-  }}
-/>
+Those three numbers are the ones worth quoting, because they reflect actual product scale. PostHog is how we iterate on the join flow week to week, but the event taxonomy evolved over time. Point-in-time funnel exports from early instrumentation undercount submissions that came through operator onboarding, co-brand partners, and channels we hadn't wired yet.
 
-**2k+ members**, **250+ communities**, and **150+ municipalities** on upgrid.ch are the numbers worth quoting — they reflect actual product scale. PostHog is how we iterate on the join flow week to week, but the event taxonomy evolved; point-in-time funnel exports from early instrumentation undercount submissions that came through operator onboarding, co-brand partners, and channels we hadn't wired yet.
+If I were starting again I would put observability and infrastructure-as-code on ingestion from day one, because SDAT is the root of the money path and the monitors should have shipped with the first ingestion job rather than after the first silent failure. I would version the grid data contracts like a schema registry, since metering formats and allocation inputs change and you want to fail loudly on drift. I would ship operator UX before consumer polish, because operators live in the product and a beautiful landing page doesn't help when community formation and billing exceptions are painful. And I would run more experiments wherever regulation allows, instead of debating join flows in meetings.
 
-## What I'd do again / differently
+Local energy is a systems, regulation, and go-to-market problem. The teams that win will be the ones who treat billing correctness and signup instrumentation with the same seriousness fintech treats fraud.
 
-<LessonStack
-  lessons={[
-    {
-      title: "Observability and IaC on ingestion from day one",
-      body: "SDAT is the root of the money path. Better Stack monitors and heartbeats should have shipped with the first ingestion job, not after the first silent failure.",
-    },
-    {
-      title: "Treat grid data contracts like a schema registry",
-      body: "Metering formats and allocation inputs change. Version the contracts, fail loudly on drift, and document them where the company brain can find them.",
-    },
-    {
-      title: "Ship operator UX before consumer polish",
-      body: "Operators live in the product. A beautiful consumer landing page doesn't help if community formation and billing exceptions are painful.",
-    },
-    {
-      title: "Run more experiments when regulation allows",
-      body: "Feature flags and PostHog experiments are multipliers — use them for join flows, bill upload, and operator features instead of debating in meetings.",
-    },
-  ]}
-/>
+## Questions
 
----
+### What is a ZEV, vZEV, or LEG in Swiss energy law?
 
-<PullQuote attribution="The thesis">
-  Local energy is a systems, regulation, and go-to-market problem — not a landing page. The teams that win will be the ones who treat billing correctness and signup instrumentation with the same seriousness as fintech treats fraud.
-</PullQuote>
+They are the three community models Upgrid supports. A ZEV (*Zusammenschluss zum Eigenverbrauch*) is a self-consumption association behind a shared grid connection. A vZEV is the virtual variant, where members are not physically behind the same connection. A LEG (*Lokale Energiegemeinschaft*) is the local energy community model Swiss reform opened in 2025. Each has different metering, allocation, and billing rules.
+
+### Should a small team use a monorepo or microservices?
+
+Let team size and real coupling decide. Upgrid runs seven apps and ~70 workspace packages with shared types, one Postgres schema with row-level security for multi-tenancy, and a single CI pipeline, because coupling in a regulated billing domain is genuinely high and the team is small. N26's ~200-service estate made sense for the opposite reason: enough teams that service boundaries matched org boundaries.
+
+### What does it take to bill a Swiss energy community?
+
+Five steps. SDAT metering data is ingested from the grid operator, consumption is allocated across members on fifteen-minute intervals, the billing engine prices it, a Swiss QR-bill PDF is generated, and the result syncs to Bexio for accounting. A wrong VAT line on the QR-bill is both a customer dispute and an accounting problem, so the billing engine gets tests before the marketing pages get polish.
+
+### How large is Upgrid?
+
+2,000+ community members, 250+ communities, and 150+ municipalities on upgrid.ch.

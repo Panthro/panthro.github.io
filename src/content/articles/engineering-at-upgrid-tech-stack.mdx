@@ -1,0 +1,138 @@
+---
+title: "Engineering at Upgrid"
+description: "Next.js, Supabase, Linear, Steep, PostHog, Better Stack. A tour of the Upgrid stack — how a small team ships Swiss energy billing without a microservice estate."
+date: "2026-08-23"
+draft: false
+tags: ["energy-tech", "fintech-infrastructure"]
+related:
+  - building-upgrid
+  - engineering-at-n26-tech-stack
+---
+
+import { PlatformStack } from "../../components/articles/PlatformStack";
+import { MetricRow } from "../../components/articles/MetricRow";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+
+From the outside, Upgrid looks like a Swiss energy SaaS: a join flow, a dashboard, an invoice. Underneath that is a Turborepo on Vercel and Supabase, work in Linear, product metrics in Steep, funnels and flags in PostHog, and heartbeats in Better Stack.
+
+The company story is in [Building Upgrid](/articles/building-upgrid/). This is the stack as of August 2026. For the last time I wrote one of these, at a very different scale, see [Engineering at N26](/articles/engineering-at-n26-tech-stack/).
+
+## The shape of the system
+
+<PlatformStack
+  title="Stack at a glance (2026)"
+  layers={[
+    {
+      name: "Product surfaces",
+      summary: "Localized marketing (de, en, fr), consumer dashboard, operator console, partner portal, admin, and a public API. One codebase, different permissions.",
+      tags: ["Next.js", "i18n", "RLS"],
+    },
+    {
+      name: "Application",
+      summary: "Next.js 16 App Router, React 19, TypeScript. Server Components and server actions; route handlers for crons and webhooks.",
+      tags: ["RSC", "Server Actions", "Hono"],
+    },
+    {
+      name: "Data",
+      summary: "One Supabase Postgres with row-level security. Kysely for multi-table writes; Supabase client for RLS-backed reads.",
+      tags: ["PostgreSQL", "Supabase", "Kysely"],
+    },
+    {
+      name: "Delivery",
+      summary: "Vercel for hosting, GitHub Actions for CI, fifteen Vercel crons for background work. Feature flags and monitors defined in the repo (CDKTF).",
+      tags: ["Vercel", "GitHub Actions", "CDKTF"],
+    },
+    {
+      name: "How we run it",
+      summary: "Linear for issues. Steep for governed business metrics. PostHog for analytics and flags. Better Stack and Sentry for uptime and errors. Slite for ops narrative.",
+      tags: ["Linear", "Steep", "PostHog", "Better Stack"],
+    },
+  ]}
+/>
+
+<MetricRow
+  metrics={[
+    { value: "7 apps", label: "~70 workspace packages", highlight: true },
+    { value: "570", label: "SQL migrations in the product repo" },
+    { value: "15", label: "Vercel cron jobs" },
+    { value: "3", label: "Locales — de, en, fr" },
+  ]}
+/>
+
+One Turborepo. Splitting it into services later would add coordination, not capacity.
+
+## Monorepo on purpose
+
+**Seven apps** (`web`, `api`, `company-brain`, and a few internal tools) plus **~70 workspace packages** share one Postgres schema and one CI pipeline. Domain logic — consumption allocation, SDAT import, energy billing, the Bexio client — lives in shared packages imported by both the Next.js app and the public API. Multi-tenancy is RLS: personal accounts, team workspaces, operator accounts, and sub-brand partners.
+
+Why a monorepo instead of the ~230-service estate I came from is in [Building Upgrid](/articles/building-upgrid/). Billing, allocation, and ingestion share types and tables. That coupling is the product.
+
+## What the product computes
+
+Swiss energy law has three community models — **ZEV**, **vZEV**, **LEG** — and we run them as separate workflows, not one flow with three labels. Prospects are contract intents; they become live contracts only after activation.
+
+Metering is the input. SDAT is the format Swiss grid operators use; the interval is fifteen minutes.
+
+<FlowDiagram
+  title="SDAT ingestion"
+  steps={[
+    { id: "fetch", label: "Fetch", sublabel: "hourly cron" },
+    { id: "store", label: "Storage", sublabel: "raw XML" },
+    { id: "parse", label: "Import", sublabel: "every 5 min" },
+    { id: "readings", label: "Readings", sublabel: "partitioned table" },
+  ]}
+/>
+
+An hourly cron pulls files from the Swisseldex hub over SFTP into Supabase Storage. A five-minute cron parses them into monthly-partitioned readings. vZEV allocation splits solar across two pools on those fifteen-minute slots. Community invoices are a separate pipeline from Stripe subscriptions: draft → approved → issued → Swiss QR-bill PDF → optional Bexio sync.
+
+The domain is the constraint. The rest of this piece is the stack we use to ship it.
+
+## Linear
+
+Work is tracked in **Linear** (`UPG-*`). Architecture docs, VAT decisions, ingestion specs, and billing-hardening milestones all point at issues. Agents that open or refine tickets follow a repo workflow: issue first, then code, then the ticket stays the source of truth.
+
+The company brain can read Linear. Ops can ask what is in flight without opening the board.
+
+## Observability: Better Stack, Sentry, PostHog
+
+**Better Stack** watches the money path. Uptime monitors hit health endpoints. Heartbeats cover the crons that must not go quiet — SDAT fetch (hourly), SDAT import (every fifteen minutes), SolarLog sync, nightly housekeeping. Those monitors and heartbeats are defined in CDKTF and applied from CI, not clicked together in a vendor UI.
+
+**Sentry** catches application errors on the web app.
+
+**PostHog** (EU) is both analytics and rollout. The same project records `join_community.*` funnel events — steps, field errors, abandonments — and gates operator features and landing-page experiments. Flag keys live in infrastructure config and must match application constants; CI fails on drift.
+
+## Metrics: Steep
+
+Business metrics are not ad-hoc SQL. **Steep** definitions live as YAML in the product repo — communities, contracts, contract intents, meters, meter readings, sites, accounts — and sync to a downstream metrics repo that Steep reads.
+
+When a migration changes meaning, the YAML changes in the same PR. The company brain queries those governed metrics instead of inventing a new count every time someone asks how many communities are active.
+
+## How it ships
+
+No Kafka cluster. **Fifteen Vercel crons** do the work: SDAT fetch and import, SolarLog, virtual meters, the email outbox, Bexio invoice status, scheduled contract changes, plus housekeeping.
+
+GitHub Actions on self-hosted runners: format, typecheck, lint, tests, migration checks, and ratchets — new direct database writes fail CI; PostHog flag drift fails CI.
+
+An internal Slack agent (company brain) has read-only connectors to **Linear**, **PostHog**, **Steep**, and **Slite**, plus a schema digest and a codebase index. Ops can ask whether a meter is receiving data or how signup traffic looked this month. The architecture is still Postgres, the domain packages, and the crons. The agent is how a small team answers questions without interrupting an engineer.
+
+## Where to go next
+
+[Building Upgrid](/articles/building-upgrid/) is the founder and go-to-market piece. [Engineering at N26](/articles/engineering-at-n26-tech-stack/) is the scale contrast. [Energy Tech](/topics/energy-tech/) is the domain hub; [the work entry](/work/upgrid/) is the short version.
+
+## Questions
+
+### What tech stack does Upgrid use?
+
+Seven apps and ~70 workspace packages in a Turborepo. Next.js 16, React 19, TypeScript, on Vercel. One Supabase Postgres with row-level security. Linear for issues, Steep for business metrics, PostHog for analytics and flags, Better Stack and Sentry for uptime and errors. Fifteen Vercel crons. Infrastructure config in CDKTF.
+
+### Should a small team use a monorepo or microservices?
+
+If the domain is tightly coupled and the team is small, one repo and one schema is cheaper than services. Upgrid is that case. N26's ~230 services made sense when team boundaries matched service boundaries.
+
+### What does it take to bill a Swiss energy community?
+
+Ingest SDAT from the grid operator, allocate consumption on fifteen-minute intervals, price it, emit a Swiss QR-bill PDF, sync to Bexio. ZEV, vZEV, and LEG each change the rules on those steps.
+
+### What is a ZEV, vZEV, or LEG?
+
+Three Swiss community models. ZEV (*Zusammenschluss zum Eigenverbrauch*): self-consumption behind one grid connection. vZEV: the same idea without a shared physical connection. LEG (*Lokale Energiegemeinschaft*): the local energy community the 2025 reform opened. Different metering, allocation, and billing in each.
