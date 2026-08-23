@@ -4,6 +4,7 @@ description: "Swiss local energy communities as an engineering domain — ZEV, L
 relatedArticles:
   - building-upgrid
   - engineering-at-upgrid-tech-stack
+  - shipping-at-upgrid
 relatedTalks: []
 relatedWork:
   - upgrid
@@ -31,6 +32,6 @@ Swiss energy law recognizes more than one way for a group of people to share loc
 
 ## What is here
 
-[Building Upgrid](/articles/building-upgrid/) is the founder story: who the platform serves, the money path at product level, applied AI, and go-to-market. [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/) is the stack tour: apps, metering, allocation, billing, and how a small team ships regulated energy software. The [Upgrid work entry](/work/upgrid/) is the short version — role, scope, and what is live today.
+[Building Upgrid](/articles/building-upgrid/) is the founder story: who the platform serves, the money path at product level, applied AI, and go-to-market. [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/) is the stack tour: apps, metering, allocation, billing, and how a small team ships regulated energy software. [Shipping at Upgrid](/articles/shipping-at-upgrid/) is the cadence piece — merge frequency, time-to-production, and how that compares to a bank-scale estate. The [Upgrid work entry](/work/upgrid/) is the short version — role, scope, and what is live today.
 
 The correctness bar comes from somewhere else on this site. [Fintech Infrastructure](/topics/fintech-infrastructure/) and [Fraud Prevention](/topics/fraud-prevention/) cover the years of regulated payments work that set it.

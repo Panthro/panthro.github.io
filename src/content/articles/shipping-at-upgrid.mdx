@@ -1,0 +1,125 @@
+---
+title: "Shipping at Upgrid"
+description: "Merge to main, live in four minutes. How I ship at Upgrid — 1,400 PRs, a small team, and a cadence that picked up in the last two quarters."
+date: "2026-08-23"
+draft: false
+tags: ["energy-tech", "engineering-leadership"]
+related:
+  - building-upgrid
+  - engineering-at-upgrid-tech-stack
+  - code-freeze-purpose
+---
+
+import { MetricRow } from "../../components/articles/MetricRow";
+import { Timeline } from "../../components/articles/Timeline";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+
+At N26 we had proper CI/CD too — merge to `main` could reach production, and we'd been doing continuous deployment since 2017. The bottleneck was speed. Old pipelines ran **~1.5 hours** end to end. When we got that down to **~15 minutes** on the migrated paths, engineering changed: smaller batches, faster fixes, less reason to batch work for a deploy window. I felt it in fraud work especially — a slow pipe caps how fast you can respond to an incident or a rule change.
+
+We still froze production before the holidays. I was on the side of the table that had to defend both — the pipeline *and* the freeze. I wrote about the freeze in [Stop Complaining About Code Freezes](/articles/code-freeze-purpose/).
+
+At Upgrid I didn't invent a different model. I pushed the same lesson further. **Merge to `main` is production.** Vercel builds and promotes the web app in about **four minutes** after the merge lands. The numbers below will drift. The pipeline won't.
+
+## The path, with the clock
+
+<FlowDiagram
+  title="Open PR to production"
+  steps={[
+    { id: "linear", label: "Linear", sublabel: "UPG ticket" },
+    { id: "pr", label: "Pull request", sublabel: "preview URL" },
+    { id: "ci", label: "CI", sublabel: "GitHub Actions" },
+    { id: "main", label: "Merge main", sublabel: "production cut" },
+    { id: "vercel", label: "Vercel", sublabel: "~4 min" },
+  ]}
+/>
+
+Work starts in **Linear** as a `UPG-*` ticket. The change goes through a pull request with a Vercel preview URL — I can click through the join flow or an operator screen before I merge. **GitHub Actions** on self-hosted runners runs format, typecheck, lint, tests, migration checks, and the ratchets I described in [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/): new direct database writes fail CI; PostHog flag drift fails CI.
+
+When the PR is green and reviewed, we merge to **`main`**. Vercel picks up the push and the production deployment is usually **Ready in about four minutes**. That's the number I care about: not how long the branch existed, but how long after merge until a customer could hit the new code.
+
+On a recent sample of twenty merges to `main`, the GitHub workflow finished in a **median of ~1 minute**, p90 under six. CI and Vercel overlap. There is no separate release train you wait for on a calendar.
+
+<MetricRow
+  metrics={[
+    { value: "~4 min", label: "Merge to main → Vercel production", highlight: true },
+    { value: "195", label: "PRs merged in the last 30 days (~6.5/day)" },
+    { value: "1,383", label: "PRs merged in the last 12 months" },
+    { value: "1,498", label: "Lifetime merged PRs since Feb 2025" },
+  ]}
+/>
+
+## A year of merges
+
+I wrote the first commit in **January 2025**. The first merged PR landed on **8 February**. By late August we'd merged **1,498** pull requests. **1,383** of those landed in the trailing twelve months.
+
+The pace isn't flat. It ramped as the product and the team grew:
+
+<Timeline
+  title="Merged PRs by quarter"
+  items={[
+    { time: "Aug–Nov 2025", label: "75 merges", detail: "Founding quarter — platform skeleton, first billing paths" },
+    { time: "Nov 2025–Feb 2026", label: "320 merges", detail: "Operator workflows, ingestion hardening" },
+    { time: "Feb–May 2026", label: "433 merges", detail: "LEG, communities at scale, GTM instrumentation" },
+    { time: "May–Aug 2026", label: "555 merges", detail: "Current run rate — ~6.5 merges/day over 30 days", highlight: true },
+  ]}
+/>
+
+**5,821** commits landed on `main` in the same twelve-month window. That's a lot of motion for a small team on one monorepo — and it's why I keep PRs small and CI strict instead of batching into monthly releases.
+
+## What "fast" actually means
+
+Fast doesn't mean we skip review. CodeRabbit and humans still comment on the path; large features sit in open PRs for days when they need to.
+
+Fast means **small batches** and **short feedback loops**. On a sample of the **100 most recently merged PRs**:
+
+- **Median time from open to merge: ~2 hours**
+- **70%** merged the same UTC calendar day they were opened
+- **56%** merged in under four hours; **85%** in under twenty-four
+
+Add **~4 minutes** after merge for Vercel, and a fix can go from "I opened a PR after lunch" to live on upgrid.ch the same afternoon. That's the cadence I optimize for — not story points per sprint.
+
+It's also why I don't run a separate staging environment you promote by hand. Preview URLs on the PR *are* the staging check. `main` *is* production. The correctness bar from [Building Upgrid](/articles/building-upgrid/) — billing, metering, regulated money — has to sit in CI and in review, because there is no quiet week to catch up.
+
+## Launch rough, rebuild properly
+
+I'll be honest: a lot of what we ship first is somewhat sloppy. Not on the money path — I don't merge a billing change I'm unsure about — but on product surfaces, operator workflows, and anything where the fastest way to learn is to put it in front of a real user or operator and watch what breaks.
+
+That's deliberate. I'd rather have a join-flow step live by Tuesday and rebuilt by Friday than spend three weeks in a branch guessing what municipalities actually ask on a sales call. We listen — support threads, operator Slack, PostHog on `join_community.*`, the exceptions queue when allocation does something weird. The follow-up PRs are often bigger than the launch PR. Same feature, second time, with the edges actually handled.
+
+The merge count reflects that. A healthy chunk of those **~6.5 PRs per day** isn't novelty — it's tightening something we already shipped. Fast launch gets us signal. The rebuild is where we earn trust. Both need the same four-minute pipe.
+
+## What I don't count
+
+I don't measure shipping in **lines of code**. GitHub's diff stats lie the moment you use AI seriously — which we do on almost everything now — or the moment someone deletes a generated folder and looks like they shipped negative velocity for a month. One cleanup PR removed tens of thousands of lines. That was progress, not a slowdown.
+
+The number I watch is **merged PRs that reach customers on `main`**. Did the billing rule change? Did the join flow fix land? Did the operator screen stop losing data on an edge case? That's shipping. A green diff is just evidence the pipeline ran.
+
+## Where this goes
+
+The cadence isn't the destination. Swiss energy reform opened a window; the teams that win will be the ones who can change billing, allocation, and operator workflows while municipalities and grid operators are still paying attention. Speed is how you stay in that conversation — not by skipping review, but by making review and CI the only gate between an idea and a customer.
+
+I expect the merge rate to keep climbing as the team grows and AI raises how much code a small group can produce. The bottleneck moves: not "can we deploy," but "does CI catch the mistake before `main`." That's why I keep adding ratchets instead of adding process — migration checks, flag drift, governed metrics in Steep — and why I won't trade the four-minute deploy for a release calendar that feels safe but trains everyone to batch.
+
+If we do this right, the next year looks like more of the same shape: one monorepo, merge-to-`main`, tighter correctness gates as the money path gets harder. The number that should go up is communities billed correctly, not services in a diagram. The pipeline is already fast enough. The work is making sure fast stays safe as LEG scales across Switzerland.
+
+## Where to go next
+
+[Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/) is the stack tour. [Building Upgrid](/articles/building-upgrid/) is why the correctness bar is fintech-grade. [Engineering at N26](/articles/engineering-at-n26-tech-stack/) is where I learned what cutting deploy time from **~1.5 hours** to **~15 minutes** does to a team — **~230 services**, Kafka, Kubernetes, Argo CD. [Stop Complaining About Code Freezes](/articles/code-freeze-purpose/) is what "slow down for the holidays" looked like when I was the one making the call.
+
+## Questions
+
+### How often does Upgrid deploy to production?
+
+Every merge to `main` triggers a Vercel production deploy. In the last thirty days, that was **195 merged PRs** — roughly **6.5 per day**. There is no separate release train.
+
+### How long after merge until code is live?
+
+About **four minutes** for the main web app on Vercel. GitHub Actions on the same merges typically finishes in **1–5 minutes** in parallel.
+
+### What is the deployment pipeline?
+
+Linear ticket → pull request with preview URL → GitHub Actions (tests, lint, migration and flag ratchets) → merge to `main` → Vercel production. Database migrations ship with the application code in the same merge.
+
+### How does this compare to shipping at N26?
+
+At N26 we also shipped merge-to-`main` through GitHub Actions and Argo CD — continuous deployment since 2017, on **~230 microservices**. Old pipelines ran **~1.5 hours** end to end; the migrated ones got down to **~15 minutes** on the fast paths, with **~30 minutes** more typical per service. That speed-up changed how teams worked. At Upgrid it's one monorepo and **~4 minutes** after merge — same model, shorter clock. Code freezes before peak banking periods were the other constraint; Upgrid doesn't have a licensed-bank holiday calendar, but the deploy-time lesson carried over.

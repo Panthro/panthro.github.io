@@ -6,6 +6,7 @@ dateEnd: "Present"
 relatedArticles:
   - building-upgrid
   - engineering-at-upgrid-tech-stack
+  - shipping-at-upgrid
 ---
 
 Co-founded Upgrid in January 2025 and wrote the first commit. As CTO I own architecture and delivery, and take product and go-to-market when clarity is the bottleneck rather than code.
@@ -16,4 +17,4 @@ Co-founded Upgrid in January 2025 and wrote the first commit. As CTO I own archi
 
 **Scale today:** 2k+ members, 250+ communities, 150+ municipalities.
 
-The company story is in [Building Upgrid](/articles/building-upgrid/). The stack tour — apps, metering, allocation, billing, delivery — is in [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/).
+The company story is in [Building Upgrid](/articles/building-upgrid/). The stack tour — apps, metering, allocation, billing, delivery — is in [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/). How often that stack ships is in [Shipping at Upgrid](/articles/shipping-at-upgrid/).

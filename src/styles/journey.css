@@ -428,7 +428,7 @@
 }
 
 .journey-map-legend-label {
-  @apply font-mono text-[10px] uppercase tracking-[0.08em] text-meta;
+  @apply font-mono text-[10px] uppercase tracking-[0.08em] text-[#6a6a73] dark:text-[#8c8c96];
 }
 
 /* Square markers everywhere: the legend is the key to the timeline chips, and
@@ -567,7 +567,7 @@
 }
 
 .journey-step-date {
-  @apply font-mono text-xs text-meta tabular-nums;
+  @apply font-mono text-xs text-[#6a6a73] dark:text-[#8c8c96] tabular-nums;
 }
 
 .journey-step-title {
