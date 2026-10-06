@@ -1,0 +1,154 @@
+---
+title: "Senior vs Staff vs Principal Engineer: It's About Ambiguity"
+description: "What separates junior, senior, staff and principal engineers isn't raw skill. It's how much problem and solution ambiguity you can take on, and who finds the problem."
+date: "2026-10-06"
+draft: false
+tags: ["engineering-leadership"]
+related:
+  - straight-out-of-the-bootcamp
+  - rebuilding-fraud-prevention-at-n26
+  - say-yes-first-platform-teams
+---
+
+import { AmbiguityMap } from "../../components/articles/AmbiguityMap";
+import { OwnershipLadder } from "../../components/articles/OwnershipLadder";
+import { SignalConvergence } from "../../components/articles/SignalConvergence";
+import { PullQuote } from "../../components/articles/PullQuote";
+import { Callout } from "../../components/articles/Callout";
+import { Checklist } from "../../components/articles/Checklist";
+
+Every engineering ladder I have worked with tries to describe levels with a list of competencies. Code quality, system design, communication, mentoring, "impact". They are not wrong, but they are hard to use. Two people can read the same senior engineer rubric and come out with two different engineers in mind.
+
+Looking back at my own career, from writing mobile apps at GFT to principal engineer at N26 and Personio, one question has explained the jumps better than any rubric: **how much of the work is still undefined when it reaches you?**
+
+That is ambiguity. And it has two axes.
+
+## The two axes of ambiguity
+
+**Problem ambiguity** is about *what* to solve. Who has the problem, why it matters, what the requirements are, what "done" looks like. A ticket with acceptance criteria has almost none. "Fraud losses are going up" has a lot.
+
+**Solution ambiguity** is about *how* to solve it. Which code to write, how to structure it, whether it is a new module or a new service, layered or organised around domain components, what to build and what to buy. A design doc handed to you has almost none. A blank repository has a lot.
+
+Put the two on a plane and every piece of work lands somewhere on it. Each career level is the area of that plane you can operate in without someone stepping in to remove ambiguity for you. Scroll through it, or drag the level rail.
+
+<AmbiguityMap
+  client:visible={{ rootMargin: "400px" }}
+  steps={[
+    {
+      title: "Both axes pinned down",
+      body: "A junior engineer needs the problem fully clear and the solution mostly given. Someone has already decided what to build and roughly how. The job is to execute it well: write the code, test it, learn the codebase. That is not a criticism. It is the right amount of ambiguity while you are building the muscles everything else depends on.",
+    },
+    {
+      title: "Solution ambiguity, inside a system that exists",
+      body: "The first growth happens on the solution axis. A mid-level engineer can take a well-scoped feature in an existing system and design it: where the code goes, which abstractions to reuse, how to test it. The problem is still handed over complete. The system around the feature is already there.",
+    },
+    {
+      title: "Designing the whole system, finishing the requirements",
+      body: "A senior engineer handles full solution ambiguity: a new service or a new system, its architecture, the shape of the code, layered or domain components. They also start moving up the problem axis. The problem can arrive somewhat scoped rather than fully specified. They fill in the missing requirements, take local decisions, and circle back to their leadership when a decision is bigger than them.",
+    },
+    {
+      title: "High ambiguity on both axes",
+      body: "Someone hands a staff engineer a platform-level problem, or a whole business case, and very little else. They go on a listening tour. They work out who to talk to, collect pointers from around the organisation, and figure out the actual shape of the problem before they design anything. The problem is still handed to them, but only as a direction.",
+    },
+    {
+      title: "Finding the problems nobody handed you",
+      body: "A principal engineer handles everything a staff engineer does. The difference is that the frame breaks. Nobody needs to hand them a problem. They watch operations, listen across teams, and find the problems nobody has named yet. Then they go and get the sponsorship to solve them.",
+    },
+  ]}
+/>
+
+Two things stand out on the chart.
+
+First, **growth is not diagonal**. The early levels move almost entirely along the solution axis. Engineering education and the first years of a career train you to solve. Very little trains you to work out what is worth solving, so problem ambiguity tends to arrive late and all at once.
+
+Second, **principal is not a bigger box**. Up to staff, every level is a larger area inside the same frame: the problems someone else brings you. Principal is the first level that operates outside that frame.
+
+## What senior engineers own, and what they are handed
+
+Another way to read the same idea: look at the path from "there is a problem" to "it is in production" and ask, for each step, whether it reaches you already done.
+
+<OwnershipLadder
+  title="WHO OWNS EACH STEP"
+  stages={["Find the problem", "Shape the problem", "Requirements", "Design", "Deliver"]}
+  rows={[
+    { level: "Junior", cells: ["given", "given", "given", "given", "owned"] },
+    { level: "Mid", cells: ["given", "given", "given", "owned", "owned"] },
+    { level: "Senior", cells: ["given", "given", "shared", "owned", "owned"] },
+    { level: "Staff", cells: ["given", "owned", "owned", "owned", "owned"] },
+    { level: "Principal", cells: ["owned", "owned", "owned", "owned", "owned"] },
+  ]}
+  caption="Ownership moves right to left. Each level takes on the step before the one it already owned."
+/>
+
+Read it right to left and the ladder makes sense. Each level takes over the step that used to be done for you. A senior engineer who can only design when the requirements are complete is a strong mid-level engineer. A staff engineer who waits for someone to shape the problem is a strong senior.
+
+This is also why promotions feel unfair from the inside. You get very good at the step you own, and the next level is defined by a step you have never been allowed to do.
+
+## What a staff engineer actually does with ambiguity
+
+When I moved into Financial Crime Prevention at N26, the problems did not arrive as tickets. People came to me with problems: fraud losses, rules that took weeks to ship, patterns we could not express at all. Each conversation was a partial view.
+
+The work was to keep pulling on those threads. Every conversation with operations, compliance or another team surfaced another problem, or another requirement nobody had written down. The shape of the problem only became clear while I was already working on it, and the solution we eventually built, a [stateful Flink pipeline that replaced static rules](/articles/rebuilding-fraud-prevention-at-n26/), only made sense once that shape was clear.
+
+<PullQuote attribution="The staff-level move">
+  You are handed a direction, not a problem. Finding the problem is part of the job.
+</PullQuote>
+
+That is what high problem ambiguity feels like. You are never sure you have the full list of requirements, because there isn't one yet. You are writing it. The skill is not certainty. It is knowing who to ask next, which decisions you can take locally, and which ones need to go back to leadership.
+
+## Principal engineers find the problems
+
+The staff engineer still has someone at the start of the chain: a business partner, a VP, a product lead saying "can you look into this?". The principal engineer often doesn't.
+
+Nobody asks a principal engineer to solve "five teams have each written their own retry logic". Nobody files that ticket, because it is not any single team's problem. It shows up as a complaint in one team's retro, an incident in another's on-call rotation, an estimate that keeps slipping in a third. A principal engineer spends enough time across teams, operations and technical forums to hear those signals and notice that they are the same thing.
+
+<SignalConvergence
+  client:visible={{ rootMargin: "800px" }}
+  signals={[
+    { team: "Payments", text: "Our retries pile up whenever the ledger slows down" },
+    { team: "Cards", text: "On-call paged three times for the same timeout" },
+    { team: "Onboarding", text: "We built our own backoff library last quarter" },
+    { team: "Risk", text: "Duplicate events after every deploy" },
+    { team: "Platform", text: "Every team configures timeouts differently" },
+    { team: "Support", text: "Customers see payments stuck as pending" },
+  ]}
+  problem="No shared resilience layer"
+  sponsors={["Engineering", "Business"]}
+  caption="Individual complaints are noise. The pattern across them is a problem nobody has named yet."
+/>
+
+Finding the pattern is only half of it. A principal engineer who names a problem and stops there is writing a blog post. The other half is **sponsorship**: going to engineering leadership and to the business, making the case that the problem is worth solving, and getting time, people and priority behind it. Sometimes the answer is no, and that is a valid outcome too. Part of the job is deciding which problems are *not* worth solving.
+
+<Callout type="note" title="This needs freedom">
+  Problem discovery does not work if a principal engineer's calendar is full of delivery. It needs room to talk to people with no agenda: sit in on incident reviews, read other teams' retros, ask "what is annoying you right now?". If you hire principals and fill their week with a roadmap, you get very expensive staff engineers.
+</Callout>
+
+## Using the two axes
+
+The useful part of this model is that it tells you which way to stretch. "Be more senior" is not actionable. "Take on more problem ambiguity" is.
+
+<Checklist
+  title="FOR MANAGERS AND ENGINEERS"
+  items={[
+    {
+      question: "Which axis is this person stretching?",
+      detail: "Early on it is almost always the solution axis. From senior onwards it is mostly the problem axis. Pick work that stretches the one they need.",
+    },
+    {
+      question: "Hand over work one notch more ambiguous than usual",
+      detail: "Give a senior engineer a problem without requirements, or a staff engineer a direction without a problem. Then resist filling in the gaps for them.",
+    },
+    {
+      question: "Make circling back normal, not a failure",
+      detail: "Taking local decisions and escalating the big ones is the skill. An engineer who never comes back with questions is either at the wrong level or guessing.",
+    },
+    {
+      question: "Ask where the last problem came from",
+      detail: "If every problem someone worked on was handed to them, they are not operating at principal level yet, however good the solutions were.",
+    },
+  ]}
+/>
+
+I covered the rest of the path, from mentorship to keeping your craft while you lead, in my talk on [the journey to becoming a staff engineer](/speaking/devbcn-2024/). If you are earlier on the ladder, [Straight Out of the Bootcamp](/articles/straight-out-of-the-bootcamp/) is where this starts.
+
+The titles will keep changing from company to company. The question stays the same: how much is still undefined when the work reaches you, and are you the one who found it?

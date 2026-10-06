@@ -199,6 +199,11 @@ Reuse before inventing new ones. All live in `src/components/articles/`:
 | `ScoreThreshold` | Threshold / score bars |
 | `Checklist` | Action lists |
 | `LessonStack` | Stacked takeaways |
+| `AmbiguityMap` | Scroll-driven sticky 2-axis chart + draggable level rail (island: `client:visible`) |
+| `OwnershipLadder` | Level × stage matrix of given/shared/owned cells with right-to-left fill |
+| `SignalConvergence` | Scattered signals converging into one named problem, with replay (island: `client:visible`) |
+
+Interactive islands must SSR a complete end state (works without JS), honour `prefers-reduced-motion`, and set `suppressHydrationWarning` on an `.article-reveal` root (Head.astro adds `.show` before hydration).
 
 New article components: React + Tailwind, use semantic classes (`.text-prose`, `.text-heading`, `.text-meta`, `.text-accent`, `.border-subtle`). Add `article-reveal` for scroll animation; see motion pitfalls below.
 
