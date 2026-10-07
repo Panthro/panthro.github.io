@@ -5,6 +5,7 @@ relatedArticles:
   - senior-staff-principal-engineer-ambiguity
   - code-freeze-purpose
   - shipping-at-upgrid
+  - building-the-company-brain-at-upgrid
   - say-yes-first-platform-teams
   - i-hardly-debug-anymore-tdd
   - straight-out-of-the-bootcamp

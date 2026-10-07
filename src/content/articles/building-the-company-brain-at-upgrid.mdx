@@ -1,0 +1,269 @@
+---
+title: "Building the Company Brain at Upgrid"
+description: "How I built Clara, Upgrid's read-only Slack agent over our data, docs and code — and why the hard part was deciding what it could never do."
+date: "2026-10-07"
+draft: true
+tags: ["engineering-leadership", "energy-tech"]
+related:
+  - engineering-at-upgrid-tech-stack
+  - shipping-at-upgrid
+  - building-upgrid
+---
+
+import { MetricRow } from "../../components/articles/MetricRow";
+import { Timeline } from "../../components/articles/Timeline";
+import { FlowDiagram } from "../../components/articles/FlowDiagram";
+import { Compare } from "../../components/articles/Compare";
+import { Callout } from "../../components/articles/Callout";
+import { PullQuote } from "../../components/articles/PullQuote";
+import { LessonStack } from "../../components/articles/LessonStack";
+
+{/*
+  VISUALS PASS (next session): component notes are marked `VISUAL:` below.
+  Existing components are already wired so the draft builds; swap where a bespoke one earns its place.
+  Facts marked `TODO(Rafa)` need a number or a confirmation before draft: false.
+*/}
+
+"Is this meter receiving data?" "Why can't I activate this vZEV?" (a Swiss virtual solar-sharing community) "How many people signed up from the Bern campaign?"
+
+At a small company, each of those questions costs an engineer about ten minutes and a context switch. The answer is always somewhere — in Postgres, in PostHog, in a Linear ticket, in a Slite page nobody has opened since spring. The person asking just can't get to it alone.
+
+So in July I built Upgrid a company brain. Her name is **Clara**. She lives in Slack, she can read our production data, metrics, docs, tickets and code, and she cannot change any of it. The reading turned out to be the easy part. The real work was deciding everything she would **never** be allowed to do — and making that true by construction, not by prompt.
+
+## I built one for myself first
+
+Before Clara there was my own brain. It's a git repository of markdown notes — people, projects, decisions, a daily log — and I almost never write to it myself. Agents do. One ingests what lands in my inbox, one writes a morning brief, one runs a nightly consolidation and commits. Since late May it has taken **700+ commits**, nearly all of them written by agents.
+
+That setup taught me what makes a brain useful: it has to be **maintained by the work itself**, not by someone remembering to update a wiki. It also taught me what makes a personal assistant dangerous. My own agents run on a box I own, with my credentials, a shell, and access to my calendar and email. For one person, that's the point. For a company, every one of those properties is a liability.
+
+<Compare
+  before={{
+    label: "Personal assistant",
+    items: [
+      "One user, one set of credentials",
+      "Shell access is a feature",
+      "Learns new skills by being asked",
+      "Sends email, books things, acts",
+      "Trust boundary = me",
+    ],
+  }}
+  after={{
+    label: "Company brain",
+    items: [
+      "Everyone in the company asks it questions",
+      "No shell next to any credential",
+      "New capability only through a reviewed PR",
+      "Reads and cites; never writes",
+      "Trust boundary = the code, not the asker",
+    ],
+  }}
+/>
+
+## The fear that shaped the design
+
+My first instinct was to take an open-source assistant framework, point it at our tools and ship. What stopped me was a very concrete picture: someone on the team chats with the bot, hands it their email credentials so it can "help with follow-ups", sets up a recurring task — and three weeks later an email goes to a municipality from the wrong account, and nobody can explain why.
+
+When I wrote that scenario down, I realised it isn't a tooling problem. It's a **governance** problem. The scenario shows two parts of it, and a third applies even to a brain that only reads:
+
+- **Capability that grows at runtime.** If you can give the agent new powers by talking to it, code review protects nothing. If it can run arbitrary code, the "declared toolset" is fiction.
+- **Ambient authority.** One process holding credentials on behalf of whoever is talking right now. Person A's access is live in Person B's conversation — the classic confused deputy.
+- **Indirect prompt injection.** A read-only brain still ingests text other people wrote: tickets, docs, Slack. A malicious ticket can say "run this" or "paste your token". The strongest defence is that there's nothing for it to reach.
+
+<PullQuote>The safest brain isn't an agent on a box. It's a constrained tool-calling service with no ambient credentials.</PullQuote>
+
+## Picking the framework
+
+I compared four options in early July against two questions: *can capability expand at runtime, and are credentials shared across askers?*
+
+{/* VISUAL: a 4-column scorecard (eve / Hermes / OpenClaw / LangGraph) on "scope can grow by chat", "per-user identity", "isolated sandbox", "maturity". Could be a new component; a plain table works too. */}
+
+- **OpenClaw** is a superb personal assistant with a huge community. It is built to become all-powerful on your device, shell included. Exactly the wrong shape.
+- **Hermes** is self-hosted and MCP-native, and its whole ethos is that it writes its own skills and grows with you. Great for me personally; that self-improvement cuts directly against a governed company tool.
+- **LangGraph** is the most mature of the four, with excellent human-in-the-loop and observability. But its default is one shared API key across users, and per-user identity, Slack and an isolated sandbox would all be mine to build.
+- **Vercel eve** had launched about a month earlier. Young, and it ties us to Vercel. But an eve agent *is a directory of files* — scope changes are pull requests — and it ships identity, short-lived per-task credentials through **Vercel Connect**, isolated sandboxes, tool approvals, evals and tracing.
+
+I picked eve and wrote down the condition that would make me switch to LangGraph: if eve's youth started to cost us more than the identity layer saved. It hasn't yet. We have since moved from `eve@0.24` to `0.64`, and each upgrade was a few hours of adapting to a changed API, not a rewrite.
+
+Every other decision was locked in one sitting on 9 July: Vercel-managed, no self-hosting. Lives in the monorepo as its own app with its own Vercel project. Config changes through PR review, secrets only in Vercel env. Whole company from day one. Slack DMs first.
+
+## Two invariants
+
+Everything in Clara hangs off two rules. I wrote them before any code, and every phase has had to preserve them.
+
+**1. Credentials without execution.** The process that holds tokens and calls Linear, PostHog, Steep, Slite and the database has a fixed list of declared, read-only tools. No shell, no eval, no email.
+
+**2. Execution without network.** Clara *can* run code — Python to build a CSV or an HTML report — but only in a Vercel Sandbox with `networkPolicy: deny-all` and no credentials in it.
+
+My first draft was simply "no code execution". That was too blunt — people genuinely want "turn this into a spreadsheet". The real invariant is the **separation**. Results move from the credentialed side to the sandbox as data. Credentials never cross.
+
+<FlowDiagram
+  title="How a CSV export works"
+  steps={[
+    { id: "ask", label: "Slack", sublabel: "export this as CSV" },
+    { id: "query", label: "Read-only SQL", sublabel: "credentialed plane" },
+    { id: "stash", label: "Result stash", sublabel: "rows, not creds" },
+    { id: "sandbox", label: "Sandbox", sublabel: "deny-all network" },
+    { id: "file", label: "Slack file", sublabel: "attached in thread" },
+  ]}
+/>
+
+{/* VISUAL: this wants a two-lane diagram (credentialed plane above, sandbox below, a one-way "rows" arrow between them, a crossed-out "creds" arrow). Strongest image in the piece. */}
+
+Underneath sit the boring, deterministic guards that don't depend on any model: a read-only Postgres role, every query wrapped in `BEGIN READ ONLY` with a 30-second statement timeout and a 5,000-row cap, a keyword denylist, and an allowlist on every MCP connection so only read tools exist. If the model is fooled, the database still says no.
+
+## Whose credentials?
+
+Ambient authority was on my list of fears, so here is the honest version.
+
+Every MCP connection — Linear, PostHog, Slite, Steep — goes through **Vercel Connect** with the asker's own OAuth grant. Clara sees in PostHog what *you* can see in PostHog. If you've never authorised a tool, she DMs you a link to do it instead of borrowing someone else's access.
+
+The database is the exception. Clara reads Postgres through one shared read-only role, because per-user database identity would have meant rebuilding our permission model for a single consumer. That is a deliberate trade-off: everyone who asks gets the same view of the data. What bounds it is the read-only transaction, the row cap, and an approval step that pauses broad queries over personal data for a human (more on that below). Column-level redaction is designed, not built yet.
+
+## Meet Clara
+
+The first version answered questions like an engineer: table names, column names, SQL. Accurate, and useless to the people who ask most — operations, sales, customer success, my co-founders.
+
+So two days after v1 I rewrote her personality. Clara talks to a smart non-engineer by default. She leads with what it means, the number, and what to do next, and keeps schema jargon out of the first reply. A small curated team roster tells her who's asking: an engineer gets the technical view straight away, everyone else gets business language and an offer — *"Want the technical breakdown? Just ask."*
+
+She also got a name and a face. People ask a colleague things they would never type into a search box, and the questions that matter most at a small company are often the half-formed ones.
+
+<figure className="not-prose my-10 flex items-center gap-5">
+  <img
+    src="/articles/company-brain/clara-192.webp"
+    srcSet="/articles/company-brain/clara-192.webp 1x, /articles/company-brain/clara-384.webp 2x"
+    width="96"
+    height="96"
+    alt="Clara's Slack avatar: a generated portrait of a smiling woman with shoulder-length brown hair"
+    loading="lazy"
+    decoding="async"
+    className="h-24 w-24 shrink-0 border border-subtle object-cover"
+  />
+  <figcaption className="text-meta text-sm leading-relaxed">
+    <span className="text-heading font-medium">Clara</span>, as she appears in Slack. The portrait is generated. She's an agent, not a person.
+  </figcaption>
+</figure>
+
+Two more things made her feel like a colleague instead of a search box:
+
+- **Deep links.** When an answer points at a community, contract, meter or invoice, Clara links straight to that page in the app, so the reply ends in an action, not a conversation.
+- **Runbooks.** For "a customer says…" questions, she follows vetted playbooks we wrote with ops: no readings for a community, a stuck signup, an invoice dispute, a community that won't form, an allocation mismatch, the billing cycle.
+
+<MetricRow
+  metrics={[
+    { value: "14", label: "Skills Clara loads on demand", highlight: true },
+    { value: "11", label: "Evals taken from production questions" },
+    { value: "103", label: "Knowledge-ratchet waivers since July" },
+    { value: "0", label: "Write tools" },
+  ]}
+/>
+
+{/* TODO(Rafa): still no usage number. Clara logs Jev decisions but not turns or askers, and Vercel runtime logs only reach back ~1 day (39 Slack requests on 6–7 Oct). Options: add a per-turn usage log (user id + timestamp, no content) and publish after a few weeks, or quote AI Gateway request counts. Don't publish an estimate. */}
+
+## Knowledge that can't go stale
+
+Most internal knowledge bases die the same way: the code moves and the docs don't. I didn't want Clara to depend on anyone's discipline, so her knowledge is either **generated from the code** or **enforced by CI**.
+
+- **Schema digest.** A script reads our Supabase migrations and generates a compact YAML description of the core tables — purpose, key columns, relationships. It has a deterministic content hash, so parallel PRs with the same schema merge cleanly.
+- **Code index.** At build time we scan the monorepo's TypeScript and bundle an index into the `search_code` tool. Clara can explain how a feature works without anyone giving her a GitHub token.
+- **Governed metrics.** "How many active communities?" never becomes ad-hoc SQL. It goes through **Steep**, where the metric definitions live as YAML in the same repo as the migrations that change their meaning.
+- **A ratchet on migrations.** Any PR that touches a migration must also update the digest, a Steep metric or Clara's semantic docs — or add a one-line waiver saying why it doesn't matter. CI fails otherwise.
+
+That ratchet is my favourite piece of the system. Since July it has collected **103 waivers** — each one a migration where someone on the team stopped for ten seconds and decided whether it changed what Clara should know. Ten seconds per migration is a price nobody argues with.
+
+<Callout type="tip" title="The monorepo pays off here">
+Clara's knowledge sits next to the features it describes. The engineer changing billing updates the billing semantics in the same PR. Keeping the agent in a separate repository would have made that a second, forgettable task.
+</Callout>
+
+## Evals from production
+
+Unit tests tell you the code works. They don't tell you Clara gives the right answer to the questions people actually ask. For that, we use eve's evals — and the best ones are taken from real conversations.
+
+Every couple of weeks I look at what people asked Clara, find the answers that were wrong or weak, and turn them into eval cases: a vZEV that can't be activated must name the concrete blocking gate and link to the community. A request for three months of raw fifteen-minute readings must be refused and offered as daily totals. SDAT questions must get sender codes and file types right. The file names say where each one came from — `from-prod-14d`, `from-prod-30d`.
+
+{/* TODO(Rafa): confirm the cadence — is the review fortnightly, and is it automated (a scheduled job that proposes new skills/evals) or manual? Adjust the paragraph above. */}
+
+The loop is simple: **real question → wrong answer → eval → fix → the eval stays forever.** Clara's skills grew out of that loop, not out of a roadmap.
+
+## Approvals without the friction
+
+Version one asked a human to approve every first tool call in a session. Safe, and annoying enough that people stopped asking.
+
+In September we moved tool review to **Jev**, a small third-party evaluation model (`typesafe-ai/jev`) that eve can call natively through the Vercel AI Gateway. We didn't build it, and it can't grant anything. It doesn't write prose; it answers one typed question about a proposed tool call — *clear* or *caution* — with criteria specific to each surface. A routine Steep metric lookup runs straight away. A raw interval dump, a `SELECT *` on personal data or anything write-shaped pauses for a human in Slack.
+
+The design rule: **fail closed**. If Jev times out, errors or isn't sure, the call goes to a human. And because eve falls back to human approval silently, we log every decision and every failure (tool, verdict, latency — never the arguments), so "why is Clara asking me to approve everything today?" has an answer in the logs.
+
+## Three months, in commits
+
+<Timeline
+  title="From comparison to production"
+  items={[
+    { time: "7 Jul", label: "Framework comparison", detail: "OpenClaw, Hermes, eve — LangGraph added two days later" },
+    { time: "9 Jul", label: "Decisions locked", detail: "Two invariants, phases 0–5, monorepo, Vercel-managed" },
+    { time: "16 Jul", label: "v1 in Slack", detail: "Read-only, DMs only, first evals" },
+    { time: "18–24 Jul", label: "Clara becomes a colleague", detail: "Business-first voice, audience tailoring, deep links, runbooks" },
+    { time: "25 Jul–10 Aug", label: "Everything through Connect", detail: "PostHog, Slite, Linear, Steep as MCP with per-user OAuth" },
+    { time: "1–10 Sep", label: "Ops depth", detail: "CSV/HTML exports as Slack files, allocation and SDAT skills, production evals" },
+    { time: "23 Sep–6 Oct", label: "Jev approvals", detail: "Per-surface auto-review, fail-closed, logged", highlight: true },
+  ]}
+/>
+
+What's deliberately **not** on that timeline: writes. Creating a Linear issue or posting a summary to a channel is phase four, and it will be a *separate agent* with its own identity, every action behind human approval. When someone asks Clara to "create a ticket", she drafts it for them to paste.
+
+## What I'd tell another founder
+
+<LessonStack
+  lessons={[
+    {
+      title: "Decide what it can never do first",
+      body: "Write the non-goals and invariants before choosing a framework. The framework is the easy part to change; the trust model isn't.",
+    },
+    {
+      title: "Make safety structural, not promptable",
+      body: "A read-only database role, a deny-all sandbox and an MCP allowlist hold when the model is fooled. A sentence in the system prompt doesn't.",
+    },
+    {
+      title: "Build for the person who asks most",
+      body: "That's rarely an engineer. Business language by default, technical detail on request, and a link to the page where they can act.",
+    },
+    {
+      title: "Let the work maintain the knowledge",
+      body: "Generate what you can from code, and put a CI ratchet on the rest. Nobody updates a wiki because they should.",
+    },
+    {
+      title: "Turn every wrong answer into an eval",
+      body: "Production questions are the only honest test set you'll get.",
+    },
+  ]}
+/>
+
+The brain I built for myself made me faster. The one I built for Upgrid makes the *team* faster without making anyone the bottleneck — including me. Same idea, opposite trust model. Knowing which one you're building is most of the work.
+
+## Where to go next
+
+[Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/) is the stack Clara reads from — Supabase, Steep, PostHog, Linear, fifteen crons. [Shipping at Upgrid](/articles/shipping-at-upgrid/) is how often that stack changes under her, and why the knowledge ratchet matters. [Building Upgrid](/articles/building-upgrid/) is why the data she reads is held to a fintech-grade correctness bar.
+
+## Questions
+
+### What is a company brain?
+
+An internal agent that answers *how does this work* and *what does the data say* from a company's own systems — databases, metrics, docs, tickets and code — so people can get answers without interrupting an engineer. Upgrid's is called Clara and lives in Slack.
+
+### What is Clara built with?
+
+Vercel eve as the agent framework, Claude Sonnet 5 through the Vercel AI Gateway, Vercel Connect for per-user, short-lived credentials, Vercel Sandbox for isolated code execution, and read-only MCP connections to Linear, PostHog, Slite and Steep. Data access goes through a read-only Postgres role. Tool calls are reviewed by Jev, a third-party evaluation model, and anything it isn't sure about goes to a human.
+
+### Why Vercel eve instead of OpenClaw, Hermes or LangGraph?
+
+OpenClaw and Hermes are designed as personal assistants that grow their own capabilities, which is the opposite of what a governed company tool needs. LangGraph is more mature but leaves per-user identity, Slack and sandboxing to you. eve treats an agent as a directory of files, so every scope change is a reviewed pull request, and ships identity and sandboxing out of the box.
+
+### Can Clara change data?
+
+No. Every connection is restricted to read tools, the database role is read-only, and the code sandbox has no network and no credentials. Write actions are planned as a separate agent with its own identity and human approval on every action.
+
+### How do you keep the agent's knowledge up to date?
+
+The schema digest and code index are generated from the repository at build time. Business metrics are defined as YAML next to the migrations. A CI check fails any migration PR that doesn't update the agent's knowledge or record a waiver.
+
+### How do you protect an internal agent from prompt injection?
+
+Treat everything it reads as untrusted, and keep anything that can change state out of reach: no write tools, no shell beside credentials, no network in the sandbox, per-user credentials wherever the tool supports them. If an injected instruction steers the model, it still can't change anything. It can still mislead the person asking or try to leak what it can read through its own replies, so read-only is where the defence starts, not where it ends.
