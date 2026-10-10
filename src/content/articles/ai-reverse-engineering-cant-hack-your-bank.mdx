@@ -1,0 +1,165 @@
+---
+title: "REA Can Reverse Engineer Anything. It Still Can't Hack Your Bank."
+description: "REA hit GitHub trending and Photoshop clones went viral. Why AI reverse engineering can decompile your banking app but still can't touch the ledger."
+date: "2026-10-10"
+draft: false
+tags: ["fintech-infrastructure", "fraud-prevention"]
+related:
+  - rebuilding-fraud-prevention-at-n26
+  - engineering-at-n26-tech-stack
+---
+
+import { TrustBoundary } from "../../components/articles/TrustBoundary";
+import { Callout } from "../../components/articles/Callout";
+
+Reverse engineering had its mainstream week. An open-source project called [REA](https://github.com/morluto/rea), short for **Reverse Engineer Anything**, shot up GitHub's trending page, and searches for "REA reverse engineering" and "reverse engineer anything GitHub" went from nothing to breakout in a few days. Around the same time, a set of open-source clean-room clones of Photoshop and other Adobe apps landed, and "Adobe reverse engineered" became something people typed into Google.
+
+The demos are good. Point an AI agent at a binary, give it Ghidra, IDA or Hopper through MCP, and it will walk the machine code the way a patient researcher would. REA's own showcase is mostly games: recovering the bullet patterns of a 1990s PC-98 shooter from 16-bit instructions, rebuilding the sound logic of DX-Ball. One viral post summed up the mood by begging the AI reverse engineering crowd to stop decompiling games and go after Photoshop instead.
+
+Then came the questions that always follow. If AI can reverse engineer Photoshop, what can't it reverse engineer? Your banking app? And if the certificates are in there, can't someone just talk to the bank directly and move money around?
+
+## What AI reverse engineering actually changed
+
+Something real did change. Reading a binary used to cost weeks of expert time with a disassembler. With an agent driving the tools, a readable map of an app is an afternoon's work, and it is available to people who could never have done it by hand. That matters, and I come back to it at the end.
+
+What did not change is where authority lives in a modern system. The fear that AI reverse engineering puts your bank account at risk rests on a mistake about that, and the mistake makes public discussion about security worse. It inflates harmless research into a catastrophe and, oddly, distracts from the failures that actually let attackers in.
+
+I spent the last part of my time at N26 in Financial Crime Prevention, where the whole job was deciding which requests to trust. So here is the distinction I wish more people made, in plain language.
+
+## What reverse engineering is, and why it is usually legal
+
+Reverse engineering means taking something that was shipped to you and working out how it was built. For software, that usually means reading a compiled binary back into something closer to source code, watching what an app does while it runs, or inspecting the network traffic it sends.
+
+It is old, ordinary and often legal. Security researchers do it to find vulnerabilities. Developers do it to make software interoperate; EU law explicitly allows decompilation for interoperability under narrow conditions. Game modders, accessibility tool authors and people keeping abandoned hardware alive all do it. And yes, cheaters and fraudsters do it too. Clean-room reimplementation, the approach the new Photoshop clones say they used, is the cautious version: one side documents how the software behaves, the other writes fresh code from that description without ever seeing the original.
+
+What matters is what you are reverse engineering. In almost every case, it is the **client**: the app on your phone, the game on your PC, the program that was handed to you. You have it because the company gave it to you. It runs on hardware you control.
+
+## The client was never trusted
+
+Online game designers learned this lesson early, and Raph Koster put it in one line in his laws of online world design: *the client is in the hands of the enemy*. Anything you ship to a user's device can be read, modified, replayed and lied to. A competent engineering team designs on that assumption from the start.
+
+So in a well-built system the client is a display and a request form. It shows you state that the server sent it, and it asks the server to do things on your behalf. It does not decide anything that matters.
+
+Take a bank transfer. You tap "send 200 francs to Anna". What travels to the bank is a request, and that request passes through several layers the app has no control over.
+
+<TrustBoundary
+  client:visible={{ rootMargin: "400px" }}
+  title="One transfer, three ways, same boundary"
+  caption="Everything left of the line can be read, edited and replayed. Everything right of it decides."
+  scenarios={[
+    {
+      id: "official",
+      label: "Official app",
+      steps: [
+        { kind: "client", text: "You tap “send 200 CHF to Anna”" },
+        { kind: "request", text: "POST /transfers · your session · from: your account" },
+        { kind: "server", label: "Identity", status: "pass", text: "Session belongs to a real, logged-in customer" },
+        { kind: "server", label: "Permission", status: "pass", text: "That customer owns the source account" },
+        { kind: "server", label: "Risk", status: "pass", text: "Amount, payee and device look like you" },
+        { kind: "server", label: "Ledger", status: "pass", text: "Debit you, credit Anna" },
+        { kind: "response", text: "201 Created · new balance" },
+        { kind: "client", text: "App displays the new balance. It is a copy." },
+      ],
+      outcome: { status: "pass", ledger: "written", text: "Money moves. The app asked; the server decided." },
+    },
+    {
+      id: "decompiled",
+      label: "Decompiled app",
+      steps: [
+        { kind: "client", text: "Attacker decompiles the app: finds the API, the pinned certificate, every screen" },
+        { kind: "client", text: "Rewrites the request: someone else’s account, 20,000 CHF" },
+        { kind: "request", text: "POST /transfers · attacker’s own session · from: victim’s account" },
+        { kind: "server", label: "Identity", status: "pass", text: "Valid session, but it is the attacker’s" },
+        { kind: "server", label: "Permission", status: "fail", text: "This session does not own that account" },
+        { kind: "response", text: "403 Forbidden" },
+        { kind: "client", text: "The modified app can show any balance it likes. Nothing real changed." },
+      ],
+      outcome: { status: "fail", ledger: "untouched", text: "Rejected. Rewriting the client changed the request, not the rules." },
+    },
+    {
+      id: "stolen",
+      label: "Stolen session",
+      steps: [
+        { kind: "client", text: "Victim is phished. Attacker replays their session token from a new device" },
+        { kind: "request", text: "POST /transfers · victim’s session · new payee" },
+        { kind: "server", label: "Identity", status: "pass", text: "Token is valid. To the server, this is the victim" },
+        { kind: "server", label: "Permission", status: "pass", text: "The victim owns the account" },
+        { kind: "server", label: "Risk", status: "flag", text: "New device, new payee, unusual amount" },
+        { kind: "server", label: "Step-up", status: "flag", text: "Confirm on the victim’s registered device" },
+        { kind: "response", text: "202 Accepted · pending confirmation" },
+      ],
+      outcome: { status: "flag", ledger: "held", text: "Held. Real attacks land here, on the server’s checks, not inside the app." },
+    },
+  ]}
+/>
+
+The server checks that the session belongs to a real, authenticated customer. It checks that this customer owns the source account and is allowed to move money from it. It checks the balance, limits, the state of the account and whether the payment looks like the customer's normal behaviour. Only then does it write to the ledger, and the ledger is the only place where the money actually is. The number on your screen is a copy.
+
+None of these steps run inside the app. Taking the app apart gives you a very detailed view of the request form. It does not give you a pen to write in the ledger.
+
+## "But the certificates are in the app"
+
+This is the part that sounds most alarming, so it deserves a closer look.
+
+Banking apps often contain certificate material. Most commonly it is **certificate pinning**: the app carries a fingerprint of the bank's public certificate so it can refuse to talk to an impostor server. That is public information by design. Knowing the bank's public key lets you recognise the bank; it does not let you be the bank.
+
+Some apps also carry a client certificate or an API key that identifies *the app*. Finding one is a real finding and worth reporting, because it lets someone build their own client that looks like the official one. But identifying as the app is still not identifying as a customer, and it is nowhere near acting as the bank. A request from a home-made client still arrives at the same authentication, the same authorisation, the same risk checks and the same ledger. If it asks to move money out of someone else's account, it gets the same answer the official app would get.
+
+A certificate opens a connection. It does not grant permission for whatever travels over it.
+
+## What it takes to actually reach the money
+
+If a client binary is not enough, what is? To create unauthorised transfers, an attacker needs something that reaches the server's authority. In practice that means one of a short list:
+
+- **Stolen credentials or session tokens.** Phishing, malware on the victim's device, SIM swaps. The attacker becomes a legitimate customer in the server's eyes.
+- **Broken authorisation on the server.** The classic case is an endpoint that checks you are logged in but not that the account you are asking about is yours. This is a server bug, even if someone found the endpoint by reading the app.
+- **A server-side vulnerability.** Injection, deserialisation flaws, a misconfigured admin interface exposed to the internet.
+- **Compromised keys or signing infrastructure.** If the keys the bank uses to sign or approve operations leak, the boundary is gone.
+- **Supply-chain or insider compromise.** Malicious code in a dependency, a build pipeline, or a person with legitimate access.
+- **Abuse of a trusted integration.** A partner or internal service that the core systems already believe.
+
+Every item on that list is about the server, its keys, its people or its partners. Reverse engineering the client may help someone *find* one of these, which is exactly why researchers do it. But the vulnerability lives on the other side of the boundary, and that is where the impact comes from.
+
+## This does not make client-side work harmless
+
+It would be just as wrong to swing the other way and say decompiling an app never matters. It can matter a lot. Reverse engineering a client can:
+
+- reveal undocumented APIs and widen the attack surface people know about;
+- expose secrets that should never have been shipped, like hardcoded keys or credentials for third-party services;
+- enable tampering, cheating and abuse that the server fails to catch;
+- produce convincing fake apps for phishing and credential theft;
+- surface weaknesses in session handling or certificate validation;
+- expose sensitive data the app stores locally on the device;
+- give an attacker the first link in a chain that ends in a real server compromise.
+
+<Callout type="note" title="The accurate claim">
+Client compromise and server compromise are different security events. They give an attacker different capabilities, and proving one is not evidence of the other.
+</Callout>
+
+Games are a good illustration of both sides. A game that trusts the client to report "I just picked up 10,000 gold" will have its economy destroyed by the first person with a memory editor. A game whose server holds the inventory and validates every action can be decompiled freely; the worst a cheater can do is see things they shouldn't, like enemies behind walls. Same technique, very different impact, decided entirely by where the authority sits.
+
+## Why the distinction matters in public
+
+When the two get conflated, a few bad things happen.
+
+Researchers who report a client-side issue responsibly get treated as if they had broken into a bank, and the next one stays quiet. Companies get to say "only the app was affected" as if that settled the matter, without showing that the server held. Journalists and the public lose the vocabulary to ask the useful question, which is always the same one: *what could the attacker actually do, and what is the evidence?*
+
+When I read a disclosure or an incident report, I try to separate a handful of things:
+
+- **Inspection from exploitation.** Reading how something works is not using it against anyone.
+- **Client tampering from server compromise.** Changing your own copy of the app is not changing the bank.
+- **Discovering an API from gaining authorised access.** Finding the endpoint that returns account data is not the same as getting someone else's data back from it.
+- **Exposing a weakness from demonstrating impact.** A weak spot is a risk; a working path to someone else's money is an incident.
+- **Theoretical capability from verified control.** "This could allow" and "we confirmed that" are different sentences for a reason.
+
+None of this needs deep technical knowledge. It just needs the habit of asking where the decision is made.
+
+## Never trust the client
+
+The engineering lesson is the oldest one in the book, and it is still the one that holds everything else up. Assume every client is compromised, because some of them are. Put every decision that matters on the server: identity, permissions, balances, limits, state transitions. Make the server the single source of truth and treat whatever the client says as a claim to verify.
+
+Then keep the things that would break the boundary out of the client entirely. No shared secrets that grant more than the app's own identity, no business rules enforced only in the UI, no admin endpoints that rely on being hard to find.
+
+AI reverse engineering tools like REA make this more urgent, not less. When anyone can point an agent at your binary and get a readable map of it by dinner, every shortcut in the client gets found faster: the hardcoded key, the check that only happens in the UI, the endpoint nobody was supposed to notice. The server boundary is the part that doesn't get cheaper to break.
+
+Get the boundary right, and someone decompiling your app is a researcher reading your request form. Skip it, and the app was never the real problem.

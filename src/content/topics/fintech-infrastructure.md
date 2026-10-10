@@ -2,6 +2,7 @@
 title: "Fintech Infrastructure"
 description: "Payments, neobank platforms, and regulated delivery — career and technical writing from N26, Personio, GFT, and IBM."
 relatedArticles:
+  - ai-reverse-engineering-cant-hack-your-bank
   - rebuilding-fraud-prevention-at-n26
   - engineering-at-n26-tech-stack
   - engineering-at-upgrid-tech-stack

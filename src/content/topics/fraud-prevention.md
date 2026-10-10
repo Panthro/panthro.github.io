@@ -2,6 +2,7 @@
 title: "Fraud Prevention"
 description: "Rebuilding N26's fraud engine: a static rule engine spread across dozens of microservices replaced by a stateful Apache Flink pipeline in six months, payment to decision in ~52ms."
 relatedArticles:
+  - ai-reverse-engineering-cant-hack-your-bank
   - rebuilding-fraud-prevention-at-n26
   - engineering-at-n26-tech-stack
 relatedTalks:
