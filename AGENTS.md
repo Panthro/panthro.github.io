@@ -185,7 +185,19 @@ Body must include an **original intro paragraph** (100+ words) explaining why th
 
 ## Article components
 
-Reuse before inventing new ones. All live in `src/components/articles/`:
+### Build a visual for the article's core idea
+
+Every article should have at least one visual that explains its central argument, not just decorates it. The library below is a starting point, not a limit. Before reaching for a generic component, ask: *what is the one mechanism, boundary, trade-off or shape this article is about, and what picture would make it click?*
+
+- **Design a new component when the existing ones don't show the actual mechanism.** A `FlowDiagram` of five labelled boxes is not an explanation of a trust boundary; a sequence diagram with client/server lanes and switchable scenarios is (see `TrustBoundary`). Don't bend prose to fit a component that's already there.
+- **Pick the form from the idea:** sequence/swimlane diagrams for who-does-what across a boundary, Venn/overlap for shared vs separate responsibility, 2-axis maps for trade-offs, state machines for lifecycles, before/after toggles for counterfactuals, scenario tabs for "same system, different inputs".
+- **Prefer interaction that teaches:** tabs or toggles that change one variable, step-by-step playback, replay. Avoid motion that's only decorative.
+- **Put the content in MDX props**, keep the component generic enough that a later article could reuse it, then add it to the table below.
+- **When reviewing a draft**, flag places where a visual would carry the argument better than a paragraph, and propose a new component rather than only checking the existing ones.
+
+### Existing components
+
+Reuse when they genuinely fit. All live in `src/components/articles/`:
 
 | Component | Use for |
 |-----------|---------|
@@ -202,10 +214,11 @@ Reuse before inventing new ones. All live in `src/components/articles/`:
 | `AmbiguityMap` | Scroll-driven sticky 2-axis chart + draggable level rail (island: `client:visible`) |
 | `OwnershipLadder` | Level × stage matrix of given/shared/owned cells with right-to-left fill |
 | `SignalConvergence` | Scattered signals converging into one named problem, with replay (island: `client:visible`) |
+| `TrustBoundary` | Client/server sequence diagram across a trust boundary, scenario tabs, step playback, outcome row (island: `client:visible`) |
 
 Interactive islands must SSR a complete end state (works without JS), honour `prefers-reduced-motion`, and set `suppressHydrationWarning` on an `.article-reveal` root (Head.astro adds `.show` before hydration).
 
-New article components: React + Tailwind, use semantic classes (`.text-prose`, `.text-heading`, `.text-meta`, `.text-accent`, `.border-subtle`). Add `article-reveal` for scroll animation; see motion pitfalls below.
+New article components: React + Tailwind, use semantic classes (`.text-prose`, `.text-heading`, `.text-meta`, `.text-accent`, `.border-subtle`). Add `article-reveal` for scroll animation; see motion pitfalls below. Must work at 375px wide with no horizontal scroll and pass WCAG AA in both themes. Check `.text-accent` in light mode; use `text-lime-700 dark:text-lime-400` for small text if it's too pale. Validate in the browser (light + dark, mobile + desktop) before reporting done.
 
 ## Design rules (short)
 

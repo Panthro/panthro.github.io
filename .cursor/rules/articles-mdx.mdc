@@ -9,14 +9,16 @@ alwaysApply: false
 ## New article checklist
 
 1. Create `src/content/articles/<slug>.mdx` with frontmatter (`title`, `description`, `date`, `draft`, `tags`)
-2. Import existing components from `src/components/articles/` — reuse before creating new ones
+2. Give the article at least one visual that explains its core idea. Reuse a component from `src/components/articles/` only if it genuinely shows the mechanism; otherwise design a new one (sequence diagram, Venn/overlap, state machine, scenario tabs…). See AGENTS.md § Article components.
 3. Set `draft: false` when ready for production (excluded from build/sitemap/RSS when `true`)
 4. Add `relatedArticles` / topic hub slug arrays on related talks/work/topics
 5. Browser-test `/articles/<slug>/`
 
 ## Component patterns
 
-- React (`.tsx`) with semantic token classes
+- React (`.tsx`) with semantic token classes; content passed as MDX props so the component stays reusable
+- Interactive islands: SSR the complete end state, honour `prefers-reduced-motion`, `suppressHydrationWarning` on the `.article-reveal` root
+- Works at 375px, WCAG AA in light and dark; add new components to the AGENTS.md table
 - Scroll reveal: wrap in `article-reveal`; stagger children with nested `article-stagger` > `article-stagger-item`
 - **Do not** put `article-reveal` and `article-stagger` on the same element without the nested-child pattern (causes invisible content)
 
