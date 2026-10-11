@@ -81,6 +81,14 @@ export function SignalConvergence({ signals, problem, sponsors, caption }: Props
     // play only touches refs and setters, so mount-once is safe.
   }, []);
 
+  const replay = () => {
+    window.posthog?.capture("signal_convergence_replayed");
+    window.posthog?.logger?.info("signal convergence replayed", {
+      source: "signal_convergence",
+    });
+    play();
+  };
+
   const ease = animate ? "duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" : "duration-0";
 
   return (
@@ -182,7 +190,7 @@ export function SignalConvergence({ signals, problem, sponsors, caption }: Props
         ))}
         <button
           type="button"
-          onClick={play}
+          onClick={replay}
           className="touch-target focus-ring ml-auto font-mono text-xs text-meta hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
         >
           Replay

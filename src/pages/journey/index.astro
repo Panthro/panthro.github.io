@@ -1,5 +1,6 @@
 ---
 import Head from "@components/Head.astro";
+import PostHog from "@components/posthog.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import JourneyChapter from "@components/JourneyChapter.astro";
@@ -148,6 +149,7 @@ const jsonLd = [
 <html lang="en">
   <head>
     <Head title={JOURNEY.TITLE} description={JOURNEY.DESCRIPTION} jsonLd={jsonLd} />
+    <PostHog />
   </head>
   <body class="journey-route-page">
     <a

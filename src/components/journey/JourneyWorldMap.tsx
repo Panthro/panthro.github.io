@@ -489,7 +489,20 @@ export default function JourneyWorldMap({ steps, variant = "flow" }: Props) {
                      so the pin must not be focusable — a focusable node inside an
                      aria-hidden subtree is reachable by keyboard but invisible to
                      assistive tech. Click stays as a pointer-only shortcut. */
-                  onClick={() => scrollToStep(step.index)}
+                  onClick={() => {
+                    window.posthog?.capture("journey_landmark_selected", {
+                      chapter: step.chapter,
+                      landmark_index: step.index,
+                      landmark_kind: step.kind,
+                    });
+                    window.posthog?.logger?.info("journey landmark selected", {
+                      chapter: step.chapter,
+                      landmark_index: step.index,
+                      landmark_kind: step.kind,
+                      source: "journey_map",
+                    });
+                    scrollToStep(step.index);
+                  }}
                 >
                   <circle className="journey-world-pin-halo" r={13} cx={0} cy={0} />
                   <circle className="journey-world-pin-dot" r={7} cx={0} cy={0} />

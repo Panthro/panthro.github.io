@@ -114,6 +114,11 @@
 
       button.onclick = function () {
         var next = ORDER[(ORDER.indexOf(currentMode()) + 1) % ORDER.length];
+        window.posthog?.capture("theme_changed", { theme: next });
+        window.posthog?.logger?.info("theme preference changed", {
+          theme: next,
+          source: "theme_cycle",
+        });
         var proxy = document.getElementById(next + "-theme-button");
         if (proxy) proxy.click();
         paint();

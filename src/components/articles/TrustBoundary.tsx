@@ -104,8 +104,12 @@ export function TrustBoundary({ title, scenarios, caption }: Props) {
   }, []);
 
   const select = (index: number) => {
+    const selectedScenario = scenarios[index];
+    window.posthog?.capture("trust_boundary_scenario_selected", {
+      scenario_id: selectedScenario.id,
+    });
     setActive(index);
-    play(scenarios[index].steps.length + 1);
+    play(selectedScenario.steps.length + 1);
   };
 
   const ease = animate ? "duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" : "duration-0";

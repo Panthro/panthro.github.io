@@ -151,7 +151,21 @@ export function AmbiguityMap({ steps }: Props) {
     setValue(valueFromPointer(event.clientX));
   };
 
+  const captureLevelSelection = (index: number) => {
+    window.posthog?.capture("ambiguity_map_level_selected", {
+      career_level: LEVELS[index].label.toLowerCase(),
+    });
+  };
+
   const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (!dragging) return;
+    const selectedLevel = Math.round(valueFromPointer(event.clientX));
+    setDragging(false);
+    setValue(selectedLevel);
+    captureLevelSelection(selectedLevel);
+  };
+
+  const onPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
     setDragging(false);
     setValue(Math.round(valueFromPointer(event.clientX)));
@@ -168,7 +182,9 @@ export function AmbiguityMap({ steps }: Props) {
     };
     if (!(event.key in keys)) return;
     event.preventDefault();
-    setValue(clamp(keys[event.key], 0, MAX));
+    const selectedLevel = clamp(keys[event.key], 0, MAX);
+    setValue(selectedLevel);
+    captureLevelSelection(selectedLevel);
   };
 
   const smooth = animate && !dragging;
@@ -336,7 +352,7 @@ export function AmbiguityMap({ steps }: Props) {
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
+                onPointerCancel={onPointerCancel}
               >
                 <div className="absolute inset-x-0 top-1/2 h-px bg-zinc-300 dark:bg-zinc-700" aria-hidden="true" />
                 <div
