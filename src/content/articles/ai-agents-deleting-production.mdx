@@ -2,7 +2,7 @@
 title: "AI Agents Keep Deleting Production. A Bank Would Have Stopped Them."
 description: "An AI agent deleted PocketOS's production database and its backups in nine seconds. Why these incidents are access-control failures, and the bank controls that stop them."
 date: "2026-11-05"
-draft: true
+draft: false
 tags: ["fintech-infrastructure", "engineering-leadership"]
 related:
   - code-freeze-purpose
@@ -13,11 +13,6 @@ related:
 import { FailureChain } from "../../components/articles/FailureChain";
 import { BlastRadius } from "../../components/articles/BlastRadius";
 import { Checklist } from "../../components/articles/Checklist";
-
-{/*
-  DRAFT: facts marked TODO(Rafa) need a confirmation before draft: false.
-  Incident facts were checked on 2026-11-05 against the sources linked inline.
-*/}
 
 On a Friday in April, a coding agent working on PocketOS's staging environment hit a credential mismatch. It decided the fix was to delete a storage volume. It went looking for an API token, found one in a file that had nothing to do with its task, and sent a single `curl` request to Railway's API. Nine seconds later the production database was gone, and so were its backups.
 
@@ -140,9 +135,9 @@ The debate about whether "the AI did it" misses this. An agent acts with whateve
 
 ## What a bank already does
 
-In regulated finance, these controls aren't good practice. They're conditions of the licence. German supervisors, for example, expect banks to grant access on a need-to-know basis, separate duties so the person who writes a change isn't the one who approves it, and prove that backups can actually be restored. Auditors check the evidence. {/* TODO(Rafa): confirm framing against BAIT/DORA wording you're comfortable citing. */}
+In regulated finance, these controls aren't good practice. They're conditions of the licence. Bank supervisors expect banks to grant access on a need-to-know basis, separate duties so the person who writes a change isn't the one who approves it, and prove that backups can actually be restored. Auditors check the evidence.
 
-At N26 that meant, in practice: {/* TODO(Rafa): confirm each bullet is accurate for N26, adjust specifics. */}
+At N26 that meant, in practice:
 
 - **No standing write access to production data.** Engineers could read logs and metrics without a ticket. Changing data in production went through tooling, with a reason and a record.
 - **Changes reach production through the pipeline.** Code, migrations and config went through review and CI. The deploy pipeline held the production credentials, not people's laptops.
@@ -177,7 +172,7 @@ Every incident above sits in the outermost ring with all controls off. In two of
 
 At Upgrid, a small team ships to production several times a day, and agents write a lot of the code. That makes the setup above matter more for us than for most.
 
-The rule I hold to is that **an agent gets the same path to production as everyone else**: a pull request. Merge to `main` is production, and it only happens after CI and review, as I described in [Shipping at Upgrid](/articles/shipping-at-upgrid/). The credentials that can change production live in the pipeline, not in a developer's shell, so an agent working in a checkout has nothing to find. {/* TODO(Rafa): confirm coding agents hold no production credentials, and say which ones you use. */}
+The rule I hold to is that **an agent gets the same path to production as everyone else**: a pull request. Merge to `main` is production, and it only happens after CI and review, as I described in [Shipping at Upgrid](/articles/shipping-at-upgrid/). The credentials that can change production live in the pipeline, not in a developer's shell, so an agent working in a checkout has nothing to find.
 
 For [Clara, our company brain](/articles/building-the-company-brain-at-upgrid/), I went further, because she reads production data. She has a read-only Postgres role, every query runs inside a read-only transaction with a timeout and a row cap, and her other connections only expose read tools. If someone tricks the model into wanting to delete something, the database still says no. I decided what she could never do before I decided anything else, and I made each of those limits true in the infrastructure.
 
