@@ -215,6 +215,8 @@ Reuse when they genuinely fit. All live in `src/components/articles/`:
 | `OwnershipLadder` | Level × stage matrix of given/shared/owned cells with right-to-left fill |
 | `SignalConvergence` | Scattered signals converging into one named problem, with replay (island: `client:visible`) |
 | `TrustBoundary` | Client/server sequence diagram across a trust boundary, scenario tabs, step playback, outcome row (island: `client:visible`) |
+| `FailureChain` | Incident replayed as numbered steps; toggling controls breaks the chain at the first step they'd stop, scenario tabs, outcome row (island: `client:visible`) |
+| `BlastRadius` | Nested boxes showing how far one credential reaches; toggling controls shrinks the radius and updates the worst case (island: `client:visible`) |
 
 Interactive islands must SSR a complete end state (works without JS), honour `prefers-reduced-motion`, and set `suppressHydrationWarning` on an `.article-reveal` root (Head.astro adds `.show` before hydration).
 

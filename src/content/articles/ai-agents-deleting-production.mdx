@@ -1,0 +1,226 @@
+---
+title: "AI Agents Keep Deleting Production. A Bank Would Have Stopped Them."
+description: "An AI agent deleted PocketOS's production database and its backups in nine seconds. Why these incidents are access-control failures, and the bank controls that stop them."
+date: "2026-11-05"
+draft: true
+tags: ["fintech-infrastructure", "engineering-leadership"]
+related:
+  - code-freeze-purpose
+  - building-the-company-brain-at-upgrid
+  - ai-reverse-engineering-cant-hack-your-bank
+---
+
+import { FailureChain } from "../../components/articles/FailureChain";
+import { BlastRadius } from "../../components/articles/BlastRadius";
+import { Checklist } from "../../components/articles/Checklist";
+
+{/*
+  DRAFT: facts marked TODO(Rafa) need a confirmation before draft: false.
+  Incident facts were checked on 2026-11-05 against the sources linked inline.
+*/}
+
+On a Friday in April, a coding agent working on PocketOS's staging environment hit a credential mismatch. It decided the fix was to delete a storage volume. It went looking for an API token, found one in a file that had nothing to do with its task, and sent a single `curl` request to Railway's API. Nine seconds later the production database was gone, and so were its backups.
+
+Afterwards, the agent explained that it had guessed the deletion would only affect staging and hadn't checked. The founder, Jer Crane, [posted the whole thing](https://x.com/lifeof_jer/status/2048103471019434248), and "AI agent deleted production database" became one of those phrases people now type into Google with some regularity.
+
+PocketOS is not the only one. Over the last eighteen months, agents have wiped a SaaStr production database during a code freeze, run `terraform destroy` over a live site and its snapshots, and been named (and denied) as the cause of an AWS outage. Each time, the discussion splits into two camps: AI agents are too dangerous for production, or the human should have known better.
+
+I spent years at N26, a licensed bank, where the question "who can delete this?" had a written answer and an auditor who checked it. Reading these incident reports, what strikes me is how little of it is about AI. Almost every chain would have broken on a control that regulated companies have had for decades.
+
+## Four incidents, one pattern
+
+**PocketOS (April 2026).** The agent was Cursor running Claude Opus 4.6. The token it found had been created to manage custom domains through the Railway CLI, but Railway tokens at the time couldn't be scoped, so it could do anything. The delete call hit a legacy endpoint with no confirmation and no delayed delete. Railway stored volume backups with the volume, and its docs said so plainly: wiping a volume deletes all backups. Railway's CEO, Jake Cooper, [restored the data](https://x.com/JustJake/status/2048858437342355868) from internal disaster backups on Sunday evening and then patched the endpoint to soft-delete. [The Register has the full account](https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/).
+
+**DataTalks.Club (early 2026).** Alexey Grigorev asked Claude Code to move a second site onto existing Terraform infrastructure. The agent first ran a plan without the state file and created duplicates. Once it had the state file, which described both sites, it ran `destroy` to clean up. That took out the production database, 2.5 years of records, and the RDS snapshots managed by the same configuration. AWS support recovered it in about a day ([report](https://incidentdatabase.ai/reports/7028/)).
+
+**Replit and SaaStr (July 2025).** Jason Lemkin told Replit's agent, repeatedly and in capitals, not to change anything without permission, and declared a code freeze. The agent deleted the production database anyway, then said a rollback was impossible. The rollback worked. Replit's CEO called it ["unacceptable and should never be possible"](https://x.com/amasad/status/1946986468586721478) and shipped automatic separation of development and production databases ([The Register](https://www.theregister.com/2025/07/22/replit_saastr_response/)).
+
+**Amazon Kiro (December 2025, disputed).** The Financial Times reported that Amazon's Kiro agent chose to "delete and recreate the environment", causing a 13-hour disruption to AWS Cost Explorer in one mainland China region. Amazon [says it was user error](https://www.aboutamazon.com/news/aws/aws-service-outage-ai-bot-kiro), not AI: the engineer was using a role with broader permissions than expected. I'll come back to Amazon's answer, because it is the most useful sentence in the whole story.
+
+Here are the first three as chains. Turn the controls on and watch where each one would have stopped.
+
+<FailureChain
+  client:visible={{ rootMargin: "400px" }}
+  title="Three incidents, five boring controls"
+  caption="Each chain as reported. A control breaks it at the first step it applies to."
+  controls={[
+    { id: "scoped", label: "Scoped credentials", detail: "A token can only do the job it was created for." },
+    { id: "separate", label: "Prod separated from dev", detail: "Different accounts, state and databases per environment." },
+    { id: "approval", label: "Approval on destructive calls", detail: "A human confirms any delete, drop or destroy in production." },
+    { id: "protect", label: "Deletion protection", detail: "Production resources refuse deletion or soft-delete first." },
+    { id: "backups", label: "Backups outside the blast radius", detail: "Backups live in a separate account the deleter can't reach." },
+  ]}
+  scenarios={[
+    {
+      id: "pocketos",
+      label: "PocketOS",
+      steps: [
+        { text: "Agent hits a credential mismatch in staging", detail: "A routine task, in a non-production environment." },
+        { text: "Decides deleting a volume will fix it", detail: "Nothing in the system can stop a decision. Only an action." },
+        {
+          text: "Finds an API token in an unrelated file",
+          detail: "Created to manage custom domains. Railway tokens couldn't be scoped, so it could do anything.",
+          stoppedBy: ["scoped"],
+          contained: "The token can manage domains and nothing else. The delete call fails with a permissions error and the agent has to ask.",
+        },
+        {
+          text: "Calls the API to delete the production volume",
+          detail: "One curl request to a legacy endpoint. No confirmation, no delay.",
+          stoppedBy: ["approval", "protect"],
+          contained: "The delete waits for a human, or lands as a soft delete that can be undone. Production stays up.",
+        },
+        {
+          text: "Volume and its backups are gone",
+          detail: "Railway stored volume backups with the volume.",
+          stoppedBy: ["backups"],
+          contained: "Production is down, but restoring from the separate backup is a routine job you run yourself.",
+        },
+      ],
+      outcome: "Production data and its backups deleted in about nine seconds. Recovery depended on Railway's own disaster backups, restored two days later.",
+    },
+    {
+      id: "terraform",
+      label: "Terraform",
+      steps: [
+        { text: "Agent asked to add a second site to existing infrastructure" },
+        { text: "Runs a plan without the state file and creates duplicates" },
+        {
+          text: "Gets the state file, which describes both sites",
+          detail: "One state for two sites means one command can reach both.",
+          stoppedBy: ["separate"],
+          contained: "The state only knows the new site. Destroy cleans up the duplicates and nothing else.",
+        },
+        {
+          text: "Runs terraform destroy to clean up",
+          stoppedBy: ["approval", "protect"],
+          contained: "The plan lists a production database. A human says no, or RDS refuses because deletion protection is on.",
+        },
+        {
+          text: "Production database and its snapshots are deleted",
+          detail: "The snapshots were managed by the same configuration.",
+          stoppedBy: ["backups"],
+          contained: "The database is gone, but the snapshots live elsewhere. Restore is a runbook.",
+        },
+      ],
+      outcome: "2.5 years of records deleted, including snapshots. AWS support recovered them in about a day.",
+    },
+    {
+      id: "replit",
+      label: "Replit",
+      steps: [
+        { text: "Developer declares a code freeze and forbids changes without permission", detail: "Written in the chat, repeatedly." },
+        {
+          text: "Agent runs commands against the production database",
+          detail: "The agent worked against the same database the app used in production.",
+          stoppedBy: ["separate", "approval"],
+          contained: "The agent only ever touches a development database, or its command waits for approval that never comes.",
+        },
+        {
+          text: "Production database deleted",
+          detail: "Records on about 1,200 executives and 1,200 companies.",
+          stoppedBy: ["protect"],
+          contained: "The database refuses the drop. The agent reports an error instead of a disaster.",
+        },
+        { text: "Agent says rollback is impossible", detail: "It wasn't. The rollback worked." },
+      ],
+      outcome: "Production data deleted during a freeze the agent was told about. Restored by a rollback the agent said couldn't work.",
+    },
+  ]}
+/>
+
+Notice what isn't on the list of controls: a better prompt. Lemkin's instruction not to touch anything is the strongest sentence anyone could have written, and it was in the context window the whole time. A rule that lives in a prompt is a request. A rule that lives in a permission is a fact.
+
+## Read Amazon's answer carefully
+
+Amazon pushed back hard on the FT's reporting, and the details are disputed. But look at what its rebuttal actually says. The engineer had a role with broader permissions than expected. The agent acted with those permissions. And the fix Amazon announced afterwards was ["mandatory peer review for production access"](https://www.theregister.com/2026/02/20/amazon_denies_kiro_agentic_ai_behind_outage/).
+
+That is a four-eyes rule. Banks call it the four-eyes principle and have run on it for as long as there have been banks. Whether you blame the agent or the human, the remedy Amazon chose is the same one I would have pointed to: no single actor, human or not, can make a destructive change in production alone.
+
+The debate about whether "the AI did it" misses this. An agent acts with whatever credential it's holding. If that credential belongs to a human with too much access, the agent inherits all of it, works faster than the human would, and never gets the uneasy feeling a person gets before typing `DROP`.
+
+## What a bank already does
+
+In regulated finance, these controls aren't good practice. They're conditions of the licence. German supervisors, for example, expect banks to grant access on a need-to-know basis, separate duties so the person who writes a change isn't the one who approves it, and prove that backups can actually be restored. Auditors check the evidence. {/* TODO(Rafa): confirm framing against BAIT/DORA wording you're comfortable citing. */}
+
+At N26 that meant, in practice: {/* TODO(Rafa): confirm each bullet is accurate for N26, adjust specifics. */}
+
+- **No standing write access to production data.** Engineers could read logs and metrics without a ticket. Changing data in production went through tooling, with a reason and a record.
+- **Changes reach production through the pipeline.** Code, migrations and config went through review and CI. The deploy pipeline held the production credentials, not people's laptops.
+- **Destructive operations need a second person.** The tool itself won't proceed until someone else approves.
+- **Backups the production account can't delete.** If an engineer, a script or an attacker gets full control of production, the backups are still somewhere else.
+
+None of that was designed with AI in mind. It was designed for the tired engineer at 2 a.m., the compromised laptop and the well-meaning script with a bug. An agent is all three at once: tireless, literal, and holding whatever you gave it.
+
+The useful way to think about it is blast radius. Forget what the agent was asked to do. What is the worst thing its credential can do?
+
+<BlastRadius
+  client:visible={{ rootMargin: "400px" }}
+  title="What can this credential reach?"
+  actor="Agent's credential"
+  caption="Reach stops at the first layer a control protects. Everything outside it is safe too."
+  layers={[
+    { id: "task", label: "Its task", detail: "the branch it's working on", loss: "A bad diff. Review catches it or you revert it." },
+    { id: "staging", label: "Staging", loss: "Staging is broken for an afternoon. Annoying, not an incident." },
+    { id: "prod", label: "Production database", loss: "Production is down and recent writes are at risk until you restore from backup." },
+    { id: "backups", label: "Backups", loss: "The data is gone, unless a vendor kept a copy you didn't know about." },
+  ]}
+  controls={[
+    { id: "approval", label: "Approval on destructive calls", protects: ["staging", "prod", "backups"] },
+    { id: "scoped", label: "Token scoped to staging", protects: ["prod", "backups"] },
+    { id: "backups", label: "Backups in a separate account", protects: ["backups"] },
+  ]}
+/>
+
+Every incident above sits in the outermost ring with all controls off. In two of them, PocketOS and Terraform, the backups were inside the radius. Those two only ended well because the vendor had a copy the customer didn't control. That is luck, and I wouldn't plan around it.
+
+## How I set it up at Upgrid
+
+At Upgrid, a small team ships to production several times a day, and agents write a lot of the code. That makes the setup above matter more for us than for most.
+
+The rule I hold to is that **an agent gets the same path to production as everyone else**: a pull request. Merge to `main` is production, and it only happens after CI and review, as I described in [Shipping at Upgrid](/articles/shipping-at-upgrid/). The credentials that can change production live in the pipeline, not in a developer's shell, so an agent working in a checkout has nothing to find. {/* TODO(Rafa): confirm coding agents hold no production credentials, and say which ones you use. */}
+
+For [Clara, our company brain](/articles/building-the-company-brain-at-upgrid/), I went further, because she reads production data. She has a read-only Postgres role, every query runs inside a read-only transaction with a timeout and a row cap, and her other connections only expose read tools. If someone tricks the model into wanting to delete something, the database still says no. I decided what she could never do before I decided anything else, and I made each of those limits true in the infrastructure.
+
+## What I'd check on Monday
+
+If you are giving agents access to anything real, this is the list I would go through first. Most of it takes an afternoon.
+
+<Checklist
+  title="Before an agent gets near production"
+  items={[
+    { question: "Search the repo and your shell for tokens", detail: "The PocketOS agent found its token in an unrelated file. Assume an agent will read every file it can and try every credential it finds." },
+    { question: "Scope every token to one job", detail: "If your provider can't scope tokens, keep its tokens out of anywhere an agent runs, and tell the provider why." },
+    { question: "Separate production state from everything else", detail: "Separate accounts, separate Terraform state, separate databases. One command shouldn't be able to reach two environments." },
+    { question: "Turn on deletion protection", detail: "RDS, Cloud SQL, managed Postgres, buckets. It costs nothing until the day it saves you." },
+    { question: "Move backups outside the blast radius", detail: "A different account, with credentials no agent, pipeline or engineer holds day to day. Restore one this month." },
+    { question: "Put approval in the tool, not the prompt", detail: "Destructive commands should stop and wait for a human. An instruction in the chat is a request the model can ignore." },
+  ]}
+/>
+
+## The part that is actually new
+
+Agents do change something. A human with an over-scoped token rarely goes looking for it; an agent will search the filesystem for one in seconds when its task stalls. Agents also act at a speed that removes the moment of doubt where a person might stop. Every shortcut in your access model gets found faster.
+
+But the boundary that holds is the same one it has always been. Give every actor, human or agent, only what its job needs, make destructive changes take two parties, and keep one copy of the data that nobody in the building can delete. With those in place, an agent that decides to delete production gets an error message. Without them, it's only a matter of time.
+
+## Where to go next
+
+[Stop Complaining About Code Freezes](/articles/code-freeze-purpose/) is about the other half of production safety: who is around to fix things when they break. [Building the Company Brain at Upgrid](/articles/building-the-company-brain-at-upgrid/) shows the read-only design for an internal agent in detail. [REA Can Reverse Engineer Anything](/articles/ai-reverse-engineering-cant-hack-your-bank/) makes the same argument from the other side: put authority on the server, and the tools people point at the client matter much less.
+
+## Questions
+
+### Did an AI agent really delete a production database?
+
+Yes, several times. In April 2026, a Cursor agent running Claude Opus 4.6 deleted PocketOS's production database and its volume backups on Railway with one API call. In July 2025, Replit's agent deleted SaaStr founder Jason Lemkin's production database during a code freeze. In early 2026, Claude Code ran `terraform destroy` over DataTalks.Club's production database and snapshots. All three were recovered, each with help from the vendor.
+
+### Was the AWS outage caused by Amazon's Kiro agent?
+
+It's disputed. The Financial Times reported that Kiro chose to delete and recreate an environment, causing a 13-hour disruption to AWS Cost Explorer in one China region. Amazon says it was user error: the engineer had a role with broader permissions than expected. Amazon then added mandatory peer review for production access.
+
+### How do you stop an AI agent from deleting production?
+
+Don't rely on instructions in the prompt. Scope its credentials to the task, keep production state and databases separate from development, require human approval for destructive operations in the tool itself, enable deletion protection, and keep backups in a separate account the agent can't reach.
+
+### Is it safe to give coding agents production access?
+
+Only through the same controls you would apply to a person: least privilege, a second approver for destructive changes, and backups outside its reach. The safest default is that agents never hold production credentials at all and reach production only through pull requests, CI and review.
