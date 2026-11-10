@@ -2,6 +2,7 @@
 title: "Engineering at Upgrid"
 description: "Next.js, Supabase, Linear, Steep, PostHog, Better Stack. A tour of the Upgrid stack — how a small team ships Swiss energy billing without a microservice estate."
 date: "2026-08-22"
+updated: "2026-11-09"
 draft: false
 tags: ["energy-tech", "fintech-infrastructure"]
 related:
@@ -41,7 +42,7 @@ The company story is in [Building Upgrid](/articles/building-upgrid/). This is t
     },
     {
       name: "Delivery",
-      summary: "Vercel for hosting, GitHub Actions for CI, fifteen Vercel crons for background work. Feature flags and monitors defined in the repo (CDKTF).",
+      summary: "Vercel for hosting, GitHub Actions for CI, twenty-three Vercel crons for background work. Feature flags and monitors defined in the repo (CDKTF).",
       tags: ["Vercel", "GitHub Actions", "CDKTF"],
     },
     {
@@ -54,9 +55,9 @@ The company story is in [Building Upgrid](/articles/building-upgrid/). This is t
 
 <MetricRow
   metrics={[
-    { value: "7 apps", label: "~70 workspace packages", highlight: true },
-    { value: "570", label: "SQL migrations in the product repo" },
-    { value: "15", label: "Vercel cron jobs" },
+    { value: "6 apps", label: "~70 workspace packages", highlight: true },
+    { value: "748", label: "SQL migrations in the product repo" },
+    { value: "23", label: "Vercel cron jobs" },
     { value: "3", label: "Locales — de, en, fr" },
   ]}
 />
@@ -65,7 +66,7 @@ One Turborepo. Splitting it into services later would add coordination, not capa
 
 ## Monorepo on purpose
 
-**Seven apps** (`web`, `api`, `company-brain`, and a few internal tools) plus **~70 workspace packages** share one Postgres schema and one CI pipeline. Domain logic — consumption allocation, SDAT import, energy billing, the Bexio client — lives in shared packages imported by both the Next.js app and the public API. Multi-tenancy is RLS: personal accounts, team workspaces, operator accounts, and sub-brand partners.
+**Six apps** (`web`, `api`, `company-brain`, and a few internal tools) plus **~70 workspace packages** share one Postgres schema and one CI pipeline. Domain logic — consumption allocation, SDAT import, energy billing, the Bexio client — lives in shared packages imported by both the Next.js app and the public API. Multi-tenancy is RLS: personal accounts, team workspaces, operator accounts, and sub-brand partners.
 
 Why a monorepo instead of the ~230-service estate I came from is in [Building Upgrid](/articles/building-upgrid/). Billing, allocation, and ingestion share types and tables. That coupling is the product.
 
@@ -125,7 +126,7 @@ An internal Slack agent (company brain) has read-only connectors to **Linear**, 
 
 ### What tech stack does Upgrid use?
 
-Seven apps and ~70 workspace packages in a Turborepo. Next.js 16, React 19, TypeScript, on Vercel. One Supabase Postgres with row-level security. Linear for issues, Steep for business metrics, PostHog for analytics and flags, Better Stack and Sentry for uptime and errors. Fifteen Vercel crons. Infrastructure config in CDKTF.
+Six apps and ~70 workspace packages in a Turborepo. Next.js 16, React 19, TypeScript, on Vercel. One Supabase Postgres with row-level security. Linear for issues, Steep for business metrics, PostHog for analytics and flags, Better Stack and Sentry for uptime and errors. Fifteen Vercel crons. Infrastructure config in CDKTF.
 
 ### Should a small team use a monorepo or microservices?
 

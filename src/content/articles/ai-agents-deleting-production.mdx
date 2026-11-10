@@ -170,7 +170,7 @@ Every incident above sits in the outermost ring with all controls off. In two of
 
 ## How I set it up at Upgrid
 
-At Upgrid, a small team ships to production several times a day, and agents write a lot of the code. That makes the setup above matter more for us than for most.
+At Upgrid, a small team merges to production close to twenty times a day, and agents write a lot of the code. That makes the setup above matter more for us than for most.
 
 The rule I hold to is that **an agent gets the same path to production as everyone else**: a pull request. Merge to `main` is production, and it only happens after CI and review, as I described in [Shipping at Upgrid](/articles/shipping-at-upgrid/). The credentials that can change production live in the pipeline, not in a developer's shell, so an agent working in a checkout has nothing to find.
 

@@ -13,7 +13,7 @@ Co-founded Upgrid in January 2025 and wrote the first commit. As CTO I own archi
 
 **Built:** SDAT metering ingestion, fifteen-minute consumption allocation, a billing engine with Swiss QR-bill PDF generation, Bexio accounting sync, and operator workflows for community formation and exception handling. One codebase serves consumers, full operator accounts, co-brand partners (municipalities and installers who bring members while Upgrid runs the communities), and affiliates, each on different permissions.
 
-**Architecture:** seven apps and ~70 workspace packages in a monorepo on a shared Postgres schema with row-level-security multi-tenancy. Sized for a small team, and the opposite call from the roughly 200-service estate I came from at N26.
+**Architecture:** six apps and ~70 workspace packages in a monorepo on a shared Postgres schema with row-level-security multi-tenancy. Sized for a small team, and the opposite call from the roughly 200-service estate I came from at N26.
 
 **Scale today:** 2k+ members, 250+ communities, 150+ municipalities.
 

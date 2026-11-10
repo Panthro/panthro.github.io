@@ -1,0 +1,177 @@
+---
+title: "AI Writes the Code. Review Is Now the Bottleneck."
+description: "Upgrid merged 526 PRs in October, half opened by coding agents. Careful human review stopped scaling. Here is the gate we built instead, and what it still misses."
+date: "2026-11-09"
+draft: false
+tags: ["engineering-leadership"]
+related:
+  - shipping-at-upgrid
+  - ai-agents-deleting-production
+  - i-hardly-debug-anymore-tdd
+---
+
+import { ReviewLoad } from "../../components/articles/ReviewLoad";
+import { GateStack } from "../../components/articles/GateStack";
+import { Checklist } from "../../components/articles/Checklist";
+
+In October we merged **526** pull requests into Upgrid's main branch. A year earlier, in October 2025, it was 33. Over the thirty days to 9 November the pace was **559** merges, about **18.6 a day**, from a team you could fit around one table.
+
+The team didn't triple. What changed is who writes the first draft. Across the last quarter, **54%** of merged PRs came from branches opened by coding agents, up from 17% a year before. The PRs also got bigger: the median went from about 170 changed lines in December 2025 to somewhere between 400 and 900 through 2026.
+
+Writing code stopped being the slow part. Reading it became the slow part. This is how we dealt with that, what I'd tell another team whose review queue is growing, and where the approach is still weak.
+
+## The arithmetic stopped working
+
+Careful code review has a speed limit. The figure people usually quote, from [SmartBear's study of code review at Cisco](https://smartbear.com/learn/code-review/best-practices-for-peer-code-review/), is that reviewers stop finding defects once they go much past a few hundred lines an hour, and that an hour or so at a time is about all anyone can do well. Call it 400 lines an hour and four focused hours a day, and you can work out how much review a codebase needs.
+
+Here is that calculation on Upgrid's real numbers. Move the sliders to give us more reviewers or faster readers.
+
+<ReviewLoad
+  client:visible={{ rootMargin: "400px" }}
+  title="Careful review hours needed per day"
+  reviewers={2}
+  linesPerHour={400}
+  hoursPerReviewer={4}
+  periods={[
+    { label: "Nov 2025–Feb 2026", prsPerDay: 3.6, medianLines: 167, agentShare: 0.17 },
+    { label: "Feb–May 2026", prsPerDay: 4.0, medianLines: 386, agentShare: 0.21 },
+    { label: "May–Aug 2026", prsPerDay: 6.3, medianLines: 897, agentShare: 0.24 },
+    { label: "Aug–Nov 2026", prsPerDay: 9.9, medianLines: 541, agentShare: 0.54 },
+    { label: "Last 30 days", prsPerDay: 18.6, medianLines: 541, highlight: true },
+  ]}
+  caption="Merged PRs per day per quarter; median lines changed from a sample of ~60 merged PRs in one month of each period. Lines include tests and generated files, so treat the hours as an upper bound."
+/>
+
+At a careful 400 lines an hour, no setting of the reviewer slider makes the last bar fit: twenty-five hours of focused reading a day is more than six people's worth, and it keeps climbing as agents take on more of the work. You can only close the gap by reading two or three times faster, which is exactly the speed where reviewers stop catching defects. Hiring reviewers to keep up with agents is a race you lose by design.
+
+The usual responses are both bad. You can keep the old rule and let the queue grow, which wastes the speed you just gained and turns review into a rubber stamp anyway, because nobody reads 900 lines carefully at 6 p.m. Or you can quietly stop reviewing and hope.
+
+## What review was actually for
+
+It helped to split "review" into the jobs it was doing. On a typical PR, a reviewer is checking four things:
+
+1. **Is it correct?** Logic errors, missing error handling, wrong edge cases, a VAT rounding bug.
+2. **Does it follow our rules?** Row-level security on new tables, migrations named and written the safe way, data access through the right layer, no secrets near the client.
+3. **Did it weaken anything?** A skipped test, a lowered coverage threshold, a CI step removed to get green.
+4. **Should this exist at all?** Is it the right feature, the right design, the right time?
+
+The first three are checks against something you could write down. The fourth is judgment, and it mostly happens before the code is written: in the ticket, the spec, the conversation. A diff is a bad place to decide whether a feature should exist.
+
+Once I saw it that way, the plan was clear. Write the rules down where a machine can read them, make every rule a machine can check a required check, and spend human attention on the fourth question and on the code where a mistake costs real money.
+
+## The gate we built
+
+Every PR at Upgrid now goes through the same stack before it can merge. Nothing on it is clever. Each layer is cheaper and faster than the one below it, and each one catches something the others don't.
+
+<GateStack
+  client:visible={{ rootMargin: "400px" }}
+  title="One PR, five kinds of change"
+  layers={[
+    { id: "types", label: "Types and lint", checks: "TypeScript, lint rules, formatting" },
+    { id: "tests", label: "Unit and integration tests", checks: "Behaviour, plus database tests for access policies and functions" },
+    { id: "ratchets", label: "Ratchets and contracts", checks: "Migration names, feature flags, public API contract, coverage and architecture baselines" },
+    { id: "ai", label: "AI review against written rules", checks: "Reads the diff against the repo's rules; can block or approve" },
+    { id: "human", label: "Human judgment", checks: "Money path and anything the reviewer isn't sure about" },
+  ]}
+  scenarios={[
+    {
+      id: "copy",
+      label: "Copy fix",
+      results: { human: "skip" },
+      outcome: "Every gate passes. Merged and live about five minutes later, with nobody waiting on anybody.",
+    },
+    {
+      id: "rls",
+      label: "New table, no RLS",
+      results: { ai: "block" },
+      notes: { ai: "New table without row-level security policies. Blocked with the file and line." },
+      outcome: "Tests passed, because nothing tested a table nobody knew about yet. The rule did. The author adds the policy and pushes again.",
+    },
+    {
+      id: "weakened",
+      label: "Test weakened to pass",
+      results: { ai: "block" },
+      notes: { ai: "An assertion was loosened. Weakening a guardrail needs a written decision record in the same PR." },
+      outcome: "Agents are good at getting to green. This is the layer that notices how they got there.",
+    },
+    {
+      id: "migration",
+      label: "Bad migration name",
+      results: { ratchets: "block" },
+      notes: { ratchets: "Migration timestamp looks like a placeholder. Fails before any model spends a token." },
+      outcome: "The cheapest possible catch: a script, in seconds. Anything a script can check should never reach the AI reviewer.",
+    },
+    {
+      id: "billing",
+      label: "Billing rule change",
+      results: { human: "human" },
+      notes: { human: "Changes how invoices are calculated. I read this one myself." },
+      outcome: "Machines verify that it's well-built. A person decides that it's right, because a wrong invoice is a customer's money.",
+    },
+  ]}
+  caption="Simplified from Upgrid's pipeline. The first layer that blocks or asks for a human stops the stack."
+/>
+
+Two parts of this needed more thought than the rest.
+
+**The rules live in the repo.** The AI reviewer doesn't run on taste. It reads the same rule files our coding agents read before they write anything: how migrations must look, where database access is allowed, what counts as a test at each layer, which libraries may only be called from one package. A rule that isn't written down can't be enforced, by a model or by a new hire. Writing them down was most of the work, and it paid off twice, because the agents writing the code now make fewer of the mistakes the reviewer would have to catch.
+
+**It has to point at a line, or it can't block.** A reviewer that blocks on vague worries trains everyone to ignore it within a week. Ours may only block on a real problem in this diff, with the file and line and the fix it wants. Anything it's unsure about becomes a suggestion. It doesn't block on style or on old code the PR didn't touch. When a blocked author disagrees, they have something concrete to argue with.
+
+One rule is worth stealing outright: **loosening a guardrail is blocked unless the same PR adds a written decision explaining why.** That covers removing a CI step, lowering a coverage threshold, widening an agent's permissions or growing an architecture baseline. Tightening needs no paperwork. Coding agents under pressure to get a build green will reach for exactly these levers, and so will tired humans. This rule means nobody can do it quietly.
+
+## Keeping it affordable
+
+Running a model over every push of every PR gets expensive fast at twenty PRs a day. Three changes cut most of the cost without weakening anything:
+
+- **Skip drafts.** Review starts when the author marks the PR ready, not on every work-in-progress push.
+- **Wait before reviewing.** After a push, the job waits two minutes. If another push lands, the first run is cancelled before it spends anything. Agents often push several times in a row.
+- **Review only what changed.** If the last reviewed commit is still in the branch, the next run reviews the new commits together with the previous findings, not the whole PR again.
+
+And the cheapest trick of all: anything a script can check stays a script. Migration naming, feature flag sync and API contract drift run as ordinary CI steps in a minute or less. The model only sees what needs reading.
+
+## What it still misses
+
+I don't want to oversell this. The gate is good at what it was built for and blind outside it.
+
+It can't tell you whether a feature should exist. It doesn't notice slow drift across many PRs that each look fine on their own. It can't catch a rule nobody wrote down, which means the rule files need maintaining like code; when a bug gets through, the fix is usually a new rule or a new check, not a sterner prompt. It makes mistakes in both directions, and the blocking criteria have to stay narrow or people stop trusting it. And it reviews what's in the diff, so it can't judge the context the author didn't include.
+
+That's why the human layer hasn't gone away. It moved. I spend less time reading diffs line by line and more time on the decisions around them: what goes into the ticket before an agent starts, the rules the reviewer enforces, and the billing and allocation changes where I still read every line. As I wrote in [Shipping at Upgrid](/articles/shipping-at-upgrid/), I don't merge a billing change I'm unsure about. That hasn't changed. What changed is that I'm no longer the gate for everything else.
+
+## If your review queue is growing
+
+<Checklist
+  title="Where I'd start"
+  items={[
+    { question: "Measure it first", detail: "PRs per day, median size, time from open to merge. Run the arithmetic above on your own numbers before arguing about it." },
+    { question: "Write your review comments down as rules", detail: "Look at the last fifty review comments. Most repeat. Each one that repeats is a rule file entry or a check waiting to happen." },
+    { question: "Turn every checkable rule into a required CI step", detail: "Scripts are cheaper, faster and more predictable than any reviewer. Keep the model for what needs reading." },
+    { question: "Let the AI reviewer block, but only with evidence", detail: "File, line, problem, fix. Everything uncertain is a suggestion. Otherwise people learn to ignore it." },
+    { question: "Protect the guardrails themselves", detail: "Weakening a test, a threshold or a CI step should need a written reason in the same PR." },
+    { question: "Decide where humans still read every line", detail: "Name the paths: money, permissions, data deletion. Make it explicit so it doesn't erode when the queue is long." },
+  ]}
+/>
+
+None of this makes review free. It moves the work from reading every diff to writing the rules every diff is checked against, and that work compounds in a way that reading diffs never did.
+
+## Where to go next
+
+[Shipping at Upgrid](/articles/shipping-at-upgrid/) has the rest of the pipeline and the full merge numbers. [AI Agents Keep Deleting Production](/articles/ai-agents-deleting-production/) is the other half of letting agents write code: what they should never be able to touch, however good the review is. [I Hardly Debug Anymore](/articles/i-hardly-debug-anymore-tdd/) is why tests carry so much of the weight in this stack.
+
+## Questions
+
+### Is code review the bottleneck when AI writes code?
+
+It quickly becomes one. At Upgrid, merged PRs went from about 4 a day to over 18 a day in 2026, with more than half of them opened by coding agents, while PRs also grew. Careful human review of every line would now take more than twenty hours a day. The fix was to move checkable rules into CI and an AI reviewer, and keep human attention for judgment and the money path.
+
+### Can an AI reviewer replace human code review?
+
+For checks against written rules, largely yes: security policies, migration safety, data-access conventions, weakened tests. It can't decide whether a feature should exist, notice drift across many PRs, or enforce rules nobody wrote down. Keep people on design decisions and high-risk code.
+
+### How do you stop an AI code reviewer from being noisy?
+
+Only let it block on a concrete problem in the diff, with a file, a line and a required fix. Make anything uncertain a non-blocking suggestion, and don't let it comment on style or on code the PR didn't touch.
+
+### How do you keep AI code review costs down?
+
+Skip draft PRs, wait a couple of minutes after each push so rapid pushes cancel earlier runs, review only the new commits when the previous review still applies, and leave anything a script can check to a normal CI step.

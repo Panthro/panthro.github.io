@@ -2,6 +2,7 @@
 title: "Building Upgrid"
 description: "Co-founding Upgrid as CTO: a Swiss energy-community platform where billing law, metering data, and go-to-market share the same correctness bar as fintech."
 date: "2026-08-07"
+updated: "2026-11-09"
 draft: false
 tags: ["energy-tech", "fintech-infrastructure", "engineering-leadership"]
 related:
@@ -34,7 +35,7 @@ As CTO I own the architecture, but I also act as PM and marketing when the bottl
 
 At N26 I spent years inside a ~200-service estate. The most valuable work I did there was often *consolidation*, pulling scattered fraud rules into one stateful stream because distribution was causing latency rather than defending against it.
 
-Upgrid is the opposite call. We're a small team shipping a regulated, money-handling platform. Seven apps and ~70 workspace packages with shared types, one Postgres schema, and one CI pipeline beats microservice coordination when real coupling is high and team size is low. At N26, service boundaries matched org boundaries and there were enough teams to justify the integration tax. Here there aren't. Shared types remove a whole class of contract bugs, one Postgres database with row-level security handles multi-tenancy, and CI ratchets let architecture improve weekly instead of through big-bang migrations. The coupling in this domain is real. Pretending otherwise wouldn't have made it go away.
+Upgrid is the opposite call. We're a small team shipping a regulated, money-handling platform. Six apps and ~70 workspace packages with shared types, one Postgres schema, and one CI pipeline beats microservice coordination when real coupling is high and team size is low. At N26, service boundaries matched org boundaries and there were enough teams to justify the integration tax. Here there aren't. Shared types remove a whole class of contract bugs, one Postgres database with row-level security handles multi-tenancy, and CI ratchets let architecture improve weekly instead of through big-bang migrations. The coupling in this domain is real. Pretending otherwise wouldn't have made it go away.
 
 Topology should follow team size and the coupling that actually exists. For the full stack tour — apps, metering, allocation, billing, delivery — see [Engineering at Upgrid](/articles/engineering-at-upgrid-tech-stack/).
 
@@ -94,7 +95,7 @@ They are the three community models Upgrid supports. A ZEV (*Zusammenschluss zum
 
 ### Should a small team use a monorepo or microservices?
 
-Let team size and real coupling decide. Upgrid runs seven apps and ~70 workspace packages with shared types, one Postgres schema with row-level security for multi-tenancy, and a single CI pipeline, because coupling in a regulated billing domain is genuinely high and the team is small. N26's ~200-service estate made sense for the opposite reason: enough teams that service boundaries matched org boundaries.
+Let team size and real coupling decide. Upgrid runs six apps and ~70 workspace packages with shared types, one Postgres schema with row-level security for multi-tenancy, and a single CI pipeline, because coupling in a regulated billing domain is genuinely high and the team is small. N26's ~200-service estate made sense for the opposite reason: enough teams that service boundaries matched org boundaries.
 
 ### What does it take to bill a Swiss energy community?
 
