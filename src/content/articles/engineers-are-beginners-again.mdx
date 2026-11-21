@@ -1,0 +1,232 @@
+---
+title: "Every Engineer Is a Beginner Again"
+description: "Senior engineers say the new people can't really code. They're also quietly afraid. A CTO's view of the skills that matter now that agents write most of the code, and how to mentor people through it."
+date: "2026-11-21"
+draft: false
+tags: ["engineering-leadership"]
+related:
+  - ai-writes-the-code-review-is-the-bottleneck
+  - senior-staff-principal-engineer-ambiguity
+  - ai-agents-deleting-production
+---
+
+import { AbstractionLadder } from "../../components/articles/AbstractionLadder";
+import { SkillShift } from "../../components/articles/SkillShift";
+
+There are two reactions I hear on every engineering team right now, often from the same person in the same week.
+
+The first one is said out loud: *they're just talking to a computer, they can't even write code.* It's aimed at the new joiner who ships a feature without opening a file, or at the colleague from marketing who now has merged pull requests.
+
+The second one is never said out loud. It's fear. If the thing I spent fifteen years getting good at can be done by typing a paragraph, what am I for?
+
+I recognise the first reaction in myself. I've had twenty years of writing code by hand, and part of me still flinches when I watch someone accept a 600-line diff they haven't read. The second reaction is the one I have to work with as a CTO, because it's the one that makes good engineers stop growing.
+
+At Upgrid, more than half of the pull requests we merged last quarter came from branches opened by coding agents. A year earlier it was 17%. The way we build software changed under our feet in about twelve months, and the people building it need to change with it. This article is about that second part.
+
+## The ladder only goes one way
+
+Every step in the history of programming has been about saying the same thing with less ceremony. Machine code became assembly. Assembly became C. C became languages with garbage collectors, then frameworks that hid the browser, then cloud platforms that hid the server. Each step was called cheating by the people one step below it.
+
+Natural language is the next rung. That sounds dramatic until you put the rungs side by side. Here is the same tiny program, a square sliding across a screen, written at each level. Pick a rung, or start at the top and go down.
+
+<AbstractionLadder
+  client:visible={{ rootMargin: "400px" }}
+  title="The same program, one level at a time"
+  initial={0}
+  rungs={[
+    {
+      id: "natural",
+      label: "Natural language",
+      era: "2020s",
+      code: "Draw a lime square on a dark page\nand slide it from left to right, forever.",
+      hidden: "The code an agent wrote for you, and every level below it.",
+      breaksWhen: "It's smooth on your laptop and stutters on a cheap phone. Asking more politely won't fix it.",
+    },
+    {
+      id: "framework",
+      label: "UI framework",
+      era: "2010s",
+      code: "function Square() {\n  const [x, setX] = useState(0);\n  useEffect(() => {\n    const id = requestAnimationFrame(() => setX((x + 2) % 600));\n    return () => cancelAnimationFrame(id);\n  }, [x]);\n  return <div className=\"square\" style={{ transform: `translateX(${x}px)` }} />;\n}",
+      hidden: "How the page is diffed and repainted, and when the browser decides to draw a frame.",
+      breaksWhen: "A state update on every frame re-renders half the page and the animation drops frames.",
+    },
+    {
+      id: "scripting",
+      label: "Scripting language",
+      era: "1990s",
+      code: "x = 0\nwhile True:\n    screen.fill(DARK)\n    pygame.draw.rect(screen, LIME, (x, 100, 40, 40))\n    pygame.display.flip()\n    x = (x + 2) % 600\n    clock.tick(60)",
+      hidden: "Memory, the interpreter loop, and the garbage collector that pauses when it likes.",
+      breaksWhen: "Every few seconds the square hitches because the collector stopped the world.",
+    },
+    {
+      id: "c",
+      label: "C",
+      era: "1970s",
+      code: "for (int y = 100; y < 140; y++)\n  for (int i = 0; i < 40; i++)\n    fb[y * WIDTH + x + i] = LIME;\nx = (x + 2) % WIDTH;",
+      hidden: "Registers, the instruction set, and what the compiler actually did with your loop.",
+      breaksWhen: "x + i runs past the end of the row and you write into memory you don't own.",
+    },
+    {
+      id: "assembly",
+      label: "Assembly",
+      era: "1950s",
+      code: "draw:  mov  di, [pos]\n       mov  cx, 40\n       mov  al, 0x2F\n       rep  stosb\n       add  word [pos], 2\n       jmp  draw",
+      hidden: "How each instruction is encoded as bits, and how many cycles it costs.",
+      breaksWhen: "You picked the wrong register and the loop counter is now your colour.",
+    },
+    {
+      id: "machine",
+      label: "Machine code",
+      era: "1940s",
+      code: "8B 3E 00 10  B9 28 00  B0 2F\nF3 AA  83 06 00 10 02  EB EF",
+      hidden: "Only the hardware.",
+      breaksWhen: "Almost nobody works here anymore, and the people who do are very well paid.",
+    },
+  ]}
+  caption="Illustrative code, not a working program at every level. The point is what each level asks you to know."
+/>
+
+Almost nobody writes the bottom of that ladder today, and nobody calls the people on the middle rungs fake programmers. Not long ago, plenty of engineers thought web developers weren't real engineers, and teams that deployed by copying files to a server called CI pipelines a crutch. Both groups were right about something, and both lost the argument anyway.
+
+## Easier means hidden, and hidden is where incidents live
+
+The senior engineer's objection is worth taking seriously, because half of it is true.
+
+Every rung you climb hides the rungs below. That's the whole point of the rung. It's also why, when something breaks, the person who can go down a level fixes it in an hour and the person who can't is stuck for a week. In my years leading teams at N26, the hardest incidents were rarely in the code someone had just written. They were usually in the layer under it: a connection pool, a consumer offset, a timeout nobody remembered setting. The engineers who solved those had one habit in common. They knew there was a "down" and they weren't scared to go there.
+
+Agents make the hidden layers thicker. When I wrote about [agents deleting production](/articles/ai-agents-deleting-production), most of the failures had the same shape. Someone asked for a result in plain English, the agent took an action three layers below where the person was looking, and nobody in the loop knew those layers existed.
+
+So yes: some people who build only from the top rung will ship things that fail, and they won't know why. That's real. It's also the most fixable problem in this whole shift, and it's our job to fix it.
+
+## The other half
+
+Here's the part the objection leaves out.
+
+At Upgrid, some of our most useful pull requests this year came from people outside engineering. One colleague on the marketing side has shipped dozens of changes to our main branch since the spring: calculators rebuilt as real tools, pages for every Swiss grid operator generated from public tariff data, structured data that search engines now read, a lead form that was quietly throwing emails away and now doesn't. Our ops and sales people, who don't write SQL, now get answers from our [company brain](/articles/building-the-company-brain-at-upgrid) that used to need an engineer and a free afternoon.
+
+None of those people asked whether the thing was hard. Nobody had told them it was. If I had estimated the grid-operator pages, I'd have called it a sprint, flagged the data quality risk, and put it behind three other priorities. The code went from spec to merged in a couple of days.
+
+Some of what non-engineers build does break in ways they can't explain. When it does, the gap between "it broke" and "here's why" is exactly where a senior engineer is worth the most. The job didn't disappear. It moved from writing the first draft to knowing where to look.
+
+## Respect what the time made
+
+The hardest version of the senior objection is about respect, more than anything technical. *How do I respect someone who never put in the time?*
+
+I used to answer that with "time is how you know it's real." I don't anymore. What I respected in the best engineers I worked with was never the hours. It was what the hours built: the instinct for where a system will break, the taste to say no to a clever design, the calm during an incident. Hours were the only way to get those, so we used hours as a proxy.
+
+The proxy is breaking. Someone with two years of experience and good habits with agents can now produce what used to take five. They won't have the same instincts yet, and they'll get them faster if someone who has them sits next to them.
+
+When I wrote advice for [people leaving coding bootcamps](/articles/straight-out-of-the-bootcamp), the core of it was "evidence over certificates." That still holds. The evidence changed: less "look at what I typed", more "look at what I decided, what I checked, and what I caught."
+
+## What the job is now
+
+Here's how I think the weight of each skill has moved, by level. This is my judgement from running teams through it, not a survey. Switch between levels to see how differently it lands.
+
+<SkillShift
+  client:visible={{ rootMargin: "400px" }}
+  title="How much each skill weighs in the job, before agents and now"
+  beforeLabel="Before agents"
+  nowLabel="Now"
+  levels={[
+    {
+      id: "junior",
+      label: "Junior",
+      summary: "The first job used to be writing code. Now it's learning to tell good code from code that only looks good.",
+      skills: [
+        { name: "Syntax and APIs from memory", before: 4, now: 1, note: "The agent remembers. You still need to recognise when it's wrong." },
+        { name: "Typing out boilerplate", before: 3, now: 0, note: "Gone. Nobody should spend a junior's first year on this." },
+        { name: "Reading code critically", before: 2, now: 5, note: "Most of the code you touch now was written by something else." },
+        { name: "Describing what you want", before: 1, now: 4, note: "A vague ask gets you a confident wrong answer." },
+        { name: "Going one level down", before: 2, now: 4, note: "When it breaks, can you open the layer under the one you asked for?" },
+        { name: "Asking for help early", before: 3, now: 4, note: "Agents make it easy to stay stuck alone for a long time." },
+      ],
+    },
+    {
+      id: "senior",
+      label: "Senior",
+      summary: "Seniors were paid to produce. Now they're paid to judge, and to stop the expensive mistakes.",
+      skills: [
+        { name: "Writing features end to end", before: 5, now: 2, note: "You'll still do it. It's no longer the thing that makes you senior." },
+        { name: "Reviewing at volume", before: 2, now: 5, note: "Three times the PRs, twice the size. Know where to look first." },
+        { name: "Blast-radius judgement", before: 3, now: 5, note: "What can this change touch if it's wrong? Agents don't ask." },
+        { name: "Debugging below the stack", before: 4, now: 5, note: "The skill everyone else now depends on you for." },
+        { name: "Teaching the layer below", before: 2, now: 4, note: "Guarding what you know made you valuable. Sharing it now does." },
+        { name: "Setting up guardrails", before: 2, now: 4, note: "Tests, gates and permissions that work whoever wrote the code." },
+      ],
+    },
+    {
+      id: "staff",
+      label: "Staff",
+      summary: "The ambiguity got bigger. More can be built, so choosing what not to build matters more.",
+      skills: [
+        { name: "Hands-on architecture", before: 4, now: 3, note: "Agents can sketch a design. Picking the one that ages well is still on you." },
+        { name: "Deciding what not to build", before: 3, now: 5, note: "When building is cheap, saying no is the scarce skill." },
+        { name: "Writing intent down", before: 3, now: 5, note: "Specs, ADRs and conventions are now read by agents as well as people." },
+        { name: "System-wide guardrails", before: 3, now: 5, note: "Design the gates so a hundred PRs a week stay safe." },
+        { name: "Cross-team influence", before: 4, now: 4, note: "Unchanged. People still have to agree." },
+      ],
+    },
+    {
+      id: "lead",
+      label: "Lead",
+      summary: "Managing output got easy. Managing how people feel about their own value got hard.",
+      skills: [
+        { name: "Tracking delivery", before: 4, now: 2, note: "Throughput is rarely the problem anymore." },
+        { name: "Coaching through change", before: 2, now: 5, note: "The fear is real, and it's quiet. You have to go looking for it." },
+        { name: "Redefining what good looks like", before: 2, now: 5, note: "Promotions, praise and hiring still reward the old job if you let them." },
+        { name: "Hiring for judgement", before: 3, now: 5, note: "Interview for what someone checks, not what they type." },
+        { name: "Modelling being a beginner", before: 1, now: 4, note: "If the lead won't look clumsy with new tools, nobody will." },
+      ],
+    },
+  ]}
+/>
+
+What strikes me looking at it is that almost nothing on the "now" side is new. Reading code critically, knowing the layer below, judging blast radius, teaching: those were always what separated great engineers from good ones. They used to be a bonus on top of writing code. Now they're most of the job.
+
+## Mentoring through it
+
+Here's what I'd tell any lead whose team is going through this.
+
+**Pair on failures, not features.** Agents make features easy. They make failures more confusing. When something breaks, put a junior next to the person who can go down a level and have them narrate what they're checking and why. Ten of those sessions teach more than a year of feature tickets.
+
+**Ask one question in every review.** *If this broke at 3 a.m., what would you check first?* If the author can't answer, the change isn't ready, whoever wrote the code. It's the cheapest way I know to teach that there is a "down."
+
+**Make seniors teach the layer below.** The old way to stay valuable was to be the only one who understood the billing engine. That's now the fastest way to become a bottleneck for a team shipping eighteen PRs a day. Ask seniors for short write-ups and recorded walkthroughs of the hidden layers, and say clearly that this counts as senior work.
+
+**Let seniors be bad at the new thing, in public.** Fear of looking clumsy keeps experienced people away from new tools longer than any technical reason. Share your own failed prompts and the agent sessions that went sideways. If the lead is visibly a beginner at something, it becomes safe for everyone else to be one too.
+
+**Change what you praise.** If the only thing that gets celebrated is shipping, people will optimise for shipping. Call out the review that caught a dangerous migration, the guardrail that stopped an agent, the colleague from marketing whose first PR was small and careful. People do what gets noticed.
+
+**Hire for what someone checks.** In interviews, care less about whether someone can write a function from scratch and more about what they do with a diff they didn't write. Hand them one with a subtle bug and watch where they look.
+
+## Beginner again
+
+I started programming at fifteen, almost by accident. I'd enrolled in a technical high school in Brazil, and the course was programming. I didn't really know what that meant. I thought I was going to learn how to use computers.
+
+Then one day it clicked. Every game I played, every program I opened, even the operating system itself had been built by someone. Somebody had sat down and written all of it. I still remember the excitement of that moment. I knew right there that this was what I wanted to do.
+
+A lot of senior engineers are afraid right now. That's what being good at something feels like when the ground moves. But underneath the fear there's something I recognise from being fifteen: the realisation that a whole world of things can be built, and that you're allowed to build them. The tools that scare us today make that world a lot bigger.
+
+The way back to that feeling is to be a beginner again, on purpose, with people watching. It's uncomfortable. It's also how every one of us got good in the first place.
+
+## Questions
+
+### Will AI replace software engineers?
+
+It's replacing a large part of what software engineers used to spend their time on, mainly typing code from memory. It isn't replacing the judgement around it: knowing what to build, reviewing what was built, and fixing it when it breaks in a layer nobody was looking at. At Upgrid the team stayed about the same size while the number of merged pull requests grew several times over.
+
+### What skills should software engineers learn now?
+
+Reading code critically, describing intent precisely, debugging one level below the abstraction you work in, and judging the blast radius of a change. Seniors should add teaching and guardrail design. Most of these were always the marks of a great engineer. They're now the core of the job.
+
+### How do you mentor junior engineers when AI writes most of the code?
+
+Pair on failures rather than features, so juniors see how an experienced engineer goes down the stack. Ask in every review what they would check if the change broke in production. Praise good catches and careful reviews as loudly as shipped features.
+
+### Is learning to code still worth it in the age of AI?
+
+Yes. You'll write less code by hand, but you need to understand code to review it, to know when an agent is wrong, and to fix what breaks. People who understand at least one layer below where they work will be the ones others depend on.
+
+### How should senior engineers deal with the fear of becoming obsolete?
+
+Treat the new tools as something to be a beginner at, in public, and move your value from producing code to judging it and teaching the layers you know. Your experience is what a faster team needs most when something goes wrong.

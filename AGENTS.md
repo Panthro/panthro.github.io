@@ -219,6 +219,8 @@ Reuse when they genuinely fit. All live in `src/components/articles/`:
 | `BlastRadius` | Nested boxes showing how far one credential reaches; toggling controls shrinks the radius and updates the worst case (island: `client:visible`) |
 | `ReviewLoad` | Bars of review hours needed per day (PRs/day × lines ÷ review speed) against a capacity line set by sliders (island: `client:visible`) |
 | `GateStack` | A PR passing down a stack of merge gates; scenario tabs show which layer blocks or hands off to a human (island: `client:visible`) |
+| `AbstractionLadder` | The same small program shown at each level of abstraction; rungs below the selected one are marked hidden, with what each level hides and when you have to go down (island: `client:visible`) |
+| `SkillShift` | Level tabs; paired before/now bars per skill with direction arrows and a note, sorted by growth (island: `client:visible`) |
 
 Interactive islands must SSR a complete end state (works without JS), honour `prefers-reduced-motion`, and set `suppressHydrationWarning` on an `.article-reveal` root (Head.astro adds `.show` before hydration).
 
