@@ -8,6 +8,7 @@ import BackToPrev from "@components/BackToPrev.astro";
 import TableOfContents from "@components/TableOfContents.astro";
 import { SITE } from "@consts";
 import { articleSchema, breadcrumbSchema } from "@lib/seo";
+import { coverSvg } from "@lib/cover-art";
 import type { TocHeading } from "@components/TableOfContents.astro";
 
 type Props = {
@@ -153,6 +154,12 @@ const jsonLd = [
               {description}
             </p>
           </div>
+
+          <figure
+            class="article-cover animate-hero border border-subtle aspect-[8/3] overflow-hidden"
+            aria-hidden="true"
+            set:html={coverSvg(slug, { width: 1200, height: 450 })}
+          />
 
           <TableOfContents headings={headings} />
 

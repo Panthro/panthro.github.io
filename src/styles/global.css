@@ -445,3 +445,10 @@ html.scrolled #back-to-top {
     transform: translateX(0);
   }
 }
+
+/* Article cover art: generated inline SVG (src/lib/cover-art.ts) fills its 8:3 frame. */
+.article-cover svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

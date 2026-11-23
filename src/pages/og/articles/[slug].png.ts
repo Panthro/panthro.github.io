@@ -5,6 +5,7 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import satori from "satori";
 import sharp from "sharp";
 import { SITE } from "@consts";
+import { coverSvg } from "@lib/cover-art";
 
 /**
  * Per-article Open Graph image, rendered at build time: `/og/articles/<slug>.png`.
@@ -69,7 +70,6 @@ export const GET: APIRoute<{ article: CollectionEntry<"articles"> }> = async ({ 
       position: "relative",
       paddingTop: 88,
       paddingLeft: 100,
-      backgroundColor: BG,
     },
     [
       h("div", { display: "flex", flexDirection: "column", width: 1000 }, [
@@ -113,7 +113,28 @@ export const GET: APIRoute<{ article: CollectionEntry<"articles"> }> = async ({ 
     height: 630,
     fonts,
   });
-  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  const text = await sharp(Buffer.from(svg)).png().toBuffer();
+
+  // Cover art behind the text, faded out under the title so it stays legible.
+  const art = coverSvg(props.article.id, { width: 1200, height: 630 }, "og");
+  const scrim = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+    <defs><linearGradient id="s" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${BG}" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="${BG}" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="${BG}" stop-opacity="0.15"/>
+    </linearGradient></defs>
+    <rect width="1200" height="630" fill="url(#s)"/></svg>`;
+
+  const png = await sharp({
+    create: { width: 1200, height: 630, channels: 4, background: BG },
+  })
+    .composite([
+      { input: Buffer.from(art) },
+      { input: Buffer.from(scrim) },
+      { input: text },
+    ])
+    .png()
+    .toBuffer();
 
   return new Response(new Uint8Array(png), {
     headers: { "Content-Type": "image/png" },
